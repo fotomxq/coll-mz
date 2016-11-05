@@ -1,0 +1,6 @@
+{
+  "databaseType" : "sqlite3",
+  "databaseDNS" : "./content/data-db/db.sqlite",
+  "pageStart" : "120",
+  "pageEnd" : "200"
+}
