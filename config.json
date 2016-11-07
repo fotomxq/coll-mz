@@ -1,4 +1,0 @@
-{
-  "databaseType" : "sqlite3",
-  "databaseDNS" : "./db/db.sqlite"
-}

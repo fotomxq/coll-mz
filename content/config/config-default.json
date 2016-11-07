@@ -1,0 +1,15 @@
+{
+  "pageURLPrefix" : "",
+  "pageURLSuffix" : "",
+  "pageFindStr" : "",
+  "pageTitleFindStr" : "",
+  "isOnlyPage" : true,
+  "childrenFindStr" : "",
+  "childrenTitleFindStr" : "",
+  "pageMaxFindStr" : "",
+  "pageStart" : "",
+  "pageEnd" : "",
+  "isPageSortAsc" : true,
+  "dbType" : "sqlite3",
+  "dbDNS" : "./db/db.sqlite"
+}
