@@ -30,6 +30,9 @@ type GetPageData struct {
 func (getPageData *GetPageData) Create(log ftmplibs.Log,configData map[string]interface{}) bool{
 	//获取日志对象
 	getPageData.log = log
+	//保存基本配置数据
+	getPageData.dbType = configData["databaseType"].(string)
+	getPageData.dbDNS = configData["databaseDNS"].(string)
 	//返回建立成功
 	return true
 }
@@ -54,7 +57,7 @@ func (getPageData *GetPageData) check() (bool,error){
 
 //连接数据库
 func (getPageData *GetPageData) ConnectDB(){
-	getPageData.db, getPageData.dbErr = sql.Open(config.Data["databaseType"].(string),config.Data["databaseDNS"].(string))
+	getPageData.db, getPageData.dbErr = sql.Open(getPageData.dbType,getPageData.dbDNS)
 }
 
 //获取页面所有子页面链接
