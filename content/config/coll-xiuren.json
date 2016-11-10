@@ -1,0 +1,7 @@
+{
+  "databaseType" : "sqlite3",
+  "databaseDNS" : "content/database/xiuren.sqlite",
+  "parentURL" : "http://www.xiuren.org/page-",
+  "parentURLAppend" : ".html",
+  "collFileSrc" : "content/coll-file/xiuren"
+}

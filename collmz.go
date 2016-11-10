@@ -2,6 +2,7 @@ package main
 
 import(
 	"github.com/fotomxq/ftmp-libs"
+	"github.com/fotomxq/coll-mz/libs"
 )
 
 //日志处理
@@ -17,21 +18,6 @@ func main(){
 	log.AddLog("初始化参数中...")
 	//配置基本参数
 	log.SetErrorPrefix("发生一个错误 : ")
-	//读取配置信息
-	//err = config.LoadFile("config22.json")
-	if err != nil{
-		log.AddErrorLog(err)
-	}
-	//test
-	data := new(GetPageData)
-	config := new(ftmplibs.Config)
-	err = config.LoadFile("content/config/coll-list.json")
-	if err != nil{
-		log.AddErrorLog(err)
-	}
-	params := config.Data
-	err = data.Create(log,params)
-	if err != nil{
-		log.AddErrorLog(err)
-	}
+	//xiuren
+	collmzLibs.CollXiuren()
 }
