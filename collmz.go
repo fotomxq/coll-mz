@@ -16,8 +16,15 @@ func main(){
 	//开始提示
 	log.AddLog("* _ * * _ * 脚本开始运行 * _ * * _ *")
 	log.AddLog("初始化参数中...")
-	//配置基本参数
+	//设定错误前缀
 	log.SetErrorPrefix("发生一个错误 : ")
-	//xiuren
-	collmzLibs.CollXiuren()
+	//获取配置数据
+	config := new(ftmplibs.Config)
+	err = config.LoadFile("content/config/config.json")
+	if err != nil{
+		log.AddErrorLog(err)
+		return
+	}
+	//激活服务器
+	collmzLibs.Router()
 }

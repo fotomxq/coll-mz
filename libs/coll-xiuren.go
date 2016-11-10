@@ -8,13 +8,6 @@ import (
 	"strconv"
 )
 
-//通用错误
-var err error
-//通用页面操作对象
-var collPage GetPageData
-//文件存储路径
-var collFileSrc string
-
 //运行的脚本
 func CollXiuren() (bool,error){
 	//读取配置文件
