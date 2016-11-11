@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/fotomxq/ftmp-libs"
+	"strings"
 )
 
 //结构
@@ -133,6 +134,25 @@ func (getPageData *GetPageData) SaveUrlToFile(url string,src string) (bool,error
 	http := new(ftmplibs.SimpleHttp)
 	http.SetSendUrl(url)
 	return http.Save(src)
+}
+
+//获取URL末尾文件名称和类型
+//注意某些文件无法获取，如经过特殊处理的URL路径
+//返回结构 []string key : 0-全名 1-仅名称 2-仅类型
+func (getPageData *GetPageData) GetURLNameType(url string) []string{
+	var res []string
+	urls := strings.Split(url,"/")
+	if len(urls) < 1 {
+		return res
+	}
+	res[0] = urls[len(urls) - 1]
+	if res[0] == ""{
+		return res
+	}
+	names := strings.Split(res[0],".")
+	res[1] = names[0]
+	res[2] = names[1]
+	return res
 }
 
 //关闭数据库
