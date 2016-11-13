@@ -1,13 +1,13 @@
 //获取任意站点整站分页数据
 //可复用，获取任意站点的，某一类页面的所有页面内容
 //注意，某些非通用页面无法使用该模块run功能，但可以使用模块内其他方法辅助实现采集目标
-package collmzLibs
+package coll
 
 import (
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/fotomxq/ftmp-libs"
 	"strings"
+	"github.com/fotomxq/ftmp-libs"
 )
 
 //结构

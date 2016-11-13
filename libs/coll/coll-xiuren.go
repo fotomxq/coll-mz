@@ -1,5 +1,5 @@
 //收集秀人网数据模块
-package collmzLibs
+package coll
 
 import (
 	"github.com/fotomxq/ftmp-libs"
