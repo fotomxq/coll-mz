@@ -5,6 +5,7 @@ import(
 	"html/template"
 )
 
+//404错误页面
 func notFoundHandler(w http.ResponseWriter, r *http.Request){
 	if r.URL.Path == "/" {
 		http.Redirect(w, r, "/login/", http.StatusFound)

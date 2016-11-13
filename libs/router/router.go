@@ -28,6 +28,7 @@ func Router(){
 	//设定动态绑定
 	http.HandleFunc("/",notFoundHandler)
 	http.HandleFunc("/login/",loginHandler)
+	http.HandleFunc("/action-login",actionLoginHander)
 	//启动路由器
 	log.AddLog("服务器已经启动，端口：" + port)
 	err = http.ListenAndServe(":"+port, nil)
