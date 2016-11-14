@@ -20,6 +20,8 @@ type Log struct {
 	dirType int
 	//控制台和日志输出错误的前缀
 	errorPrefix string
+	//文件操作类
+	f FileOperate
 }
 
 //设定发送方式
@@ -32,7 +34,7 @@ func (log *Log) SetNewLogType(num int) {
 
 //设定存储路径
 func (log *Log) SetDirSrc(src string) {
-	if IsFile(src) == false {
+	if log.f.IsFile(src) == false {
 		log.dirSrc = src
 	}else{
 		log.dirSrc = "log"
@@ -113,7 +115,7 @@ func (log *Log) postFileLog(content string){
 			break
 
 	}
-	createDirBool, _ := CreateDir(dir)
+	createDirBool, _ := log.f.CreateDir(dir)
 	if createDirBool == false {
 		log.postFmtLog("ERROR : Cannot create log dir.")
 		return
@@ -123,7 +125,7 @@ func (log *Log) postFileLog(content string){
 	var logContent string = nowTime + " " + content + "\n"
 	logContentByte := []byte(logContent)
 	//向日志文件添加日志
-	_,writeErr := WriteFileAppend(logSrc,logContentByte)
+	_,writeErr := log.f.WriteFileAppend(logSrc,logContentByte)
 	if writeErr != nil{
 		fmt.Println(writeErr.Error())
 	}

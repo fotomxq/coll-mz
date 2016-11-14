@@ -7,11 +7,21 @@ import (
 	"os"
 	"bytes"
 	"crypto/sha1"
+	"io"
 )
+
+//文件操作类
+type FileOperate struct {
+
+}
 
 //创建新的文件夹
 //支持多级创建
-func CreateDir(src string) (bool,error) {
+func (f *FileOperate) CreateDir(src string) (bool,error) {
+	b := f.IsFolder(src)
+	if b == true{
+		return true,nil
+	}
 	err := os.MkdirAll(src,os.ModePerm)
 	if err != nil{
 		return false,err
@@ -20,7 +30,7 @@ func CreateDir(src string) (bool,error) {
 }
 
 //创建文件
-func CreateFile(src string) bool{
+func (f *FileOperate) CreateFile(src string) bool{
 	_,err := os.Create(src)
 	if err != nil{
 		return true
@@ -29,7 +39,7 @@ func CreateFile(src string) bool{
 }
 
 //读取文件
-func ReadFile(src string) ([]byte,error){
+func (f *FileOperate) ReadFile(src string) ([]byte,error){
 	fd, fdErr := os.Open(src)
 	if fdErr != nil {
 		return nil,fdErr
@@ -43,7 +53,7 @@ func ReadFile(src string) ([]byte,error){
 }
 
 //写入文件
-func WriteFile(src string, content []byte) (bool,error) {
+func (f *FileOperate) WriteFile(src string, content []byte) (bool,error) {
 	err := ioutil.WriteFile(src, content, os.ModeAppend)
 	if err != nil {
 		return false,err
@@ -52,12 +62,12 @@ func WriteFile(src string, content []byte) (bool,error) {
 }
 
 //追加写入文件
-func WriteFileAppend(src string, content []byte) (bool,error){
-	if IsFile(src) == false{
-		writeBool,writeErr := WriteFile(src, content)
+func (f *FileOperate) WriteFileAppend(src string, content []byte) (bool,error){
+	if f.IsFile(src) == false{
+		writeBool,writeErr := f.WriteFile(src, content)
 		return writeBool,writeErr
 	}
-	fileContent, fcErr := ReadFile(src)
+	fileContent, fcErr := f.ReadFile(src)
 	if fcErr != nil{
 		return false,fcErr
 	}
@@ -67,13 +77,13 @@ func WriteFileAppend(src string, content []byte) (bool,error){
 	}
 	sep := []byte("")
 	var newContent []byte = bytes.Join(s,sep)
-	writeBool2,writeErr2 := WriteFile(src,newContent)
+	writeBool2,writeErr2 := f.WriteFile(src,newContent)
 	return writeBool2,writeErr2
 }
 
 //修改文件或文件夹名称
 //可用于修改路径，即剪切
-func EditFileName(src string, newName string) (bool,error) {
+func (f *FileOperate) EditFileName(src string, newName string) (bool,error) {
 	err := os.Rename(src, newName)
 	if err != nil {
 		return true,err
@@ -81,8 +91,27 @@ func EditFileName(src string, newName string) (bool,error) {
 	return false,nil
 }
 
+//复制文件
+func (f *FileOperate) CopyFile(src string,dest string) (bool,error){
+	srcF,err := os.Open(src)
+	if err != nil{
+		return false,err
+	}
+	defer srcF.Close()
+	destF,err := os.Create(dest)
+	if err != nil{
+		return false,err
+	}
+	defer destF.Close()
+	_,err = io.Copy(destF,srcF)
+	if err != nil{
+		return false,err
+	}
+	return true,err
+}
+
 //删除文件
-func DeleteFile(src string) bool {
+func (f *FileOperate) DeleteFile(src string) bool {
 	err := os.RemoveAll(src)
 	if err != nil {
 		return true
@@ -91,13 +120,13 @@ func DeleteFile(src string) bool {
 }
 
 //判断路径是否存在
-func IsExist(src string) bool{
+func (f *FileOperate) IsExist(src string) bool{
 	_, err := os.Stat(src)
 	return err == nil || os.IsExist(err)
 }
 
 //判断是否为文件
-func IsFile(src string) bool {
+func (f *FileOperate) IsFile(src string) bool {
 	info, err := os.Stat(src)
 	if err != nil{
 		return false
@@ -106,7 +135,7 @@ func IsFile(src string) bool {
 }
 
 //判断是否为文件夹
-func IsFolder(src string) bool {
+func (f *FileOperate) IsFolder(src string) bool {
 	info, err := os.Stat(src)
 	if err != nil{
 		return false
@@ -115,12 +144,12 @@ func IsFolder(src string) bool {
 }
 
 //获取文件列表
-func GetFileList(src string) string {
+func (f *FileOperate) GetFileList(src string) string {
 	return ""
 }
 
 //获取文件大小
-func GetFileSize(src string) int64 {
+func (f *FileOperate) GetFileSize(src string) int64 {
 	info, err := os.Stat(src)
 	if err != nil{
 		return 0
@@ -129,14 +158,14 @@ func GetFileSize(src string) int64 {
 }
 
 //获取文件信息
-func GetFileInfo(src string) (os.FileInfo ,error) {
+func (f *FileOperate) GetFileInfo(src string) (os.FileInfo ,error) {
 	info, err := os.Stat(src)
 	return info,err
 }
 
 //计算文件sha1值
-func GetFileSha1(src string) (string,error){
-	content,err := ReadFile(src)
+func (f *FileOperate) GetFileSha1(src string) (string,error){
+	content,err := f.ReadFile(src)
 	if err != nil{
 		return "",err
 	}

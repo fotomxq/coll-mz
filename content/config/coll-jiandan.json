@@ -1,8 +1,0 @@
-{
-  "databaseType" : "sqlite3",
-  "databaseDNS" : "content/database/jiandan.sqlite",
-  "parentURL" : "http://jandan.net/ooxx",
-  "parentURLAppend" : "",
-  "collFileSrc" : "content/coll-file/jiandan",
-  "indexURL" : "http://jandan.net/"
-}

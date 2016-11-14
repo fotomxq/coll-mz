@@ -1,11 +1,13 @@
 //网络连接包
-//建议使用github.com/PuerkitoBio/goquery采集数据
+//该模块主要用于非解析页面
+//需要解析页面，建议使用github.com/PuerkitoBio/goquery
 package core
 
 import (
-    "io/ioutil"
-    "net/http"
-    "net/url"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
 )
 
 //网络通讯类构建
@@ -13,6 +15,7 @@ type SimpleHttp struct{
 	sendUrl string
 	sendParams map[string][]string
 	proxyOn bool
+	f FileOperate
 }
 
 //设定URL地址
@@ -70,6 +73,25 @@ func (simpleHttp *SimpleHttp) Save(fileSrc string) (bool,error){
 		return false,urlErr
 	}
 	//将数据写入文件
-	writeFileBool,writeErr := WriteFile(fileSrc,urlC)
+	writeFileBool,writeErr := simpleHttp.f.WriteFile(fileSrc,urlC)
 	return writeFileBool,writeErr
+}
+
+//获取URL末尾文件名称和类型
+//注意某些文件无法获取，如经过特殊处理的URL路径
+//返回结构 []string key : 0-全名 1-仅名称 2-仅类型
+func (simpleHttp *SimpleHttp) GetURLNameType(url string) []string{
+	var res []string
+	urls := strings.Split(url,"/")
+	if len(urls) < 1 {
+		return res
+	}
+	res[0] = urls[len(urls) - 1]
+	if res[0] == ""{
+		return res
+	}
+	names := strings.Split(res[0],".")
+	res[1] = names[0]
+	res[2] = names[1]
+	return res
 }
