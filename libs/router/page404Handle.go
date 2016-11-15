@@ -6,9 +6,9 @@ import(
 )
 
 //404错误页面
-func notFoundHandler(w http.ResponseWriter, r *http.Request){
+func page404Handle(w http.ResponseWriter, r *http.Request){
 	if r.URL.Path == "/" {
-		http.Redirect(w, r, "/login/", http.StatusFound)
+		http.Redirect(w, r, "/login", http.StatusFound)
 	}
 	t, err := template.ParseFiles("template/404.html")
 	if (err != nil) {

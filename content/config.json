@@ -1,5 +1,7 @@
 {
-  "collList" : ["jiandan"],
-  "dataSrc" : "D:\org",
-  "serverLocal" : ":8888"
+  "collList" : "jiandan,xiuren",
+  "dataSrc" : "D:\\org",
+  "serverLocal" : ":8888",
+  "user" : "admin@admin.com",
+  "passwd" : "adminadmin"
 }

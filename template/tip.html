@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>找不到该页面</title>
+    <title>{{.title}}</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="/assets/imgs/logo-32.ico">
@@ -23,11 +23,20 @@
   </div>
 
   <div class="ui main text container">
-    <h1 class="ui header">找不到页面</h1>
-    <p>对不起，您要找的页面不存在。</p>
+    <h1 class="ui header">{{.contentTitle}}</h1>
+    <p>{{.content}}</p>
   </div>
     <!-- script -->
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/js/semantic.min.js"></script>
+    <script>
+        function gotoURL(){
+            var url = "{{.gotoURL}}";
+            if(url != ""){
+                window.location.href = url;
+            }
+        }
+        setTimeout('gotoURL()',5000);
+    </script>
 </body>
 </html>
