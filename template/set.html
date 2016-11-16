@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>COLL MZ - SET</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="/assets/imgs/logo-32.ico">
+    <link rel="apple-touch-icon" href="/assets/imgs/logo-100.png">
+    <link rel="stylesheet" type="text/css" href="/assets/css/semantic.min.css">
+    <link rel="stylesheet" type="text/css" href="/assets/css/set.css">
+</head>
+<body>
+    <!--[if lt IE 8]>
+    <![endif]-->
+    <!-- menu -->
+    <div class="ui fixed inverted menu">
+        <div class="ui container">
+            <a href="/center" class="header item">
+                <img class="logo" src="/assets/imgs/logo-100.png">
+                COLL-MZ
+            </a>
+            <a href="/center" class="item">首页</a>
+            <a href="/set" class="item">设定</a>
+            <a href="/action-logout" class="item">退出</a>
+        </div>
+    </div>
+    <!-- content -->
+    <div class="ui main text container">
+        <h2 class="ui dividing header">采集</h2>
+        <div class="ui form">
+            <div class="field">
+                <label>强行全局采集</label>
+                <a class="ui button" href="/action-coll-run">启动采集器</a>
+            </div>
+            <div class="two fields">
+                <div class="field">
+                    <label>目标</label>
+                    <div class="ui selection dropdown">
+                      <input type="hidden" name="gender">
+                      <i class="dropdown icon"></i>
+                      <div class="default text">对象</div>
+                      <div class="menu">
+                          {{range $k,$v := .collList}}
+                          <div class="item" data-value="{{$k}}">{{$v}}</div>
+                          {{end}}
+                      </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>&nbsp;</label>
+                    <div class="ui submit button">开始采集</div>
+                </div>
+            </div>
+            <div class="field">
+                <label>日志</label>
+                <textarea></textarea>
+            </div>
+        </div>
+    </div>
+    <!-- script -->
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/semantic.min.js"></script>
+    <script src="/assets/js/set.js"></script>
+</body>
+</html>

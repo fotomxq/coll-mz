@@ -18,25 +18,34 @@
         <img class="logo" src="/assets/imgs/logo-100.png">
           COLL-MZ
       </a>
-      <a href="/login" class="item">登录</a>
+        <a href="/login" class="item">登录</a>
     </div>
-  </div>
+    </div>
 
-  <div class="ui main text container">
-    <h1 class="ui header">{{.contentTitle}}</h1>
-    <p>{{.content}}</p>
-  </div>
+    <div class="ui main text container">
+      <h1 class="ui header">{{.contentTitle}}</h1>
+      <p>{{.content}}</p>
+      <p id="wait-s-tip"></p>
+    </div>
     <!-- script -->
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/js/semantic.min.js"></script>
     <script>
+        var timeI = 1
         function gotoURL(){
             var url = "{{.gotoURL}}";
-            if(url != ""){
+            if(url == ""){
+                return false
+            }
+            if(timeI < 6){
+                setTimeout('gotoURL()',1000);
+                $("#wait-s-tip").html("稍等，将在" + timeI + "秒后跳转到页面：/" + url)
+            }else{
                 window.location.href = url;
             }
+            timeI += 1
         }
-        setTimeout('gotoURL()',5000);
+        setTimeout('gotoURL()',1000);
     </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 {
-  "collList" : "jiandan,xiuren",
   "dataSrc" : "D:\\org",
   "serverLocal" : ":8888",
   "user" : "admin@admin.com",
-  "passwd" : "adminadmin"
+  "passwd" : "adminadmin",
+  "autoRunHour" : "0"
 }

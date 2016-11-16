@@ -18,7 +18,7 @@ func pageLoginHandle(w http.ResponseWriter, r *http.Request){
 		pageTipHandle(w,r,data)
 	}else{
 		//如果未登录，则展开界面
-		t, err := template.ParseFiles("template/login.html")
+		t, err := template.ParseFiles(modGetTempSrc("login.html"))
 		if (err != nil) {
 			log.AddErrorLog(err)
 		}

@@ -100,18 +100,19 @@ func (log *Log) postFileLog(content string){
 	var dir string
 	var logSrc string
 	t := time.Now()
+	sep := log.f.GetPathSep()
 	switch log.dirType{
 		case 1:
-			dir = log.dirSrc + "/" + t.Format("2006/01")
-			logSrc = dir + "/" + t.Format("20060102") + ".log"
+			dir = log.dirSrc + sep + t.Format("2006") + sep + t.Format("2006")
+			logSrc = dir + sep + t.Format("20060102") + ".log"
 			break
 		case 2:
 			dir = log.dirSrc
-			logSrc = dir + "/" + t.Format("20060102") + ".log"
+			logSrc = dir + sep + t.Format("20060102") + ".log"
 			break
 		default:
-			dir = log.dirSrc + "/" + t.Format("200601")
-			logSrc = dir + "/" + t.Format("20060102") + ".log"
+			dir = log.dirSrc + sep + t.Format("200601")
+			logSrc = dir + sep + t.Format("20060102") + ".log"
 			break
 
 	}

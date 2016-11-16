@@ -17,7 +17,7 @@ func LoginIn(w http.ResponseWriter, r *http.Request,user string,passwd string) b
 
 //检查用户是否已经登录，或提供用户和密码检测
 func LoginCheck(w http.ResponseWriter, r *http.Request) bool{
-	//如果不提供用户和密码，则检测是否已经登录
+	//检查是否已经登陆
 	if getLoginSession(w,r) == true{
 		return true
 	}
@@ -48,6 +48,9 @@ func changeLoginSession(w http.ResponseWriter, r *http.Request,b bool) bool{
 func getLoginSession(w http.ResponseWriter, r *http.Request) bool{
 	session, err := store.Get(r, "login")
 	if err != nil{
+		return false
+	}
+	if session.Values["logged-ok"] == nil{
 		return false
 	}
 	if session.Values["logged-ok"].(string) == "in"{

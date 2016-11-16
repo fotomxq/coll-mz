@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"io"
+	"strings"
 )
 
 //文件操作类
@@ -143,9 +144,36 @@ func (f *FileOperate) IsFolder(src string) bool {
 	return info.IsDir()
 }
 
-//获取文件列表
-func (f *FileOperate) GetFileList(src string) string {
-	return ""
+//获取文件夹下文件和目录列表
+func (f *FileOperate) GetFileList(src string) ([]string,error) {
+	var fs []string
+	dir, err := ioutil.ReadDir(src)
+	if err != nil {
+		return nil, err
+	}
+	sep := f.GetPathSep()
+	for _, v := range dir {
+		fs = append(fs, src + sep + v.Name())
+	}
+	return fs, nil
+}
+
+//获取文件夹下文件和目录个数
+func (f *FileOperate) GetFileListCount(src string) (int,error) {
+	dir, err := ioutil.ReadDir(src)
+	if err != nil {
+		return 0, err
+	}
+	var res int
+	for _, _ = range dir {
+		res += 1
+	}
+	return res,nil
+}
+
+//获取系统路径分隔符
+func (f *FileOperate) GetPathSep() string {
+	return string(os.PathSeparator)
 }
 
 //获取文件大小

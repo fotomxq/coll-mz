@@ -4,6 +4,7 @@ package router
 import(
 	"net/http"
 	"github.com/fotomxq/coll-mz/libs/core"
+	"github.com/fotomxq/coll-mz/libs/coll"
 )
 
 //通用错误
@@ -14,11 +15,19 @@ var config core.Config
 var log core.Log
 //数据存储位置
 var dataSrc string
+//收集器
+var collPage coll.Coll
+//文件操作
+var file core.FileOperate
+//路径分隔符
+var fileSep string
 
 //启动路由器
 func Router(){
+	//路径分隔符
+	fileSep = file.GetPathSep()
 	//获取配置数据
-	err = config.LoadFile("./content/config.json")
+	err = config.LoadFile(sep + "content" + sep + "config.json")
 	if err != nil{
 		log.AddErrorLog(err)
 		return
@@ -27,8 +36,18 @@ func Router(){
 	dataSrc = config.Data["dataSrc"].(string)
 	port := config.Data["serverLocal"].(string)
 	//设定日志类
-	logDirSrc := dataSrc + "/log"
+	logDirSrc := dataSrc + sep + "log"
 	log.SetDirSrc(logDirSrc)
+	//创建收集器实例
+	b,err := collPage.Create(dataSrc)
+	if err != nil{
+		log.AddErrorLog(err)
+		return
+	}
+	if b == false{
+		log.AddLog("cannot create coll.")
+		return
+	}
 	//设定静态绑定
 	http.Handle("/assets/",http.FileServer(http.Dir("template")))
 	//设定动态绑定
@@ -37,10 +56,13 @@ func Router(){
 	http.HandleFunc("/action-login",actionLoginHandle)
 	http.HandleFunc("/action-logout",actionLogoutHandle)
 	http.HandleFunc("/center",pageCenterHandle)
+	http.HandleFunc("/set",pageSetHandle)
+	http.HandleFunc("/action-coll-run",actionCollRunHandle)
 	//启动路由器
 	log.AddLog("服务器已经启动，地址：" + port)
 	err = http.ListenAndServe(port, nil)
 	if err != nil{
 		log.AddErrorLog(err)
+		return
 	}
 }
