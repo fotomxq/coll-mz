@@ -7,9 +7,9 @@
 package core
 
 import (
-	"os"
-	"io/ioutil"
 	"encoding/json"
+	"io/ioutil"
+	"os"
 )
 
 //配置文件类型
@@ -22,7 +22,7 @@ type Config struct {
 }
 
 //读取配置文件
-func (config *Config) LoadFile(src string) (error){
+func (config *Config) LoadFile(src string) error {
 	//保存路径
 	config.src = src
 	//读取文件
@@ -36,22 +36,22 @@ func (config *Config) LoadFile(src string) (error){
 		return err
 	}
 	//解析JSON
-	err = json.Unmarshal(c,&config.Data)
-	if err != nil{
+	err = json.Unmarshal(c, &config.Data)
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
 //将配置写入文件
-func (config *Config) SaveFile()(bool,error){
-	jsonStr,jsonErr := json.Marshal(config.Data)
-	if jsonErr != nil{
-		return false,jsonErr
+func (config *Config) SaveFile() (bool, error) {
+	jsonStr, jsonErr := json.Marshal(config.Data)
+	if jsonErr != nil {
+		return false, jsonErr
 	}
 	fileErr := ioutil.WriteFile(config.src, jsonStr, os.ModeAppend)
 	if fileErr != nil {
-		return false,fileErr
+		return false, fileErr
 	}
-	return true,nil
+	return true, nil
 }

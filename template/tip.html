@@ -31,19 +31,19 @@
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/js/semantic.min.js"></script>
     <script>
-        var timeI = 1
+        var timeI = 5
         function gotoURL(){
             var url = "{{.gotoURL}}";
             if(url == ""){
                 return false
             }
-            if(timeI < 6){
+            if(timeI > 1){
                 setTimeout('gotoURL()',1000);
                 $("#wait-s-tip").html("稍等，将在" + timeI + "秒后跳转到页面：/" + url)
             }else{
                 window.location.href = url;
             }
-            timeI += 1
+            timeI -= 1
         }
         setTimeout('gotoURL()',1000);
     </script>

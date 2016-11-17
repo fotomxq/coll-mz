@@ -2,7 +2,7 @@
 package core
 
 //引用模块
-import(
+import (
 	"fmt"
 	"time"
 )
@@ -26,7 +26,7 @@ type Log struct {
 
 //设定发送方式
 func (log *Log) SetNewLogType(num int) {
-	if num != 1 && num != 2{
+	if num != 1 && num != 2 {
 		num = 0
 	}
 	log.newLogType = num
@@ -36,42 +36,42 @@ func (log *Log) SetNewLogType(num int) {
 func (log *Log) SetDirSrc(src string) {
 	if log.f.IsFile(src) == false {
 		log.dirSrc = src
-	}else{
+	} else {
 		log.dirSrc = "log"
 	}
 }
 
 //设定日志保存结构
-func (log *Log) SetDirType(t int){
-	if t != 1 && t != 2{
+func (log *Log) SetDirType(t int) {
+	if t != 1 && t != 2 {
 		t = 0
 	}
 	log.dirType = t
 }
 
 //设定输出错误的前缀
-func (log *Log) SetErrorPrefix(prefix string){
+func (log *Log) SetErrorPrefix(prefix string) {
 	log.errorPrefix = prefix
 }
 
 //添加新的日志
 func (log *Log) AddLog(content string) {
 	switch log.newLogType {
-		case 1:
-			log.postFileLog(content)
-			break
-		case 2:
-			log.postFmtLog(content)
-			break
-		default:
-			log.postFmtLog(content)
-			log.postFileLog(content)
-			break
+	case 1:
+		log.postFileLog(content)
+		break
+	case 2:
+		log.postFmtLog(content)
+		break
+	default:
+		log.postFmtLog(content)
+		log.postFileLog(content)
+		break
 	}
 }
 
 //系统级别错误日志
-func (log *Log) AddErrorLog(err error){
+func (log *Log) AddErrorLog(err error) {
 	errMsg := err.Error()
 	if log.errorPrefix == "" {
 		log.errorPrefix = "Error : "
@@ -85,15 +85,15 @@ func (log *Log) postFmtLog(content string) {
 }
 
 //向日志文件发送日志信息
-func (log *Log) postFileLog(content string){
+func (log *Log) postFileLog(content string) {
 	//检查或初始化变量
-	if log.dirSrc == ""{
+	if log.dirSrc == "" {
 		log.SetDirSrc("log")
 	}
-	if log.newLogType != 0 && log.newLogType != 1 && log.newLogType != 2{
+	if log.newLogType != 0 && log.newLogType != 1 && log.newLogType != 2 {
 		log.SetNewLogType(2)
 	}
-	if log.dirType != 0 && log.dirType != 1 && log.dirType != 2{
+	if log.dirType != 0 && log.dirType != 1 && log.dirType != 2 {
 		log.SetDirType(0)
 	}
 	//构建存储位置
@@ -101,19 +101,19 @@ func (log *Log) postFileLog(content string){
 	var logSrc string
 	t := time.Now()
 	sep := log.f.GetPathSep()
-	switch log.dirType{
-		case 1:
-			dir = log.dirSrc + sep + t.Format("2006") + sep + t.Format("2006")
-			logSrc = dir + sep + t.Format("20060102") + ".log"
-			break
-		case 2:
-			dir = log.dirSrc
-			logSrc = dir + sep + t.Format("20060102") + ".log"
-			break
-		default:
-			dir = log.dirSrc + sep + t.Format("200601")
-			logSrc = dir + sep + t.Format("20060102") + ".log"
-			break
+	switch log.dirType {
+	case 1:
+		dir = log.dirSrc + sep + t.Format("2006") + sep + t.Format("2006")
+		logSrc = dir + sep + t.Format("20060102") + ".log"
+		break
+	case 2:
+		dir = log.dirSrc
+		logSrc = dir + sep + t.Format("20060102") + ".log"
+		break
+	default:
+		dir = log.dirSrc + sep + t.Format("200601")
+		logSrc = dir + sep + t.Format("20060102") + ".log"
+		break
 
 	}
 	createDirBool, _ := log.f.CreateDir(dir)
@@ -126,14 +126,14 @@ func (log *Log) postFileLog(content string){
 	var logContent string = nowTime + " " + content + "\n"
 	logContentByte := []byte(logContent)
 	//向日志文件添加日志
-	_,writeErr := log.f.WriteFileAppend(logSrc,logContentByte)
-	if writeErr != nil{
+	_, writeErr := log.f.WriteFileAppend(logSrc, logContentByte)
+	if writeErr != nil {
 		fmt.Println(writeErr.Error())
 	}
 	return
 }
 
 //获取当前系统日期
-func (log *Log) getNowDateString() (string){
+func (log *Log) getNowDateString() string {
 	return time.Now().String()
 }

@@ -3,8 +3,8 @@
 package core
 
 import (
-	"net"
 	"io/ioutil"
+	"net"
 	"net/http"
 )
 
