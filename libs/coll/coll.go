@@ -28,6 +28,8 @@ type Coll struct {
 	dataCollSrc string
 	//收集缓冲路径
 	dataCollCacheSrc string
+	//可读取日志存储路径
+	logReadSrc string
 	//全局列表设定
 	CollList map[string]string
 	//http操作句柄
@@ -48,11 +50,13 @@ func (c *Coll) Create(dataSrc string) (bool, error) {
 		return b, err
 	}
 	//构建完成后，在数据目录下创建log、coll等子目录及文件
-	dataLogSrc := dataSrc + "/log"
-	c.dataCollSrc = dataSrc + "/coll"
-	c.dataCollCacheSrc = dataSrc + "/coll-cache"
-	dataDatabaseDirSrc := dataSrc + "/database"
-	dataDatabaseSrc := dataDatabaseDirSrc + "/database.sqlite"
+	sep := c.file.GetPathSep()
+	dataLogSrc := dataSrc + sep + "log"
+	c.dataCollSrc = dataSrc + sep + "coll"
+	c.dataCollCacheSrc = dataSrc + sep + "coll-cache"
+	dataDatabaseDirSrc := dataSrc + sep + "database"
+	dataDatabaseSrc := dataDatabaseDirSrc + sep + "database.sqlite"
+	c.logReadSrc = dataDatabaseDirSrc + sep + "log-read.log"
 	b, err = c.file.CreateDir(dataLogSrc)
 	if err != nil || b == false {
 		return b, err
@@ -70,7 +74,13 @@ func (c *Coll) Create(dataSrc string) (bool, error) {
 		return b, err
 	}
 	if c.file.IsFile(dataDatabaseSrc) == false {
-		b, err = c.file.CopyFile("./content/database-default.sqlite", dataDatabaseSrc)
+		b, err = c.file.CopyFile("."+sep+"content"+sep+"database-default.sqlite", dataDatabaseSrc)
+		if err != nil || b == false {
+			return b, err
+		}
+	}
+	if c.file.IsFile(c.logReadSrc) == false {
+		b, err = c.file.CopyFile("."+sep+"content"+sep+"log-read.log", c.logReadSrc)
 		if err != nil || b == false {
 			return b, err
 		}
@@ -206,7 +216,20 @@ func (c *Coll) SaveUrl(url string, src string) (bool, error) {
 
 //发送日志
 func (c *Coll) SendLog(str string) {
+	//向日志句柄发送日志
 	c.log.AddLog(str)
+	//判断日志是否超出范围，超出则清空
+	//默认范围为文件大小20kb
+	var maxFileSize int64 = 20 * 1024
+	fileSize := c.file.GetFileSize(c.logReadSrc)
+	if fileSize > maxFileSize{
+		var newC []byte
+		_,_ = c.file.WriteFile(c.logReadSrc,newC)
+	}
+	//向可读取日志发送日志
+	newStr := str + "<br/ >"
+	strByte := []byte(newStr)
+	_, _ = c.file.WriteFileAppend(c.logReadSrc, strByte)
 }
 
 //发送错误日志
@@ -291,4 +314,17 @@ func (c *Coll) GetNowDateYM() string {
 func (c *Coll) GetNowDateD() string {
 	t := time.Now()
 	return t.Format("02")
+}
+
+//获取日志内容
+func (c *Coll) GetLog() (string, error) {
+	contentByte,err := c.file.ReadFile(c.logReadSrc)
+	content := string(contentByte)
+	return content,err
+}
+
+//获取日志文件路径
+//用于输出该文件
+func (c *Coll) GetLogSrc() string{
+	return c.logReadSrc
 }

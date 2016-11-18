@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
@@ -11,41 +12,42 @@
     <link rel="stylesheet" type="text/css" href="/assets/css/semantic.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/404.css">
 </head>
+
 <body>
     <div class="ui fixed inverted menu">
-    <div class="ui container">
-      <a href="#" class="header item">
-        <img class="logo" src="/assets/imgs/logo-100.png">
-          COLL-MZ
-      </a>
-        <a href="/login" class="item">登录</a>
+        <div class="ui container">
+            <a href="#" class="header item">
+                <img class="logo" src="/assets/imgs/logo-100.png"> COLL-MZ
+            </a>
+            <a href="/login" class="item">登录</a>
+        </div>
     </div>
-    </div>
-
     <div class="ui main text container">
-      <h1 class="ui header">{{.contentTitle}}</h1>
-      <p>{{.content}}</p>
-      <p id="wait-s-tip"></p>
+        <h1 class="ui header">{{.contentTitle}}</h1>
+        <p>{{.content}}</p>
+        <p id="wait-s-tip"></p>
     </div>
     <!-- script -->
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/js/semantic.min.js"></script>
     <script>
-        var timeI = 5
-        function gotoURL(){
-            var url = "{{.gotoURL}}";
-            if(url == ""){
-                return false
-            }
-            if(timeI > 1){
-                setTimeout('gotoURL()',1000);
-                $("#wait-s-tip").html("稍等，将在" + timeI + "秒后跳转到页面：/" + url)
-            }else{
-                window.location.href = url;
-            }
-            timeI -= 1
+    var timeI = 5
+
+    function gotoURL() {
+        var url = "{{.gotoURL}}";
+        if (url == "") {
+            return false
         }
-        setTimeout('gotoURL()',1000);
+        if (timeI > 1) {
+            setTimeout('gotoURL()', 1000);
+            $("#wait-s-tip").html("稍等，将在" + timeI + "秒后跳转到页面：/" + url)
+        } else {
+            window.location.href = url;
+        }
+        timeI -= 1
+    }
+    setTimeout('gotoURL()', 1000);
     </script>
 </body>
+
 </html>

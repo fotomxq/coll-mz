@@ -1,7 +1,7 @@
 {
-  "dataSrc" : "D:\\org",
-  "serverLocal" : ":8888",
-  "user" : "admin@admin.com",
-  "passwd" : "adminadmin",
-  "autoRunHour" : "0"
+    "dataSrc": "D:\\org",
+    "serverLocal": ":8888",
+    "user": "admin@admin.com",
+    "passwd": "adminadmin",
+    "autoRunHour": "0"
 }

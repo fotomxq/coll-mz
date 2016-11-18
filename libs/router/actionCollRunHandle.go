@@ -11,14 +11,41 @@ func actionCollRunHandle(w http.ResponseWriter, r *http.Request) {
 	if LoginCheck(w, r) == false {
 		return
 	}
-	//根据采集需求，启动采集脚本
-
-	//提示已经开启采集数据
-	data := map[string]template.HTML{
-		"title":        template.HTML("启动采集"),
-		"contentTitle": template.HTML("开始采集"),
-		"content":      template.HTML("已经启动了采集程序，请稍等。"),
-		"gotoURL":      template.HTML("center"),
+	//确保post/get正常
+	err = r.ParseForm()
+	if err != nil {
+		return
 	}
-	pageTipHandle(w, r, data)
+	//获取提交动作类型
+	postAction := r.FormValue("action")
+	//判断动作类型，并反馈结果
+	data := map[string]template.HTML{}
+	switch postAction {
+	case "coll-all":
+		data = PageTipHandleData("启动采集","开始采集","已经启动了采集程序，请稍等。","set")
+		b,err := collPage.RunAll()
+		if err != nil{
+			log.AddErrorLog(err)
+		}
+		if b == true{
+			collPage.SendLog("全部采集程序执行成功。")
+			modOutputSimpleHtml(w,r,"coll-run-ok")
+		}else{
+			collPage.SendLog("全部采集程序执行失败。")
+			modOutputSimpleHtml(w,r,"coll-run-failed")
+		}
+		break
+	case "get-log":
+		logSrc := collPage.GetLogSrc()
+		t,err := template.ParseFiles(logSrc)
+		if err != nil{
+			log.AddErrorLog(err)
+		}
+		t.Execute(w, nil)
+		break
+	default:
+		data = PageTipHandleData("错误","非法参数","您提交了一个错误的指令。","set")
+		pageTipHandle(w, r, data)
+		break
+	}
 }

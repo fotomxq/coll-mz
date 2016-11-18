@@ -2,7 +2,6 @@ package router
 
 import (
 	"github.com/fotomxq/coll-mz/libs/core"
-	"html/template"
 	"net/http"
 )
 
@@ -15,12 +14,7 @@ func actionLoginHandle(w http.ResponseWriter, r *http.Request) {
 	if LoginIn(w, r, postUser, postPasswd) == true {
 		http.Redirect(w, r, "/center", http.StatusFound)
 	} else {
-		data := map[string]template.HTML{
-			"title":        template.HTML("登录失败"),
-			"contentTitle": template.HTML("登录失败"),
-			"content":      template.HTML("您输入的用户名或密码存在错误，请重新输入。"),
-			"gotoURL":      template.HTML("login"),
-		}
+		data := PageTipHandleData("登录失败","登录失败","您输入的用户名或密码存在错误，请重新输入。","login")
 		pageTipHandle(w, r, data)
 	}
 }
