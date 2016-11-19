@@ -1,6 +1,9 @@
 package core
 
-import "regexp"
+import (
+	"regexp"
+	"crypto/sha1"
+)
 
 //验证和查询模块
 type MatchString struct {
@@ -19,6 +22,15 @@ func (ms *MatchString) CheckEmail(str string) bool {
 //验证6-20位的密码
 func (ms *MatchString) CheckPassword(str string) bool {
 	return ms.matchStr("^[a-zA-Z0-9]{5,20}$", str)
+}
+
+//获取字符串sha1值
+func (ms *MatchString) GetSha1(content string) string{
+	sha := sha1.New()
+	contentByte := []byte(content)
+	sha.Write(contentByte)
+	res := sha.Sum(nil)
+	return string(res)
 }
 
 //获取正则表达式结果

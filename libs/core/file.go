@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 //文件操作类
@@ -169,9 +170,8 @@ func (f *FileOperate) GetFileList(src string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	sep := f.GetPathSep()
 	for _, v := range dir {
-		fs = append(fs, src+sep+v.Name())
+		fs = append(fs, v.Name())
 	}
 	return fs, nil
 }
@@ -201,6 +201,41 @@ func (f *FileOperate) GetFileSize(src string) int64 {
 		return 0
 	}
 	return info.Size()
+}
+
+//获取文件名称和类型
+func (f *FileOperate) GetFileNames(src string) (map[string]string,error){
+	info,err := f.GetFileInfo(src)
+	if err != nil{
+		return nil,err
+	}
+	res := map[string]string{
+		"name" : info.Name(),
+		"type" : "",
+		"onlyName" : "",
+	}
+	//获取文件类型和仅名称部分
+	//为了方便代码编写
+	//该部分存在多层嵌套
+	//为了方便理解，每段话都进行注释
+	if res["name"] != ""{
+		//拆分文件名称
+		names := strings.Split(res["name"], ".")
+		//如果名称长度大于1，则开始尝试获取类型和名称部分
+		if len(names) > 1{
+			//保存最后一个key为文件类型
+			res["type"] = names[len(names) - 1]
+			//拼接除最后一个key外所有键位
+			for i := range names{
+				//只要不是最后一个key，则拼接
+				if i != len(names) - 1{
+					res["onlyName"] = res["onlyName"] + names[i]
+				}
+			}
+		}
+		//如果名称长度小于1，则说明没有类型
+	}
+	return res,nil
 }
 
 //获取文件信息

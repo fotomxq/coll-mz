@@ -57,6 +57,7 @@ func Router() {
 		log.AddLog("cannot create coll.")
 		return
 	}
+	coll.CollPg = &collPage
 	//设定静态绑定
 	http.Handle("/assets/", http.FileServer(http.Dir("template")))
 	//设定动态绑定
@@ -67,6 +68,7 @@ func Router() {
 	http.HandleFunc("/center", pageCenterHandle)
 	http.HandleFunc("/set", pageSetHandle)
 	http.HandleFunc("/action-coll-run", actionCollRunHandle)
+	http.HandleFunc("/action-view", actionViewHandle)
 	//启动路由器
 	log.AddLog("服务器已经启动，地址：" + port)
 	err = http.ListenAndServe(port, nil)

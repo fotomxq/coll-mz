@@ -12,6 +12,9 @@ import (
 //通用错误
 var err error
 
+//通用coll类句柄
+var CollPg *Coll
+
 //收集器类
 type Coll struct {
 	//数据存储路径
@@ -34,6 +37,8 @@ type Coll struct {
 	CollList map[string]string
 	//http操作句柄
 	simhttp core.SimpleHttp
+	//过滤器句柄
+	ms core.MatchString
 }
 
 //初始化结构
@@ -151,12 +156,158 @@ func (c *Coll) CloseDB() {
 
 //自动将文件存入数据集
 //整合检查、添加、保存功能
-func (c *Coll) AutoAddData(source string, url string, name string) (bool, error) {
-	return false, nil
+//source string 存储点识别码，如jiandan
+//url string 文件URL地址
+//name string 识别标题
+//urlIsParent bool URL是否为合集，如果是合集，则需要自行将文件保存，但这里会做标记到数据库，以避免重复提交
+//return string 反馈保存的文件路径
+//return error 错误
+func (c *Coll) AutoAddData(source string, url string, name string,urlIsParent bool) (string, error) {
+	//根据url和name构建sha1值
+	sha1 := c.ms.GetSha1(url+name)
+	if sha1 == ""{
+		c.SendLog("无法生成SHA1匹配码。")
+		return "",nil
+	}
+	//检查数据是否已经存在
+	checkBool,err := c.CheckData(sha1)
+	if err != nil{
+		c.SendLog("检查数据过程失败。")
+		c.SendErrorLog(err)
+		return "",err
+	}
+	//如果存在则返回
+	if checkBool == true{
+		return "",nil
+	}
+	//文件父级目录路径
+	parentSrc := c.dataCollSrc + c.file.GetPathSep() + source
+	//准备文件基本数据
+	var fileSize int64
+	var fileType string
+	var newFileSrc string
+	//如果URL不是合集，则尝试构建缓冲文件，并读取相关数据
+	if urlIsParent == false{
+		//将文件下载缓冲
+		cacheName := c.NewCacheFile(url)
+		if cacheName == ""{
+			return "",nil
+		}
+		//获取文件大小
+		fileSize = c.file.GetFileSize(cacheName)
+		//获取文件格式
+		fileNames,err := c.file.GetFileNames(cacheName)
+		if err != nil{
+			c.SendErrorLog(err)
+			return "",err
+		}
+		fileType = fileNames["type"]
+		//构建文件路径
+		newFileSrc,err = c.CreateFileSrc(parentSrc,url,name)
+		if err != nil{
+			c.SendErrorLog(err)
+			return "",err
+		}
+		//将缓冲文件保存到指定文件
+		b,err := c.MoveCacheFile(cacheName,newFileSrc)
+		if err != nil{
+			c.SendErrorLog(err)
+			return "",err
+		}
+		if b == false{
+			c.SendLog("无法保存该文件。")
+			return "",nil
+		}
+	}else{
+		//如果URL是合集，则建立目录
+		fileSize = 0
+		fileType = "folder"
+		newFileSrc,err = c.CreateFileSrc(parentSrc,"",name)
+		if err != nil{
+			c.SendErrorLog(err)
+			c.SendLog("构建文件路径失败。")
+			return "",err
+		}
+		//根据文件路径，创建文件夹
+		b,err := c.file.CreateDir(newFileSrc)
+		if err != nil{
+			c.SendErrorLog(err)
+			c.SendLog("创建文件夹失败。")
+			return "",err
+		}
+		if b == false{
+			c.SendLog("未知原因，创建文件夹失败。")
+			return "",nil
+		}
+	}
+	//向数据库添加新的数据
+	addBool,err := c.AddData(sha1,newFileSrc,source,url,name,fileType,fileSize)
+	if err != nil{
+		c.SendLog("添加新的数据失败。")
+		c.SendErrorLog(err)
+		return "",err
+	}
+	if addBool == false{
+		c.SendLog("因为未知原因，无法添加新的数据。")
+		return "",nil
+	}
+	//返回结果
+	return newFileSrc, nil
+}
+
+//建立缓冲数据
+func (c *Coll) NewCacheFile(url string) string{
+	//获取文件名称
+	fileNames := c.simhttp.GetURLNameType(url)
+	fileName := fileNames[0]
+	//保存文件
+	src := c.dataCollCacheSrc + c.file.GetPathSep() + fileName
+	b,err := c.SaveUrl(url,src)
+	if err != nil{
+		c.SendErrorLog(err)
+		c.SendLog("下载到缓冲文件时，发生了错误。")
+		return ""
+	}
+	if b == false{
+		c.SendLog("未知原因，缓冲失败。")
+		return ""
+	}
+	return src
+}
+
+//移动缓冲文件
+func (c *Coll) MoveCacheFile(name string,src string) (bool,error){
+	cacheSrc := c.dataCollCacheSrc + c.file.GetPathSep() + name
+	if c.file.IsFile(cacheSrc) == false{
+		return false,nil
+	}
+	return c.file.EditFileName(cacheSrc,src)
+
+}
+
+//删除缓冲数据
+func (c *Coll) DeleteCacheFile(name string) bool{
+	src := c.dataCollCacheSrc + c.file.GetPathSep() + name
+	return c.file.DeleteFile(src)
+}
+
+//清空缓冲数据
+func (c *Coll) DeleteAllCacheFile(){
+	files,err := c.file.GetFileList(c.dataCollCacheSrc)
+	if err != nil{
+		c.SendErrorLog(err)
+	}
+	for i := range files{
+		fiSrc := c.dataCollCacheSrc + c.file.GetPathSep() + files[i]
+		b := c.file.DeleteFile(fiSrc)
+		if b == false{
+			c.SendLog("无法删除缓冲文件。")
+		}
+	}
 }
 
 //将数据采集到数据库
-func (c *Coll) AddData(sha1 string, source string, url string, name string, t string, size int) (bool, error) {
+func (c *Coll) AddData(sha1 string,src string, source string, url string, name string, t string, size int64) (bool, error) {
 	//检查数据库是否连接
 	if c.dbErr != nil {
 		return false, c.dbErr
@@ -164,12 +315,12 @@ func (c *Coll) AddData(sha1 string, source string, url string, name string, t st
 	//获取当前时间
 	datatimeObj := time.Now()
 	//构建sql
-	query := "insert into `coll`(`sha1`,`source`,`url`,`name`,`type`,`size`,`coll_time`) values(?,?,?,?,?,?,?)"
+	query := "insert into `coll`(`sha1`,`src`,`source`,`url`,`name`,`type`,`size`,`coll_time`) values(?,?,?,?,?,?,?)"
 	stmt, stmtErr := c.db.Prepare(query)
 	if stmtErr != nil {
 		return false, stmtErr
 	}
-	res, resErr := stmt.Exec(sha1, source, url, name, t, size, datatimeObj.Format("2006-01-02 15:04:05"))
+	res, resErr := stmt.Exec(sha1,src, source, url, name, t, size, datatimeObj.Format("2006-01-02 15:04:05"))
 	if resErr != nil {
 		return false, resErr
 	}
@@ -250,23 +401,29 @@ func (c *Coll) SendErrorLog(err error) {
 //name - 指定文件名称
 //返回 文件路径,错误
 func (c *Coll) CreateFileSrc(src string, url string, name string) (string, error) {
-	//尝试解析URL文件名称
-	urls := c.simhttp.GetURLNameType(url)
-	if urls == nil {
-		return "", nil
-	}
-	if urls[2] == "" {
-		return "", nil
+	//文件类型
+	var fileType string
+	//如果URL给定空，则类型也为空
+	if url == ""{
+		fileType = ""
+	}else{
+		//尝试解析URL文件名称
+		urls := c.simhttp.GetURLNameType(url)
+		if urls == nil {
+			return "", nil
+		}
+		if urls[2] == "" {
+			return "", nil
+		}
+		fileType = "." + urls[2]
 	}
 	//构建存储目录
 	dirSrc, err := c.CreateDirSrc(src)
 	if err != nil || dirSrc == "" {
 		return "", err
 	}
-	//路径分隔符
-	sep := c.file.GetPathSep()
 	//根据目录路径生成文件路径
-	fileSrc := dirSrc + sep + name + urls[2]
+	fileSrc := dirSrc + c.file.GetPathSep() + name + fileType
 	return fileSrc, nil
 }
 
