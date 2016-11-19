@@ -80,8 +80,8 @@ func (simpleHttp *SimpleHttp) Save(fileSrc string) (bool, error) {
 //获取URL末尾文件名称和类型
 //注意某些文件无法获取，如经过特殊处理的URL路径
 //返回结构 []string key : 0-全名 1-仅名称 2-仅类型
-func (simpleHttp *SimpleHttp) GetURLNameType(url string) []string {
-	var res []string
+func (simpleHttp *SimpleHttp) GetURLNameType(url string) [3]string {
+	var res [3]string
 	urls := strings.Split(url, "/")
 	if len(urls) < 1 {
 		return res

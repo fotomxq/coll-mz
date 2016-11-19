@@ -191,6 +191,7 @@ func (c *Coll) AutoAddData(source string, url string, name string,urlIsParent bo
 		//将文件下载缓冲
 		cacheName := c.NewCacheFile(url)
 		if cacheName == ""{
+			c.SendLog("无法下载到缓冲文件。")
 			return "",nil
 		}
 		//获取文件大小
@@ -199,6 +200,7 @@ func (c *Coll) AutoAddData(source string, url string, name string,urlIsParent bo
 		fileNames,err := c.file.GetFileNames(cacheName)
 		if err != nil{
 			c.SendErrorLog(err)
+			c.SendLog("无法获取文件格式。")
 			return "",err
 		}
 		fileType = fileNames["type"]
@@ -206,16 +208,20 @@ func (c *Coll) AutoAddData(source string, url string, name string,urlIsParent bo
 		newFileSrc,err = c.CreateFileSrc(parentSrc,url,name)
 		if err != nil{
 			c.SendErrorLog(err)
+			c.SendLog("无法构建文件路径。")
 			return "",err
 		}
 		//将缓冲文件保存到指定文件
 		b,err := c.MoveCacheFile(cacheName,newFileSrc)
 		if err != nil{
+			c.SendLog("无法将缓冲文件转移到文件系统。")
 			c.SendErrorLog(err)
 			return "",err
 		}
 		if b == false{
-			c.SendLog("无法保存该文件。")
+			c.SendLog("无法保存该文件：")
+			c.SendLog("Cache File : " + cacheName)
+			c.SendLog("New File Src : " + newFileSrc)
 			return "",nil
 		}
 	}else{
@@ -409,7 +415,7 @@ func (c *Coll) CreateFileSrc(src string, url string, name string) (string, error
 	}else{
 		//尝试解析URL文件名称
 		urls := c.simhttp.GetURLNameType(url)
-		if urls == nil {
+		if urls[0] == "" {
 			return "", nil
 		}
 		if urls[2] == "" {

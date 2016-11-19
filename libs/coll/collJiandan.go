@@ -24,7 +24,8 @@ func CollJiandan() (bool, error) {
 		}
 		if v != ""{
 			CollPg.SendLog("发现新的文件 : " + v)
-			s,err := CollPg.AutoAddData("jiandan",v,"",false)
+			vNames := CollPg.simhttp.GetURLNameType(v)
+			s,err := CollPg.AutoAddData("jiandan",v,vNames[1],false)
 			if err != nil{
 				CollPg.SendErrorLog(err)
 				CollPg.SendLog("文件保存失败...")
