@@ -94,10 +94,16 @@ func (c *Coll) Create(dataSrc string) (bool, error) {
 //启动所有脚本
 func (c *Coll) RunAll() (bool, error) {
 	c.SendLog("启动了所有采集程序，可能时间较长，请耐心等待...")
-	for k := range c.CollList {
+	for k, v := range c.CollList {
 		b, err := c.Run(k)
-		if err != nil || b == false {
-			return b, err
+		if err != nil {
+			c.SendErrorLog(err)
+			c.SendLog("发生一个错误，导致" + v + "采集器无法进行。")
+			continue
+		}
+		if b == false {
+			c.SendLog("因为某些未知的原因，导致" + v + "采集器无法进行。")
+			continue
 		}
 	}
 	c.SendLog("所有采集程序运行结束，现在可以快乐的访问内容了。")
@@ -222,14 +228,14 @@ func (c *Coll) SendLog(str string) {
 	//默认范围为文件大小20kb
 	var maxFileSize int64 = 20 * 1024
 	fileSize := c.file.GetFileSize(c.logReadSrc)
-	if fileSize > maxFileSize{
+	if fileSize > maxFileSize {
 		var newC []byte
-		_,_ = c.file.WriteFile(c.logReadSrc,newC)
+		_, _ = c.file.WriteFile(c.logReadSrc, newC)
 	}
 	//向可读取日志发送日志
 	newStr := str + "<br/ >"
 	strByte := []byte(newStr)
-	_, _ = c.file.WriteFileAppend(c.logReadSrc, strByte)
+	_, _ = c.file.WriteFileForward(c.logReadSrc, strByte)
 }
 
 //发送错误日志
@@ -318,13 +324,19 @@ func (c *Coll) GetNowDateD() string {
 
 //获取日志内容
 func (c *Coll) GetLog() (string, error) {
-	contentByte,err := c.file.ReadFile(c.logReadSrc)
+	contentByte, err := c.file.ReadFile(c.logReadSrc)
 	content := string(contentByte)
-	return content,err
+	return content, err
 }
 
 //获取日志文件路径
 //用于输出该文件
-func (c *Coll) GetLogSrc() string{
+func (c *Coll) GetLogSrc() string {
 	return c.logReadSrc
+}
+
+//清空日志内容
+func (c *Coll) ClearLogContent() {
+	var newC []byte
+	_, _ = c.file.WriteFile(c.logReadSrc, newC)
 }

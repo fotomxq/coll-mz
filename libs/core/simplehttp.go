@@ -95,3 +95,10 @@ func (simpleHttp *SimpleHttp) GetURLNameType(url string) []string {
 	res[2] = names[1]
 	return res
 }
+
+//向浏览器直接输出文本
+func (simpleHttp *SimpleHttp) PostText(w http.ResponseWriter, r *http.Request, content string) error{
+	var contentByte []byte = []byte(content)
+	_,err := w.Write(contentByte)
+	return err
+}

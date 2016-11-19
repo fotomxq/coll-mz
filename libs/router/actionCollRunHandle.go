@@ -22,29 +22,30 @@ func actionCollRunHandle(w http.ResponseWriter, r *http.Request) {
 	data := map[string]template.HTML{}
 	switch postAction {
 	case "coll-all":
-		data = PageTipHandleData("启动采集","开始采集","已经启动了采集程序，请稍等。","set")
-		b,err := collPage.RunAll()
-		if err != nil{
+		data = PageTipHandleData("启动采集", "开始采集", "已经启动了采集程序，请稍等。", "set")
+		collPage.ClearLogContent()
+		b, err := collPage.RunAll()
+		if err != nil {
 			log.AddErrorLog(err)
 		}
-		if b == true{
+		if b == true {
 			collPage.SendLog("全部采集程序执行成功。")
-			modOutputSimpleHtml(w,r,"coll-run-ok")
-		}else{
+			modOutputSimpleHtml(w, r, "coll-run-ok")
+		} else {
 			collPage.SendLog("全部采集程序执行失败。")
-			modOutputSimpleHtml(w,r,"coll-run-failed")
+			modOutputSimpleHtml(w, r, "coll-run-failed")
 		}
 		break
 	case "get-log":
 		logSrc := collPage.GetLogSrc()
-		t,err := template.ParseFiles(logSrc)
-		if err != nil{
+		t, err := template.ParseFiles(logSrc)
+		if err != nil {
 			log.AddErrorLog(err)
 		}
 		t.Execute(w, nil)
 		break
 	default:
-		data = PageTipHandleData("错误","非法参数","您提交了一个错误的指令。","set")
+		data = PageTipHandleData("错误", "非法参数", "您提交了一个错误的指令。", "set")
 		pageTipHandle(w, r, data)
 		break
 	}

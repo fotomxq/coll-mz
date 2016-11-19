@@ -80,6 +80,26 @@ func (f *FileOperate) WriteFileAppend(src string, content []byte) (bool, error) 
 	return writeBool2, writeErr2
 }
 
+//向前追加写入文件
+func (f *FileOperate) WriteFileForward(src string, content []byte) (bool, error) {
+	if f.IsFile(src) == false {
+		writeBool, writeErr := f.WriteFile(src, content)
+		return writeBool, writeErr
+	}
+	fileContent, fcErr := f.ReadFile(src)
+	if fcErr != nil {
+		return false, fcErr
+	}
+	s := [][]byte{
+		content,
+		fileContent,
+	}
+	sep := []byte("")
+	var newContent []byte = bytes.Join(s, sep)
+	writeBool2, writeErr2 := f.WriteFile(src, newContent)
+	return writeBool2, writeErr2
+}
+
 //修改文件或文件夹名称
 //可用于修改路径，即剪切
 func (f *FileOperate) EditFileName(src string, newName string) (bool, error) {

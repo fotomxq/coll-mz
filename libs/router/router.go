@@ -28,6 +28,9 @@ var file core.FileOperate
 //路径分隔符
 var fileSep string
 
+//通用简化http处理器
+var simpleHttp core.SimpleHttp
+
 //启动路由器
 func Router() {
 	//路径分隔符
