@@ -72,6 +72,9 @@ func (log *Log) AddLog(content string) {
 
 //系统级别错误日志
 func (log *Log) AddErrorLog(err error) {
+	if err == nil{
+		return
+	}
 	errMsg := err.Error()
 	if log.errorPrefix == "" {
 		log.errorPrefix = "Error : "
