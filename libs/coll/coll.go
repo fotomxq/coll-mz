@@ -162,23 +162,23 @@ func (c *Coll) CloseDB() {
 //urlIsParent bool URL是否为合集，如果是合集，则需要自行将文件保存，但这里会做标记到数据库，以避免重复提交
 //return string 反馈保存的文件路径
 //return error 错误
-func (c *Coll) AutoAddData(source string, url string, name string,urlIsParent bool) (string, error) {
+func (c *Coll) AutoAddData(source string, url string, name string,urlIsParent bool)  {
 	//根据url和name构建sha1值
 	sha1 := c.ms.GetSha1(url+name)
 	if sha1 == ""{
 		c.SendLog("无法生成SHA1匹配码。")
-		return "",nil
+		return
 	}
 	//检查数据是否已经存在
 	checkBool,err := c.CheckData(sha1)
 	if err != nil{
 		c.SendLog("检查数据过程失败。")
 		c.SendErrorLog(err)
-		return "",err
+		return
 	}
 	//如果存在则返回
 	if checkBool == true{
-		return "",nil
+		return
 	}
 	//文件父级目录路径
 	parentSrc := c.dataCollSrc + c.file.GetPathSep() + source
@@ -189,19 +189,20 @@ func (c *Coll) AutoAddData(source string, url string, name string,urlIsParent bo
 	//如果URL不是合集，则尝试构建缓冲文件，并读取相关数据
 	if urlIsParent == false{
 		//将文件下载缓冲
-		cacheName := c.NewCacheFile(url)
-		if cacheName == ""{
+		cacheSrc := c.NewCacheFile(url)
+		if cacheSrc == ""{
 			c.SendLog("无法下载到缓冲文件。")
-			return "",nil
+			return
 		}
+		c.SendLog("缓冲文件路径 : " + cacheSrc)
 		//获取文件大小
-		fileSize = c.file.GetFileSize(cacheName)
+		fileSize = c.file.GetFileSize(cacheSrc)
 		//获取文件格式
-		fileNames,err := c.file.GetFileNames(cacheName)
+		fileNames,err := c.file.GetFileNames(cacheSrc)
 		if err != nil{
 			c.SendErrorLog(err)
 			c.SendLog("无法获取文件格式。")
-			return "",err
+			return
 		}
 		fileType = fileNames["type"]
 		//构建文件路径
@@ -209,21 +210,23 @@ func (c *Coll) AutoAddData(source string, url string, name string,urlIsParent bo
 		if err != nil{
 			c.SendErrorLog(err)
 			c.SendLog("无法构建文件路径。")
-			return "",err
+			return
 		}
+		c.SendLog("新文件路径 : " + newFileSrc)
 		//将缓冲文件保存到指定文件
-		b,err := c.MoveCacheFile(cacheName,newFileSrc)
+		b,err := c.MoveCacheFile(cacheSrc,newFileSrc)
 		if err != nil{
 			c.SendLog("无法将缓冲文件转移到文件系统。")
 			c.SendErrorLog(err)
-			return "",err
+			return
 		}
 		if b == false{
 			c.SendLog("无法保存该文件：")
-			c.SendLog("Cache File : " + cacheName)
+			c.SendLog("Cache File : " + cacheSrc)
 			c.SendLog("New File Src : " + newFileSrc)
-			return "",nil
+			return
 		}
+		c.SendLog("将缓冲移动到了新文件路径。")
 	}else{
 		//如果URL是合集，则建立目录
 		fileSize = 0
@@ -232,18 +235,18 @@ func (c *Coll) AutoAddData(source string, url string, name string,urlIsParent bo
 		if err != nil{
 			c.SendErrorLog(err)
 			c.SendLog("构建文件路径失败。")
-			return "",err
+			return
 		}
 		//根据文件路径，创建文件夹
 		b,err := c.file.CreateDir(newFileSrc)
 		if err != nil{
 			c.SendErrorLog(err)
 			c.SendLog("创建文件夹失败。")
-			return "",err
+			return
 		}
 		if b == false{
 			c.SendLog("未知原因，创建文件夹失败。")
-			return "",nil
+			return
 		}
 	}
 	//向数据库添加新的数据
@@ -251,14 +254,15 @@ func (c *Coll) AutoAddData(source string, url string, name string,urlIsParent bo
 	if err != nil{
 		c.SendLog("添加新的数据失败。")
 		c.SendErrorLog(err)
-		return "",err
+		return
 	}
 	if addBool == false{
 		c.SendLog("因为未知原因，无法添加新的数据。")
-		return "",nil
+		return
 	}
 	//返回结果
-	return newFileSrc, nil
+	c.SendLog("文件数据建立成功，进入下一个文件。")
+	return
 }
 
 //建立缓冲数据

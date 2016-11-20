@@ -103,12 +103,12 @@ func (f *FileOperate) WriteFileForward(src string, content []byte) (bool, error)
 
 //修改文件或文件夹名称
 //可用于修改路径，即剪切
-func (f *FileOperate) EditFileName(src string, newName string) (bool, error) {
-	err := os.Rename(src, newName)
+func (f *FileOperate) EditFileName(src string, newSrc string) (bool, error) {
+	err := os.Rename(src, newSrc)
 	if err != nil {
-		return true, err
+		return false, err
 	}
-	return false, nil
+	return true, nil
 }
 
 //复制文件
@@ -204,38 +204,38 @@ func (f *FileOperate) GetFileSize(src string) int64 {
 }
 
 //获取文件名称和类型
-func (f *FileOperate) GetFileNames(src string) (map[string]string,error){
-	info,err := f.GetFileInfo(src)
-	if err != nil{
-		return nil,err
+func (f *FileOperate) GetFileNames(src string) (map[string]string, error) {
+	info, err := f.GetFileInfo(src)
+	if err != nil {
+		return nil, err
 	}
 	res := map[string]string{
-		"name" : info.Name(),
-		"type" : "",
-		"onlyName" : "",
+		"name":     info.Name(),
+		"type":     "",
+		"onlyName": "",
 	}
 	//获取文件类型和仅名称部分
 	//为了方便代码编写
 	//该部分存在多层嵌套
 	//为了方便理解，每段话都进行注释
-	if res["name"] != ""{
+	if res["name"] != "" {
 		//拆分文件名称
 		names := strings.Split(res["name"], ".")
 		//如果名称长度大于1，则开始尝试获取类型和名称部分
-		if len(names) > 1{
+		if len(names) > 1 {
 			//保存最后一个key为文件类型
-			res["type"] = names[len(names) - 1]
+			res["type"] = names[len(names)-1]
 			//拼接除最后一个key外所有键位
-			for i := range names{
+			for i := range names {
 				//只要不是最后一个key，则拼接
-				if i != len(names) - 1{
+				if i != len(names)-1 {
 					res["onlyName"] = res["onlyName"] + names[i]
 				}
 			}
 		}
 		//如果名称长度小于1，则说明没有类型
 	}
-	return res,nil
+	return res, nil
 }
 
 //获取文件信息
