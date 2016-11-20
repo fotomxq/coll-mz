@@ -24,17 +24,8 @@ func actionCollRunHandle(w http.ResponseWriter, r *http.Request) {
 	case "coll-all":
 		data = PageTipHandleData("启动采集", "开始采集", "已经启动了采集程序，请稍等。", "set")
 		collPage.ClearLogContent()
-		b, err := collPage.RunAll()
-		if err != nil {
-			log.AddErrorLog(err)
-		}
-		if b == true {
-			collPage.SendLog("全部采集程序执行成功。")
-			modOutputSimpleHtml(w, r, "coll-run-ok")
-		} else {
-			collPage.SendLog("全部采集程序执行失败。")
-			modOutputSimpleHtml(w, r, "coll-run-failed")
-		}
+		go collPage.RunAll()
+		modOutputSimpleHtml(w, r, "coll-run-ok")
 		break
 	case "get-log":
 		logSrc := collPage.GetLogSrc()

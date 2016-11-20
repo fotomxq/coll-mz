@@ -23,9 +23,14 @@ func CollJiandan() (bool, error) {
 			continue
 		}
 		if v != "" {
-			CollPg.SendLog("发现新的文件，URL : " + v)
 			vNames := CollPg.simhttp.GetURLNameType(v)
-			CollPg.AutoAddData("jiandan", v, vNames[1], false)
+			b,err := CollPg.AutoAddData("jiandan", v, vNames[1], false)
+			if err != nil{
+				continue
+			}
+			if b == ""{
+				continue
+			}
 		}
 	}
 

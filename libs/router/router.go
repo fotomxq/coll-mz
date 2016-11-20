@@ -43,12 +43,13 @@ func Router() {
 	}
 	//读取配置文件
 	dataSrc = config.Data["dataSrc"].(string)
+	encryptFileType := config.Data["encryptFileType"].(string)
 	port := config.Data["serverLocal"].(string)
 	//设定日志类
 	logDirSrc := dataSrc + fileSep + "log"
 	log.SetDirSrc(logDirSrc)
 	//创建收集器实例
-	b, err := collPage.Create(dataSrc)
+	b, err := collPage.Create(dataSrc,encryptFileType)
 	if err != nil {
 		log.AddErrorLog(err)
 		return
@@ -57,6 +58,7 @@ func Router() {
 		log.AddLog("cannot create coll.")
 		return
 	}
+	//将该句柄镜像放入coll包，确保包内通用句柄
 	coll.CollPg = &collPage
 	//设定静态绑定
 	http.Handle("/assets/", http.FileServer(http.Dir("template")))

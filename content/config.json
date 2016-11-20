@@ -3,5 +3,6 @@
     "serverLocal": ":8888",
     "user": "admin@admin.com",
     "passwd": "adminadmin",
-    "autoRunHour": "0"
+    "autoRunHour": "0",
+    "encryptFileType" : ".file"
 }
