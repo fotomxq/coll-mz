@@ -4,5 +4,5 @@
     "user": "admin@admin.com",
     "passwd": "adminadmin",
     "autoRunHour": "0",
-    "encryptFileType" : ".file"
+    "encryptFileType" : ""
 }

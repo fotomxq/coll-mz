@@ -212,6 +212,7 @@ func (c *Coll) AutoAddData(source string, url string, name string, urlIsParent b
 	}
 	//如果存在则返回
 	if checkBool == true {
+		c.SendLog("数据已经存在，所以无需继续。")
 		return "", nil
 	}
 	//文件父级目录路径

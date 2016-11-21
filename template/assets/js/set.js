@@ -8,16 +8,18 @@ function runCollAll() {
     postServerActionData('coll-all', function(data) {
         if (data == 'coll-run-ok') {
             sendNewLog('采集程序执行成功，开始获取采集日志。');
-            getCollLog();
         } else {
             sendNewLog('采集程序执行失败。');
         }
     });
+    //无论是否完成，都自动获取日志数据
+    getCollLog();
 }
 
 //计时器和内容记录
 var collLogContent = '';
 var collLogTime = 1;
+var collLogTimeMax = 10;
 
 //获取采集日志并添加到控制台
 function getCollLog() {
@@ -34,8 +36,8 @@ function getCollLog() {
         } else {
             collLogTime = 1;
         }
-        //如果10秒以后内容还是未变，则停止获取
-        if (collLogTime > 10) {
+        //如果30次以后内容还是未变，则停止获取
+        if (collLogTime > collLogTimeMax) {
             return false;
         } else {
             //每秒自动获取一次数据
@@ -65,6 +67,11 @@ $(document).ready(function() {
     $('.ui.selection.dropdown').dropdown();
     //执行全部采集程序按钮
     $('a[href="#action-coll-all"]').click(function() {
+        $(this).find('i').attr('class','setting loading icon')
         runCollAll();
+    });
+    //继续读取日志按钮
+    $('a[href="#action-coll-log"]').click(function() {
+        getCollLog();
     });
 });

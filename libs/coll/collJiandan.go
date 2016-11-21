@@ -48,6 +48,8 @@ func collJiandanIndex() (bool, error) {
 			if err != nil || s == "" {
 				continue
 			}
+		}else{
+			CollPg.SendLog("找到了子节点，但没有发现href属性内容，所以获取该节点失败。")
 		}
 	}
 	//返回结果
@@ -86,7 +88,6 @@ func collJiandanPage() (bool, error) {
 				}
 				s, err := CollPg.AutoAddData(collSource, nodeURL, "", false)
 				if err != nil || s == "" {
-					CollPg.SendLog("无法保存数据。")
 					errNum += 1
 					continue
 				}

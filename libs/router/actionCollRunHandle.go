@@ -26,8 +26,8 @@ func actionCollRunHandle(w http.ResponseWriter, r *http.Request) {
 		//直接返回调用成功的提示
 		data = PageTipHandleData("启动采集", "开始采集", "已经启动了采集程序，请稍等。", "set")
 		collPage.ClearLogContent()
-		go collPage.RunAll()
 		modOutputSimpleHtml(w, r, "coll-run-ok")
+		collPage.RunAll()
 		break
 	case "get-log":
 		logSrc := collPage.GetLogSrc()
@@ -36,10 +36,6 @@ func actionCollRunHandle(w http.ResponseWriter, r *http.Request) {
 			log.AddErrorLog(err)
 		}
 		t.Execute(w, nil)
-		break
-	case "backup-database":
-		break
-	case "return-database":
 		break
 	default:
 		data = PageTipHandleData("错误", "非法参数", "您提交了一个错误的指令。", "set")
