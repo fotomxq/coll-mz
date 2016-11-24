@@ -1,6 +1,6 @@
 //从服务器传送动作
 function postServerActionData(action, func) {
-    $.get('/action-coll-run?action=' + action, func);
+    $.get('/action-set?action=' + action, func);
 }
 
 //开始启动所有采集程序

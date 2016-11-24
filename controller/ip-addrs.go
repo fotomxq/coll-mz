@@ -1,15 +1,14 @@
-//获取IP地址模块
-//该包直接调用函数即可
-package core
+package controller
 
 import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strings"
 )
 
-//通过网络获取IP地址
-func GetExternal() string {
+//Obtain an IP address from the network
+func IPAddrsGetExternal() string {
 	var url string = "http://myexternalip.com/raw"
 	resp, err := http.Get(url)
 	if err != nil {
@@ -24,11 +23,13 @@ func GetExternal() string {
 	if err != nil {
 		return "0.0.0.0"
 	}
+	html = strings.Replace(html, " ", "", -1)
+	html = strings.Replace(html, "\n", "", -1)
 	return html
 }
 
-//获取本机IP地址
-func GetInternal() string {
+//Get the local IP address
+func IPAddrsGetInternal() string {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		return "0.0.0.0"
