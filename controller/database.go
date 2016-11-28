@@ -1,139 +1,144 @@
 package controller
 
-import(
+import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 //Database operation module
 type Database struct {
-	db *sql.DB
+	db        *sql.DB
 	isConnect bool
 }
 
 //Connect to the database
-func (this *Database) Connect(dbType string,dbDNS string) error {
-	if this.isConnect == true{
+func (this *Database) Connect(dbType string, dbDNS string) error {
+	if this.isConnect == true {
 		return nil
 	}
-	this.db, err = sql.Open(dbType,dbDNS)
-	if err != nil{
+	this.db, err = sql.Open(dbType, dbDNS)
+	if err != nil {
 		this.isConnect = true
 	}
 	return err
 }
 
 //Close the database connection
-func (this *Database) Close() error{
+func (this *Database) Close() error {
 	return this.db.Close()
 }
 
 //Gets the specified ID
-func (this *Database) GetID(table string,fields []string,id int) (map[string]interface{},error) {
+func (this *Database) GetID(table string, fields []string, id int) (map[string]interface{}, error) {
+	return this.GetField(table,fields,"id",id)
+}
+
+//Gets the specified field
+func (this *Database) GetField(table string, fields []string, field string,value interface{}) (map[string]interface{}, error) {
 	var returnResult map[string]interface{}
-	query := "select " + this.GetFieldsToStr(fields) + " from `" + table + "` where `id` = ?"
-	stmt,err := this.db.Prepare(query)
+	query := "select " + this.GetFieldsToStr(fields) + " from `" + table + "` where `" + field + "` = ?"
+	stmt, err := this.db.Prepare(query)
 	defer stmt.Close()
-	if err != nil{
-		return returnResult,err
+	if err != nil {
+		return returnResult, err
 	}
-	result,err := stmt.Query(id)
+	result, err := stmt.Query(value)
 	defer result.Close()
-	if err != nil{
-		return returnResult,err
+	if err != nil {
+		return returnResult, err
 	}
-	for i := range fields{
+	for i := range fields {
 		var a interface{}
 		result.Scan(&a)
 		returnResult[fields[i]] = a
 	}
-	return returnResult,nil
-} 
+	return returnResult, nil
+}
 
 //get the list
-func (this *Database) GetList(table string,fields []string,page int,max int,sort int,desc bool) (map[int]map[string]interface{},error){
+func (this *Database) GetList(table string, fields []string, page int, max int, sort int, desc bool) (map[int]map[string]interface{}, error) {
 	var returnResult map[int]map[string]interface{}
-	query := "select " + this.GetFieldsToStr(fields) + " from `" + table + "` " + this.GetPageSortStr(page,max,fields[sort],desc)
-	stmt,err := this.db.Prepare(query)
+	query := "select " + this.GetFieldsToStr(fields) + " from `" + table + "` " + this.GetPageSortStr(page, max, fields[sort], desc)
+	stmt, err := this.db.Prepare(query)
 	defer stmt.Close()
-	if err != nil{
-		return returnResult,err
+	if err != nil {
+		return returnResult, err
 	}
-	rows,err := stmt.Query()
+	rows, err := stmt.Query()
 	defer rows.Close()
-	if err != nil{
-		return returnResult,err
+	if err != nil {
+		return returnResult, err
 	}
-	return this.GetResultToList(fields,rows)
+	return this.GetResultToList(fields, rows)
 }
 
 //This is just a placeholder
-func (this *Database) Insert(table string,fields []string,values []string){
+func (this *Database) Insert(table string, fields []string, values []string) {
 	//....
 }
 
 //update data
-func (this *Database) Update(table string,setField string,setValue string,id int) (int64,error){
+func (this *Database) Update(table string, setField string, setValue string, id int) (int64, error) {
 	query := "update `" + table + "` set `" + setField + "` = ? where `id` = ?"
-	stmt,err := this.db.Exec(query,setValue,id)
-	if err != nil{
-		return 0,err
+	stmt, err := this.db.Exec(query, setValue, id)
+	if err != nil {
+		return 0, err
 	}
 	return stmt.RowsAffected()
 }
 
 //Removes the specified id
-func (this *Database) Delete(table string,id int) (int64,error){
+func (this *Database) Delete(table string, id int) (int64, error) {
 	query := "delete from `" + table + "` where `id` = ?"
-	smat,err := this.db.Exec(query,id)
-	if err != nil{
-		return 0,err
+	smat, err := this.db.Exec(query, id)
+	if err != nil {
+		return 0, err
 	}
-	row,err := smat.RowsAffected()
-	if err != nil{
-		return 0,err
+	row, err := smat.RowsAffected()
+	if err != nil {
+		return 0, err
 	}
-	return row,nil
+	return row, nil
 }
 
 //Obtains a field string based on the number of fields.
-func (this *Database) GetFieldsToStr(fields []string) string{
-	return "`" + strings.Join(fields,"`,`") + "`"
+func (this *Database) GetFieldsToStr(fields []string) string {
+	return "`" + strings.Join(fields, "`,`") + "`"
 }
 
 //Get the sql pagination combo section.
-func (this *Database) GetPageSortStr(page int,max int,sort string,desc bool) string {
+func (this *Database) GetPageSortStr(page int, max int, sort string, desc bool) string {
 	var descStr string
-	if desc == true{
+	if desc == true {
 		descStr = "desc"
-	}else{
+	} else {
 		descStr = "ase"
 	}
 	return "limit " + strconv.Itoa(page) + "," + strconv.Itoa(max) + " order by `" + sort + "` " + descStr
 }
 
 //Obtain a list of data according to the field.
-func (this *Database) GetResultToList(fields []string,result *sql.Rows) (map[int]map[string]interface{},error){
+func (this *Database) GetResultToList(fields []string, result *sql.Rows) (map[int]map[string]interface{}, error) {
 	var resultArray map[int]map[string]interface{}
 	defer result.Close()
 	var j int = 0
-	for{
+	for {
 		b := result.Next()
-		if b == false{
+		if b == false {
 			break
 		}
 		var a map[string]interface{}
-		c,err := result.Columns()
-		if err != nil{
+		c, err := result.Columns()
+		if err != nil {
 			break
 		}
-		for i := range fields{
+		for i := range fields {
 			a[fields[i]] = c[i]
 		}
 		resultArray[j] = a
-		j ++
+		j++
 	}
-	return resultArray,err
+	return resultArray, err
 }

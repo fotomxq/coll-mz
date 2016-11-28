@@ -32,12 +32,12 @@ func (this *Controller) Init() {
 		log.SendFmtPrintln("Unable to read the configuration file, can not start the program.Config src : " + configSrc)
 		return
 	}
-	if configData["database-type"] == nil{
+	if configData["database-type"] == nil {
 		log.SendFmtPrintln("The content of the configuration file is incorrect. Please check again.")
 		return
 	}
 	//Initialize the log
-	log.init(configData["data-src"].(string), true, true, true, true, true,true)
+	log.init(configData["data-src"].(string), true, true, true, true, true, true)
 	//Connect database
 	err = this.db.Connect(configData["database-type"].(string), configData["database-dns"].(string))
 	defer this.db.Close()

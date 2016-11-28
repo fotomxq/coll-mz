@@ -1,8 +1,9 @@
 package controller
 
 import (
-	"regexp"
 	"crypto/sha1"
+	"encoding/hex"
+	"regexp"
 )
 
 //Authentication and query modules
@@ -25,15 +26,14 @@ func (this *MatchString) CheckPassword(str string) bool {
 }
 
 //Gets the string sha1 value
-func (this *MatchString) GetSha1(content string) string{
-	sha := sha1.New()
-	contentByte := []byte(content)
-	_,err := sha.Write(contentByte)
-	if err != nil{
+func (this *MatchString) GetSha1(content string) string {
+	hasher := sha1.New()
+	_, err = hasher.Write([]byte(content))
+	if err != nil {
 		return ""
 	}
-	res := sha.Sum(nil)
-	return string(res)
+	sha := hasher.Sum(nil)
+	return hex.EncodeToString(sha)
 }
 
 //Gets the regular expression result

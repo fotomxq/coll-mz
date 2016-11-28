@@ -1,17 +1,17 @@
 package controller
 
-import(
+import (
 	"net/http"
 )
 
 //router
 type Router struct {
 	matchString MatchString
-	handle Handle
+	handle      Handle
 }
 
 //Start the server
-func (this *Router) RunServer(db *Database){
+func (this *Router) RunServer(db *Database) {
 	//Initialize the handle
 	this.handle.Init(db)
 	//Set Static
@@ -30,9 +30,9 @@ func (this *Router) RunServer(db *Database){
 	http.HandleFunc("/action-center", this.handle.actionCenter)
 	http.HandleFunc("/action-view", this.handle.actionView)
 	//Start the server listening
-	log.NewLog("Server run : " + configData["server-local"].(string),nil)
+	log.NewLog("Server run : "+configData["server-local"].(string), nil)
 	err = http.ListenAndServe(configData["server-local"].(string), nil)
-	if err != nil{
-		log.NewLog("Unable to connect to the database.",err)
+	if err != nil {
+		log.NewLog("Unable to connect to the database.", err)
 	}
 }

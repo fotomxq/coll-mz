@@ -1,8 +1,8 @@
 package controller
 
-import(
-	"net/http"
+import (
 	"html/template"
+	"net/http"
 )
 
 //The page handle
@@ -15,13 +15,13 @@ type Handle struct {
 	db *Database
 }
 
-func (this *Handle) Init(db *Database){
+func (this *Handle) Init(db *Database) {
 	//Initialize the language configuration processor
 	this.lang.Init(configData["language"].(string))
 	//Save the database processor
 	this.db = db
 	//Initialize the user processor
-	this.user.Init(db,3600)
+	this.user.Init(db, 3600)
 }
 
 /////////////////////////////////////
@@ -29,61 +29,61 @@ func (this *Handle) Init(db *Database){
 /////////////////////////////////////
 
 //Get the template file path
-func (this *Handle) GetTempSrc(name string) string{
+func (this *Handle) GetTempSrc(name string) string {
 	return "template" + GetPathSep() + name
 }
 
 //Output text directly to the browser
-func (this *Handle) PostText(w http.ResponseWriter, r *http.Request, content string){
+func (this *Handle) PostText(w http.ResponseWriter, r *http.Request, content string) {
 	var contentByte []byte = []byte(content)
-	_,err := w.Write(contentByte)
-	if err != nil{
-		log.NewLog("You can not directly output string data.",err)
+	_, err := w.Write(contentByte)
+	if err != nil {
+		log.NewLog("You can not directly output string data.", err)
 		return
 	}
 }
 
 //Jump to URL
-func (this *Handle) ToURL(w http.ResponseWriter, r *http.Request,urlName string) {
+func (this *Handle) ToURL(w http.ResponseWriter, r *http.Request, urlName string) {
 	http.Redirect(w, r, urlName, http.StatusFound)
 }
 
 //Output template
-func (this *Handle) ShowTemplate(w http.ResponseWriter, r *http.Request,templateFileName string,data interface{}){
+func (this *Handle) ShowTemplate(w http.ResponseWriter, r *http.Request, templateFileName string, data interface{}) {
 	t, err := template.ParseFiles(this.GetTempSrc(templateFileName))
 	if err != nil {
-		log.NewLog("The template does not output properly,template file name : " + templateFileName,err)
+		log.NewLog("The template does not output properly,template file name : "+templateFileName, err)
 		return
 	}
 	t.Execute(w, data)
 }
 
 //Output the prompt page
-func (this *Handle) showTip(w http.ResponseWriter, r *http.Request,title string,contentTitle string,content string,gotoURL string){
+func (this *Handle) showTip(w http.ResponseWriter, r *http.Request, title string, contentTitle string, content string, gotoURL string) {
 	data := map[string]string{
-		"title" : title,
-		"contentTitle" : contentTitle,
-		"content" : content,
-		"gotoURL" : gotoURL,
+		"title":        title,
+		"contentTitle": contentTitle,
+		"content":      content,
+		"gotoURL":      gotoURL,
 	}
-	this.ShowTemplate(w,r,"tip.html",data)
+	this.ShowTemplate(w, r, "tip.html", data)
 }
 
 //Check that you are logged in
-func (this *Handle) CheckLogin(w http.ResponseWriter, r *http.Request) bool{
+func (this *Handle) CheckLogin(w http.ResponseWriter, r *http.Request) bool {
 	if this.user.CheckLogin(w, r) == false {
-		log.NewLog("User has not logged in, but visited the home page.",nil)
-		this.ToURL(w,r,"/login")
+		log.NewLog("User has not logged in, but visited the home page.", nil)
+		this.ToURL(w, r, "/login")
 		return false
 	}
 	return true
 }
 
 //Check the post data
-func (this *Handle) CheckURLPost(r *http.Request) bool{
+func (this *Handle) CheckURLPost(r *http.Request) bool {
 	err = r.ParseForm()
 	if err != nil {
-		log.NewLog("Failed to get get / post data.",err)
+		log.NewLog("Failed to get get / post data.", err)
 		return false
 	}
 	return true
@@ -96,47 +96,48 @@ func (this *Handle) CheckURLPost(r *http.Request) bool{
 //404 error handling
 func (this *Handle) page404(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
-		if this.CheckLogin(w,r) == false{
+		if this.CheckLogin(w, r) == false {
 			return
-		}else{
-			this.ToURL(w,r,"/center")
+		} else {
+			this.ToURL(w, r, "/center")
 		}
-	}else{
-		log.NewLog("The page can not be found,url path : " + r.URL.Path,nil)
-		this.ShowTemplate(w,r,"404.html",nil)
+	} else {
+		log.NewLog("The page can not be found,url path : "+r.URL.Path, nil)
+		this.ShowTemplate(w, r, "404.html", nil)
 	}
 }
 
 //Resolve the login page
-func (this *Handle) pageLogin(w http.ResponseWriter, r *http.Request){
+func (this *Handle) pageLogin(w http.ResponseWriter, r *http.Request) {
+	this.user.CreateNewUser("admin@admin.com","adminadmin")
 	if this.user.CheckLogin(w, r) == true {
-		this.ToURL(w,r,"/center")
+		this.ToURL(w, r, "/center")
 		return
 	} else {
-		this.ShowTemplate(w,r,"login.html",nil)
+		this.ShowTemplate(w, r, "login.html", nil)
 		return
 	}
 }
 
 //Get the site icon file
 func (this *Handle) pageFavicon(w http.ResponseWriter, r *http.Request) {
-	this.ToURL(w,r,"/assets/favicon.ico")
+	this.ToURL(w, r, "/assets/favicon.ico")
 }
 
 //Output the set page
 func (this *Handle) pageSet(w http.ResponseWriter, r *http.Request) {
-	if this.CheckLogin(w,r) == false{
+	if this.CheckLogin(w, r) == false {
 		return
 	}
-	this.ShowTemplate(w,r,"set.html",nil)
+	this.ShowTemplate(w, r, "set.html", nil)
 }
 
 //Output the center page
 func (this *Handle) pageCenter(w http.ResponseWriter, r *http.Request) {
-	if this.CheckLogin(w,r) == false{
+	if this.CheckLogin(w, r) == false {
 		return
 	}
-	this.ShowTemplate(w,r,"center.html",nil)
+	this.ShowTemplate(w, r, "center.html", nil)
 }
 
 /////////////////////////////////////
@@ -147,33 +148,33 @@ func (this *Handle) pageCenter(w http.ResponseWriter, r *http.Request) {
 func (this *Handle) actionLogin(w http.ResponseWriter, r *http.Request) {
 	postUser := r.FormValue("email")
 	postPasswd := r.FormValue("password")
-	b := this.user.LoginIn(w,r,postUser,postPasswd)
-	if b == false{
-		this.ToURL(w,r,"/login")
+	b := this.user.LoginIn(w, r, postUser, postPasswd)
+	if b == false {
+		this.ToURL(w, r, "/login")
 		return
-	}else{
-		this.ToURL(w,r,"/center")
+	} else {
+		this.ToURL(w, r, "/center")
 	}
 }
 
 //sign out
 func (this *Handle) actionLogout(w http.ResponseWriter, r *http.Request) {
-	if this.user.CheckLogin(w,r) == false{
-		this.ToURL(w,r,"/login")
+	if this.user.CheckLogin(w, r) == false {
+		this.ToURL(w, r, "/login")
 		return
 	}
-	this.showTip(w,r,this.lang.Get("handle-logout-title"),this.lang.Get("handle-logout-contentTitle"),this.lang.Get("handle-logout-content"),"/login")
+	this.showTip(w, r, this.lang.Get("handle-logout-title"), this.lang.Get("handle-logout-contentTitle"), this.lang.Get("handle-logout-content"), "/login")
 }
 
 //Resolution settings page
 func (this *Handle) actionSet(w http.ResponseWriter, r *http.Request) {
 	//If not, jump
-	if this.CheckLogin(w,r) == false{
+	if this.CheckLogin(w, r) == false {
 		return
 	}
 	//Make sure that post / get is fine
 	b := this.CheckURLPost(r)
-	if b == false{
+	if b == false {
 		return
 	}
 	//Gets the submit action type
@@ -185,22 +186,22 @@ func (this *Handle) actionSet(w http.ResponseWriter, r *http.Request) {
 	case "get-log":
 		break
 	default:
-		this.page404(w,r)
+		this.page404(w, r)
 		return
 		break
 	}
 }
 
 //Feedback center action
-func (this *Handle) actionCenter(w http.ResponseWriter, r *http.Request){
-	if this.CheckLogin(w,r) == false{
+func (this *Handle) actionCenter(w http.ResponseWriter, r *http.Request) {
+	if this.CheckLogin(w, r) == false {
 		return
 	}
 }
 
 //Feedback center view content action
 func (this *Handle) actionView(w http.ResponseWriter, r *http.Request) {
-	if this.CheckLogin(w,r) == false{
+	if this.CheckLogin(w, r) == false {
 		return
 	}
 }

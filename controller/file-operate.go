@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"os"
-	"crypto/sha1"
-	"io/ioutil"
 	"bytes"
+	"crypto/sha1"
 	"io"
+	"io/ioutil"
+	"os"
 	"strings"
 	"time"
 )
@@ -14,7 +14,7 @@ import (
 //But recommended, will reduce the operating efficiency..
 
 //Create a folder
-func CreateDir (src string) error {
+func CreateDir(src string) error {
 	return os.MkdirAll(src, os.ModePerm)
 }
 
@@ -34,12 +34,12 @@ func LoadFile(src string) ([]byte, error) {
 
 //Write file
 //If the file does not exist, it is created.
-func WriteFile(src string, content []byte) error{
+func WriteFile(src string, content []byte) error {
 	return ioutil.WriteFile(src, content, os.ModeAppend)
 }
 
 //Append data to a file
-func WriteFileAppend(src string, content []byte,isForward bool) error {
+func WriteFileAppend(src string, content []byte, isForward bool) error {
 	if IsFile(src) == false {
 		return WriteFile(src, content)
 	}
@@ -48,12 +48,12 @@ func WriteFileAppend(src string, content []byte,isForward bool) error {
 		return err
 	}
 	var s [][]byte
-	if isForward == false{
+	if isForward == false {
 		s = [][]byte{
 			c,
 			content,
 		}
-	}else{
+	} else {
 		s = [][]byte{
 			content,
 			c,
@@ -200,14 +200,14 @@ func GetFileSha1(src string) (string, error) {
 //Gets the directory path for the time build
 //eg : Return and create the path ,"[src]/201611/"
 //eg : Return and create the path ,"[src]/201611/2016110102-03[appendFileType]"
-func GetTimeDirSrc(src string,appendFileType string) (string,error){
+func GetTimeDirSrc(src string, appendFileType string) (string, error) {
 	t := time.Now()
 	sep := GetPathSep()
 	newSrc := src + sep + t.Format("200601")
 	err = CreateDir(newSrc)
 	newSrc = newSrc + sep
-	if appendFileType != ""{
+	if appendFileType != "" {
 		newSrc = newSrc + t.Format("20060102-03") + appendFileType
 	}
-	return newSrc,err
+	return newSrc, err
 }

@@ -1,14 +1,14 @@
 package controller
 
 import (
-	"strings"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"io/ioutil"
+	"strings"
 )
 
 //Gets the URL data get mode
-func SimpleHttpGet(sendURL string,params map[string][]string) ([]byte,error){
+func SimpleHttpGet(sendURL string, params map[string][]string) ([]byte, error) {
 	var urlU *url.URL
 	var err error
 	urlU, err = url.Parse(sendURL)
@@ -27,7 +27,7 @@ func SimpleHttpGet(sendURL string,params map[string][]string) ([]byte,error){
 }
 
 //Gets the URL data post mode
-func SimpleHttpPost(sendURL string,params map[string][]string)([]byte,error){
+func SimpleHttpPost(sendURL string, params map[string][]string) ([]byte, error) {
 	var urlParams url.Values = params
 	resp, err := http.PostForm(sendURL, urlParams)
 	defer resp.Body.Close()
@@ -40,20 +40,20 @@ func SimpleHttpPost(sendURL string,params map[string][]string)([]byte,error){
 //Get the file name and type by URL
 func GetURLNameType(sendURL string) map[string]string {
 	res := map[string]string{
-		"full-name" : "",
-		"only-name" : "",
-		"type" : "",
+		"full-name": "",
+		"only-name": "",
+		"type":      "",
 	}
 	urls := strings.Split(sendURL, "/")
 	if len(urls) < 1 {
 		return res
 	}
-	if urls[len(urls)-1] == ""{
+	if urls[len(urls)-1] == "" {
 		res["full-name"] = urls[len(urls)-1]
-	}else{
+	} else {
 		res["full-name"] = urls[len(urls)-2]
 	}
-	if res["full-name"] == ""{
+	if res["full-name"] == "" {
 		return res
 	}
 	names := strings.Split(res["full-name"], ".")
@@ -61,13 +61,13 @@ func GetURLNameType(sendURL string) map[string]string {
 		return res
 	}
 	res["type"] = names[len(names)-1]
-	for i := range names{
+	for i := range names {
 		if i >= len(names) {
 			break
 		}
-		if i == 0{
+		if i == 0 {
 			res["only-name"] = names[i]
-		}else{
+		} else {
 			res["only-name"] = res["only-name"] + "." + names[i]
 		}
 	}
