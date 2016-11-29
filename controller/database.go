@@ -87,7 +87,7 @@ func (this *Database) Update(table string, setField string, setValue string, id 
 }
 
 //Removes the specified id
-func (this *Database) Delete(table string, id int) (int64, error) {
+func (this *Database) Delete(table string, id int64) (int64, error) {
 	query := "delete from `" + table + "` where `id` = ?"
 	smat, err := this.db.Exec(query, id)
 	if err != nil {

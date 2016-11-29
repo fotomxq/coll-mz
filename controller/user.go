@@ -228,10 +228,10 @@ func (this *User) UpdateUser(id int, username string, passwd string, isDisabled 
 }
 
 //delete user
-func (this *User) DeleteUser(id int) bool {
+func (this *User) DeleteUser(id int64) bool {
 	row, err := this.db.Delete("user", id)
 	if err == nil && row > 0 {
-		log.NewLog("User successfully deleted,id : "+strconv.Itoa(id), nil)
+		log.NewLog("User successfully deleted.", nil)
 		return true
 	}
 	log.NewLog("An error occurred while deleting the user.", err)

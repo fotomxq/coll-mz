@@ -17,6 +17,8 @@ type Log struct {
 	isAppendTime      bool
 	isAppendIP        bool
 	ip                string
+	isOneFile bool
+	isForward bool
 }
 
 //Initialize the configuration
@@ -29,6 +31,8 @@ func (this *Log) init(logDirSrc string, isSendErrorToFmt bool, isSendMsgToFmt bo
 	this.isSendMsgToFile = isSendMsgToFile
 	this.isAppendTime = isAppendTime
 	this.isAppendIP = isAppendIP
+	this.isOneFile = false
+	this.isForward = false
 }
 
 //New log
@@ -80,13 +84,22 @@ func (this *Log) SendFile(content string) {
 	if this.isAppendTime == true {
 		content = this.GetNowTime() + " " + this.ip + " " + content + "\n"
 	}
-	src, err := GetTimeDirSrc(this.logDirSrc, ".log")
-	if err != nil {
-		this.SendFmtPrintln("Unable to create log save directory path.")
-		return
+	var src string
+	if this.isOneFile == true{
+		src = this.logDirSrc + GetPathSep() + "log.log"
+	}else{
+		src, err = GetTimeDirSrc(this.logDirSrc, ".log")
+		if err != nil {
+			this.SendFmtPrintln("Unable to create log save directory path.")
+			return
+		}
 	}
 	contentByte := []byte(content)
-	err = WriteFileAppend(src, contentByte, false)
+	err = WriteFileAppend(src, contentByte, this.isForward)
+	if err != nil{
+		this.SendFmtPrintln(err.Error())
+	}
+
 }
 
 //Gets the current time

@@ -4,7 +4,7 @@
     "login-timeout" : "3600",
     "coll-autoRunHour": "0",
     "coll-encryptFileType": "",
-    "data-src": "C:\\org",
+    "data-src": "D:\\org",
     "server-local": ":8888",
     "language" : "chinese"
 }

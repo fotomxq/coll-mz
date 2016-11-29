@@ -40,7 +40,7 @@ func (this *Controller) Init() {
 		return
 	}
 	//Initialize the log
-	log.init(configData["data-src"].(string), true, true, true, true, true, true)
+	log.init(configData["data-src"].(string) + GetPathSep() + "log", true, true, true, true, true, true)
 	//Connect database
 	err = this.db.Connect(configData["database-type"].(string), configData["database-dns"].(string))
 	defer this.db.Close()

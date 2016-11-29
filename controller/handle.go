@@ -16,8 +16,6 @@ type Handle struct {
 }
 
 func (this *Handle) Init(db *Database) {
-	//Initialize the language configuration processor
-	this.lang.Init(configData["language"].(string))
 	//Save the database processor
 	this.db = db
 	//Initialize the user processor
@@ -89,6 +87,14 @@ func (this *Handle) CheckURLPost(r *http.Request) bool {
 	return true
 }
 
+//Update the language data
+func (this *Handle) UpdateLanguage() {
+	//Initialize the language configuration processor
+	this.lang.Init(configData["language"].(string))
+	//Set the collector language
+	coll.lang = &this.lang
+}
+
 /////////////////////////////////////
 //This section is the page
 /////////////////////////////////////
@@ -128,6 +134,7 @@ func (this *Handle) pageSet(w http.ResponseWriter, r *http.Request) {
 	if this.CheckLogin(w, r) == false {
 		return
 	}
+	this.UpdateLanguage()
 	this.ShowTemplate(w, r, "set.html", nil)
 }
 
@@ -136,6 +143,7 @@ func (this *Handle) pageCenter(w http.ResponseWriter, r *http.Request) {
 	if this.CheckLogin(w, r) == false {
 		return
 	}
+	this.UpdateLanguage()
 	this.ShowTemplate(w, r, "center.html", nil)
 }
 
@@ -184,9 +192,11 @@ func (this *Handle) actionSet(w http.ResponseWriter, r *http.Request) {
 	postAction := r.FormValue("action")
 	switch postAction {
 	case "coll-all":
+		coll.Run("")
 		this.PostText(w, r, "coll-run-ok")
 		break
 	case "get-log":
+		this.PostText(w, r, coll.GetLog())
 		break
 	default:
 		this.page404(w, r)
@@ -200,6 +210,7 @@ func (this *Handle) actionCenter(w http.ResponseWriter, r *http.Request) {
 	if this.CheckLogin(w, r) == false {
 		return
 	}
+	this.UpdateLanguage()
 }
 
 //Feedback center view content action
@@ -207,4 +218,5 @@ func (this *Handle) actionView(w http.ResponseWriter, r *http.Request) {
 	if this.CheckLogin(w, r) == false {
 		return
 	}
+	this.UpdateLanguage()
 }

@@ -1,5 +1,10 @@
 {
 	"handle-logout-title" : "退出登录",
 	"handle-logout-contentTitle" : "退出登录",
-	"handle-logout-content" : "您已经成功退出了平台。"
+	"handle-logout-content" : "您已经成功退出了平台。",
+	"coll-run-jiandan" : "开始运行煎蛋网采集器...",
+	"coll-run-xiuren" : "开始运行秀人网采集器...",
+	"coll-run-meizitu" : "开始运行妹子图采集器...",
+	"coll-run-local" : "开始运行本地文件采集器...",
+	"coll-is-run" : "采集器运行开始运行了，请勿反复尝试。"
 }
