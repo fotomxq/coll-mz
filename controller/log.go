@@ -37,20 +37,20 @@ func (this *Log) NewLog(msg string, err error) {
 	if this.isAppendIP == true {
 		this.UpdateIP()
 	}
-	if err != nil {
-		if this.isSendErrorToFmt == true {
-			this.SendFmtPrintln("Error : " + err.Error())
-		}
-		if this.isSendErrorToFile == true {
-			this.SendFile("Error : " + err.Error())
-		}
-	}
 	if msg != "" {
 		if this.isSendMsgToFmt == true {
 			this.SendFmtPrintln(msg)
 		}
 		if this.isSendMsgToFile == true {
 			this.SendFile(msg)
+		}
+	}
+	if err != nil {
+		if this.isSendErrorToFmt == true {
+			this.SendFmtPrintln("Error : " + err.Error())
+		}
+		if this.isSendErrorToFile == true {
+			this.SendFile("Error : " + err.Error())
 		}
 	}
 }

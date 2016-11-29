@@ -109,7 +109,6 @@ func (this *Handle) page404(w http.ResponseWriter, r *http.Request) {
 
 //Resolve the login page
 func (this *Handle) pageLogin(w http.ResponseWriter, r *http.Request) {
-	this.user.CreateNewUser("admin@admin.com","adminadmin")
 	if this.user.CheckLogin(w, r) == true {
 		this.ToURL(w, r, "/center")
 		return
@@ -162,6 +161,10 @@ func (this *Handle) actionLogout(w http.ResponseWriter, r *http.Request) {
 	if this.user.CheckLogin(w, r) == false {
 		this.ToURL(w, r, "/login")
 		return
+	}
+	b := this.user.Logout(w,r)
+	if b == false{
+		//...
 	}
 	this.showTip(w, r, this.lang.Get("handle-logout-title"), this.lang.Get("handle-logout-contentTitle"), this.lang.Get("handle-logout-content"), "/login")
 }

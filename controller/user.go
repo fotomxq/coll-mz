@@ -18,6 +18,15 @@ type User struct {
 	matchString        MatchString
 }
 
+type userFieldsStruct struct {
+	id         int64
+	username   string
+	password   string
+	last_ip     string
+	last_time   string
+	is_disabled int
+}
+
 //Initialize the user action module
 func (this *User) Init(db *Database, timeout int64) {
 	this.loginMark = "login"
@@ -45,35 +54,35 @@ func (this *User) UpdateIP() {
 
 //log in
 func (this *User) LoginIn(w http.ResponseWriter, r *http.Request, username string, passwd string) bool {
+	//Check the user name and password
+	if username == "" || passwd == "" || this.matchString.CheckEmail(username) || this.matchString.CheckPassword(passwd){
+		log.NewLog("The user name and password are illegal.",nil)
+		return false
+	}
 	//Check that you are logged in
 	if this.CheckLogin(w, r) == true {
 		log.NewLog("The user tries to enter the account password to log in, but has actually logged on.", nil)
 		return true
 	}
-	query := "select `id` from `user` where `is_disabled` = 0 and `username` = ? and `password` = ?"
-	stmt, err := this.db.db.Prepare(query)
-	defer stmt.Close()
-	if err != nil {
-		log.NewLog("The user tried to log on to the system, but the user name and password were wrong,E1.", err)
-		return false
-	}
+	//Calculate the password
 	passwdSha1 := this.GetPasswdSha1(passwd)
 	if passwdSha1 == "" {
 		log.NewLog("The SHA1 value of the password can not be calculated.", nil)
 		return false
 	}
-	result, err := stmt.Query(username, passwdSha1)
-	defer result.Close()
+	//
+	t := time.Now()
+	t.Format("")
+	//Query whether the user exists
+	query := "select `id` from `user` where `is_disabled` = 0 and `username` = ? and `password` = ?"
+	stmt, err := this.db.db.Prepare(query)
 	if err != nil {
-		log.NewLog("The user tried to log on to the system, but the user name and password were wrong,E2.", err)
+		log.NewLog("The user tried to log on to the system, but the user name and password were wrong,E1.", err)
 		return false
 	}
-	var id int
-	b := result.Next()
-	if b == false {
-		log.NewLog("Need user.", nil)
-		return false
-	}
+	defer stmt.Close()
+	var id int64
+	result := stmt.QueryRow(username,passwdSha1)
 	err = result.Scan(&id)
 	if err != nil {
 		log.NewLog("The user tried to log on to the system, but the user name and password were wrong,E3.", err)
@@ -84,13 +93,13 @@ func (this *User) LoginIn(w http.ResponseWriter, r *http.Request, username strin
 		return false
 	}
 	//Update table information
-	b = this.UpdateLoginInfo(id)
+	b := this.UpdateLoginInfo(id)
 	if b == false {
 		return false
 	}
 	//Update the login status
 	if id > 0 {
-		log.NewLog("The user successfully logged on to the system,user id : "+strconv.Itoa(id), nil)
+		log.NewLog("The user successfully logged on to the system,user name : " + username, nil)
 		b := this.ChangeLoginSession(w, r, true)
 		return b
 	}
@@ -110,13 +119,15 @@ func (this *User) CheckLogin(w http.ResponseWriter, r *http.Request) bool {
 }
 
 //Gets the specified user
-func (this *User) ViewUser(id int) (map[string]interface{}, bool) {
-	stmt, err := this.db.GetID("user", this.fields, id)
+func (this *User) ViewUser(id int) (userFieldsStruct, bool) {
+	row, err := this.db.GetID("user", this.fields, id)
+	var res userFieldsStruct
 	if err != nil {
 		log.NewLog("Failed to query user information.", err)
-		return stmt, false
+		return res, false
 	}
-	return stmt, true
+	row.Scan(&res.id,&res.username,&res.password,&res.last_ip,&res.last_time,&res.is_disabled)
+	return res, true
 }
 
 //Gets the list of users
@@ -173,16 +184,20 @@ func (this *User) CreateNewUser(username string, passwd string) int64 {
 }
 
 //Search for the user name get column
-func (this *User) SearchUsername(name string) int {
-	result, err := this.db.GetField("user", this.fields, "username", name)
+func (this *User) SearchUsername(username string) int64 {
+	query := "select `id` from `user` where `username` = ?"
+	stmt, err := this.db.db.Prepare(query)
 	if err != nil {
-		log.NewLog("", err)
 		return 0
 	}
-	if result == nil {
+	defer stmt.Close()
+	row := stmt.QueryRow(username)
+	var id int64
+	err = row.Scan(&id)
+	if err != nil {
 		return 0
 	}
-	return result["id"].(int)
+	return id
 }
 
 //Update user information
@@ -225,15 +240,24 @@ func (this *User) DeleteUser(id int) bool {
 
 //Change the session state
 func (this *User) ChangeLoginSession(w http.ResponseWriter, r *http.Request, b bool) bool {
-	var data map[interface{}]interface{}
-	if b == true {
-		data[this.loginSessionMark] = "in"
-		data[this.timeoutSessionMark] = this.GetUnixTime()
-	} else {
-		data[this.loginSessionMark] = "out"
-		data[this.timeoutSessionMark] = 0
+	s, err := store.Get(r, this.loginMark)
+	if err != nil {
+		log.NewLog("", err)
+		return false
 	}
-	return SessionSet(w, r, this.loginMark, data)
+	if b == true {
+		s.Values[this.loginSessionMark] = "in"
+		s.Values[this.timeoutSessionMark] = this.GetUnixTime()
+	} else {
+		s.Values[this.loginSessionMark] = "out"
+		s.Values[this.timeoutSessionMark] = 0
+	}
+	err = s.Save(r, w)
+	if err != nil {
+		log.NewLog("", err)
+		return false
+	}
+	return true
 }
 
 //Gets the session state
@@ -254,8 +278,7 @@ func (this *User) GetLoginSession(w http.ResponseWriter, r *http.Request) bool {
 			data[this.loginSessionMark] = "out"
 			return false
 		}
-		data[this.timeoutSessionMark] = this.GetUnixTime()
-		return SessionSet(w, r, this.loginMark, data)
+		return this.ChangeLoginSession(w,r,true)
 	}
 	return false
 }
@@ -266,8 +289,8 @@ func (this *User) GetUnixTime() int64 {
 }
 
 //Update table information
-func (this *User) UpdateLoginInfo(id int) bool {
-	query := "update `user` set `last_ip = ?,`last_time` = NOW() where `id` = ?`"
+func (this *User) UpdateLoginInfo(id int64) bool {
+	query := "update `user` set `last_ip` = ?,`last_time` = now() where `id` = ?"
 	this.UpdateIP()
 	smat, err := this.db.db.Exec(query, this.ip, id)
 	if err != nil {

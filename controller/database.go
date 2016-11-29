@@ -31,30 +31,27 @@ func (this *Database) Close() error {
 }
 
 //Gets the specified ID
-func (this *Database) GetID(table string, fields []string, id int) (map[string]interface{}, error) {
-	return this.GetField(table,fields,"id",id)
+func (this *Database) GetID(table string, fields []string, id int) (*sql.Row, error) {
+	query := "select " + this.GetFieldsToStr(fields) + " from `" + table + "` where `id` = ?"
+	stmt, err := this.db.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	row := stmt.QueryRow(id)
+	return row, nil
 }
 
 //Gets the specified field
-func (this *Database) GetField(table string, fields []string, field string,value interface{}) (map[string]interface{}, error) {
-	var returnResult map[string]interface{}
+func (this *Database) GetField(table string, fields []string, field string,value string) (*sql.Row, error) {
 	query := "select " + this.GetFieldsToStr(fields) + " from `" + table + "` where `" + field + "` = ?"
 	stmt, err := this.db.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
 	defer stmt.Close()
-	if err != nil {
-		return returnResult, err
-	}
-	result, err := stmt.Query(value)
-	defer result.Close()
-	if err != nil {
-		return returnResult, err
-	}
-	for i := range fields {
-		var a interface{}
-		result.Scan(&a)
-		returnResult[fields[i]] = a
-	}
-	return returnResult, nil
+	row := stmt.QueryRow(value)
+	return row, nil
 }
 
 //get the list
@@ -62,10 +59,10 @@ func (this *Database) GetList(table string, fields []string, page int, max int, 
 	var returnResult map[int]map[string]interface{}
 	query := "select " + this.GetFieldsToStr(fields) + " from `" + table + "` " + this.GetPageSortStr(page, max, fields[sort], desc)
 	stmt, err := this.db.Prepare(query)
-	defer stmt.Close()
 	if err != nil {
 		return returnResult, err
 	}
+	defer stmt.Close()
 	rows, err := stmt.Query()
 	defer rows.Close()
 	if err != nil {
