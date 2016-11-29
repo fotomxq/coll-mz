@@ -18,7 +18,7 @@ type User struct {
 	matchString        MatchString
 }
 
-type userFieldsStruct struct {
+type UserFieldsStruct struct {
 	id         int64
 	username   string
 	password   string
@@ -119,9 +119,9 @@ func (this *User) CheckLogin(w http.ResponseWriter, r *http.Request) bool {
 }
 
 //Gets the specified user
-func (this *User) ViewUser(id int) (userFieldsStruct, bool) {
+func (this *User) ViewUser(id int) (UserFieldsStruct, bool) {
 	row, err := this.db.GetID("user", this.fields, id)
-	var res userFieldsStruct
+	var res UserFieldsStruct
 	if err != nil {
 		log.NewLog("Failed to query user information.", err)
 		return res, false

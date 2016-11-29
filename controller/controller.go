@@ -6,6 +6,9 @@ var err error
 //glob log
 var log Log
 
+//glob coll
+var coll Coll
+
 //Profile data
 //config file : ./config/config.json
 var configData map[string]interface{}
@@ -45,6 +48,8 @@ func (this *Controller) Init() {
 		log.NewLog("Unable to connect to the database.", err)
 		return
 	}
+	//Initializes the coll object
+	coll.init(&this.db,configData["data-src"].(string))
 	//Start the server
 	this.router.RunServer(&this.db)
 }

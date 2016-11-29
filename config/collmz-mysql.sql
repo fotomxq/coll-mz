@@ -28,12 +28,14 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `coll` (
   `id` bigint(20) UNSIGNED NOT NULL,
+  `parent` bigint(20) NOT NULL,
+  `star` int(2) NOT NULL,
   `sha1` varchar(100) COLLATE utf8_bin NOT NULL,
   `src` varchar(600) COLLATE utf8_bin NOT NULL,
   `source` varchar(300) COLLATE utf8_bin NOT NULL,
   `url` varchar(300) COLLATE utf8_bin NOT NULL,
   `name` varchar(600) COLLATE utf8_bin NOT NULL,
-  `type` varchar(300) COLLATE utf8_bin NOT NULL,
+  `file_type` varchar(300) COLLATE utf8_bin NOT NULL,
   `size` int(11) NOT NULL,
   `coll_time` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
@@ -50,7 +52,7 @@ CREATE TABLE `user` (
   `password` varchar(300) COLLATE utf8_bin NOT NULL,
   `last_ip` varchar(300) COLLATE utf8_bin NOT NULL,
   `last_time` datetime NOT NULL,
-  `	is_disabled` int(1) COLLATE utf8_bin NOT NULL
+  `is_disabled` int(1) COLLATE utf8_bin NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 --
@@ -86,3 +88,11 @@ ALTER TABLE `user`
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+--
+-- 转存表中的数据 `user`
+--
+
+INSERT INTO `user` (`id`, `username`, `password`, `last_ip`, `last_time`, `is_disabled`) VALUES
+(1, 'admin@admin.com', 'dd94709528bb1c83d08f3088d4043f4742891f4f', '218.26.1.182', '2016-11-29 15:57:56', 0);

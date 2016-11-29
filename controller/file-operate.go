@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"encoding/hex"
 )
 
 //The module mainly encapsulates complex file operations.
@@ -192,7 +193,7 @@ func GetFileSha1(src string) (string, error) {
 		sha := sha1.New()
 		sha.Write(content)
 		res := sha.Sum(nil)
-		return string(res), nil
+		return hex.EncodeToString(res), nil
 	}
 	return "", nil
 }
