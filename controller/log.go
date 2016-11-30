@@ -86,6 +86,11 @@ func (this *Log) SendFile(content string) {
 	}
 	var src string
 	if this.isOneFile == true{
+		err = CreateDir(this.logDirSrc)
+		if err != nil{
+			this.SendFmtPrintln(err.Error())
+			return
+		}
 		src = this.logDirSrc + GetPathSep() + "log.log"
 	}else{
 		src, err = GetTimeDirSrc(this.logDirSrc, ".log")

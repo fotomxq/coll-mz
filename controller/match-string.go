@@ -4,6 +4,9 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"regexp"
+	"time"
+	"math/rand"
+	"strconv"
 )
 
 //Authentication and query modules
@@ -40,4 +43,12 @@ func (this *MatchString) GetSha1(content string) string {
 func (this *MatchString) matchStr(str string, mSrc string) bool {
 	res, err := regexp.MatchString(mSrc, str)
 	return res == true && err == nil
+}
+
+//Get a random number
+// n - range
+func (this *MatchString) GetRandStr(n int) string{
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	re := r.Intn(n)
+	return strconv.Itoa(re)
 }

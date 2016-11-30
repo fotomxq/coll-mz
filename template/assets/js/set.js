@@ -48,6 +48,13 @@ function getCollLog() {
     });
 }
 
+//清空日志
+function clearCollLog(){
+    postServerActionData('clear-log', function(data) {
+        clearLogContent();
+    });
+}
+
 //向日志列发送新的日志
 //倒叙陈列
 function sendNewLog(msg) {
@@ -67,11 +74,15 @@ $(document).ready(function() {
     $('.ui.selection.dropdown').dropdown();
     //执行全部采集程序按钮
     $('a[href="#action-coll-all"]').click(function() {
-        $(this).find('i').attr('class','setting loading icon')
+        $(this).find('i').attr('class','setting loading icon');
         runCollAll();
     });
     //继续读取日志按钮
     $('a[href="#action-coll-log"]').click(function() {
         getCollLog();
+    });
+    //清空日志
+    $('a[href="#action-coll-log-clear"]').click(function() {
+        clearCollLog();
     });
 });

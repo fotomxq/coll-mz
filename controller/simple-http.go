@@ -42,18 +42,15 @@ func GetURLNameType(sendURL string) map[string]string {
 	res := map[string]string{
 		"full-name": "",
 		"only-name": "",
-		"type":      "",
+		"type": "",
 	}
 	urls := strings.Split(sendURL, "/")
 	if len(urls) < 1 {
 		return res
 	}
-	if urls[len(urls)-1] == "" {
-		res["full-name"] = urls[len(urls)-1]
-	} else {
-		res["full-name"] = urls[len(urls)-2]
-	}
+	res["full-name"] = urls[len(urls)-1]
 	if res["full-name"] == "" {
+		res["only-name"] = res["full-name"]
 		return res
 	}
 	names := strings.Split(res["full-name"], ".")
@@ -61,14 +58,14 @@ func GetURLNameType(sendURL string) map[string]string {
 		return res
 	}
 	res["type"] = names[len(names)-1]
-	for i := range names {
-		if i >= len(names) {
+	for i := 0 ; i <= len(names) ; i ++{
+		if i == len(names) - 1{
 			break
 		}
-		if i == 0 {
+		if res["only-name"] == ""{
 			res["only-name"] = names[i]
-		} else {
-			res["only-name"] = res["only-name"] + "." + names[i]
+		}else{
+			res["only-name"] += "." + names[i]
 		}
 	}
 	return res

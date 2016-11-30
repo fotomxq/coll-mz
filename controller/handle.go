@@ -198,6 +198,9 @@ func (this *Handle) actionSet(w http.ResponseWriter, r *http.Request) {
 	case "get-log":
 		this.PostText(w, r, coll.GetLog())
 		break
+	case "clear-log":
+		coll.ClearLog()
+		break
 	default:
 		this.page404(w, r)
 		return
