@@ -195,11 +195,8 @@ func (this *Handle) actionSet(w http.ResponseWriter, r *http.Request) {
 		coll.Run("")
 		this.PostText(w, r, "coll-run-ok")
 		break
-	case "get-log":
-		this.PostText(w, r, coll.GetLog())
-		break
-	case "clear-log":
-		coll.ClearLog()
+	case "get-status":
+		this.PostText(w, r, coll.GetStatus())
 		break
 	default:
 		this.page404(w, r)

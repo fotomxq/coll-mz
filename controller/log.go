@@ -17,8 +17,9 @@ type Log struct {
 	isAppendTime      bool
 	isAppendIP        bool
 	ip                string
-	isOneFile bool
+	oneFileName string
 	isForward bool
+	lastSrc string
 }
 
 //Initialize the configuration
@@ -31,7 +32,7 @@ func (this *Log) init(logDirSrc string, isSendErrorToFmt bool, isSendMsgToFmt bo
 	this.isSendMsgToFile = isSendMsgToFile
 	this.isAppendTime = isAppendTime
 	this.isAppendIP = isAppendIP
-	this.isOneFile = false
+	this.oneFileName = ""
 	this.isForward = false
 }
 
@@ -85,13 +86,13 @@ func (this *Log) SendFile(content string) {
 		content = this.GetNowTime() + " " + this.ip + " " + content + "\n"
 	}
 	var src string
-	if this.isOneFile == true{
+	if this.oneFileName != ""{
 		err = CreateDir(this.logDirSrc)
 		if err != nil{
 			this.SendFmtPrintln(err.Error())
 			return
 		}
-		src = this.logDirSrc + GetPathSep() + "log.log"
+		src = this.logDirSrc + GetPathSep() + this.oneFileName + ".log"
 	}else{
 		src, err = GetTimeDirSrc(this.logDirSrc, ".log")
 		if err != nil {
@@ -104,7 +105,17 @@ func (this *Log) SendFile(content string) {
 	if err != nil{
 		this.SendFmtPrintln(err.Error())
 	}
+	this.lastSrc = src
+}
 
+//Set oneFileName
+func (this *Log) SetOneFileName(name string) {
+	this.oneFileName = name
+}
+
+//Set isForward
+func (this *Log) SetIsForward(b bool) {
+	this.isForward = b
 }
 
 //Gets the current time
