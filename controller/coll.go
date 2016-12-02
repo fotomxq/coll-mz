@@ -4,6 +4,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"encoding/json"
 	"strconv"
+	"strings"
 )
 
 //coll struct
@@ -101,12 +102,16 @@ func (this *Coll) GetStatus() (string){
 		valueC["status"] = c.status
 		valueC["source"] = c.source
 		src := this.dataSrc + GetPathSep() + "coll-log" + GetPathSep() + c.source + ".log"
-		logContentByte,err := LoadFile(src)
-		if err != nil{
+		if IsFile(src) == true{
+			logContentByte,err := LoadFile(src)
+			if err != nil{
+				valueC["log"] = ""
+				log.NewLog("",err)
+			}
+			valueC["log"] = string(logContentByte)
+		}else{
 			valueC["log"] = ""
-			log.NewLog("",err)
 		}
-		valueC["log"] = string(logContentByte)
 		res[value] = valueC
 	}
 	resJson,err := json.Marshal(res)
@@ -118,11 +123,35 @@ func (this *Coll) GetStatus() (string){
 	return resJsonStr
 }
 
+//Empty a data set
+func (this *Coll) ClearColl(name string) bool {
+	exisit := this.CheckCollExisit(name)
+	if exisit == false{
+		return false
+	}
+	thisChildren := this.GetCollChildren(name)
+	var collOperate CollOperate
+	collOperate.init(this.db,this.dataSrc,thisChildren,this.lang)
+	b := collOperate.ClearColl()
+	return b
+}
+
+//Change the collector operating status
+func (this *Coll) ChangeStatus(name string,b bool) bool {
+	exisit := this.CheckCollExisit(name)
+	if exisit == false{
+		return false
+	}
+	thisChildren := this.GetCollChildren(name)
+	thisChildren.status = b
+	return true
+}
+
 ////////////////////////////////////////////////
 //This part is a variety of Web site data collector
 ///////////////////////////////////////////////
 
-//Collect jiandan data
+//Collect jiandan.net page data
 func (this *Coll) CollJiandan() {
 	//Gets the object
 	thisChildren := &this.collList.jiandan
@@ -135,24 +164,46 @@ func (this *Coll) CollJiandan() {
 	var b bool
 	errNum := 0
 	for{
+		if thisChildren.status == false{
+			return
+		}
 		//Get the page data
 		doc,err := goquery.NewDocument(nextURL)
 		if err != nil{
-			collOperate.NewLog("",err)
+			collOperate.NewLog(collOperate.lang.Get("coll-error-next-open"),err)
+			continue
+		}
+		//Get the number of pages
+		nextURLs := GetURLNameType(nextURL)
+		if nextURLs["full-name"] == ""{
+			errNum += 1
+			continue
+		}
+		var parent string
+		nextURLss := strings.Split(nextURLs["full-name"], "#")
+		parent = nextURLss[0]
+		if parent != ""{
+			errNum += 1
 			continue
 		}
 		//Gets a list of nodes
 		nodes := doc.Find(".commentlist").Children()
 		for i := range nodes.Nodes {
+			if thisChildren.status == false{
+				return
+			}
 			aNodes := nodes.Eq(i).Find(".text p").Children().Filter("a")
 			for j := range aNodes.Nodes {
+				if thisChildren.status == false{
+					return
+				}
 				nodeURL, b := aNodes.Eq(j).Attr("href")
 				if b == false {
 					collOperate.NewLog(collOperate.lang.Get("coll-error-get-children"),nil)
 					errNum += 1
 					continue
 				}
-				newID := collOperate.AutoCollFile(nodeURL,"","",0)
+				newID := collOperate.AutoCollFile(nodeURL,"",parent,0)
 				if newID < 1{
 					errNum += 1
 					continue
@@ -166,8 +217,9 @@ func (this *Coll) CollJiandan() {
 			break
 		}
 		//Gets the next URL address
-		nextURL,b = doc.Find(".previous-comment-page").Eq(0).Next().Attr("href")
+		nextURL,b = doc.Find(".previous-comment-page").Eq(0).Attr("href")
 		if b == false{
+			collOperate.NewLog(collOperate.lang.Get("coll-error-next"),nil)
 			break
 		}
 	}
@@ -175,7 +227,7 @@ func (this *Coll) CollJiandan() {
 	this.CollEnd(thisChildren,&collOperate)
 }
 
-//Collect jiandan index data
+//Collect jiandan.net index data
 func (this *Coll) CollJiandanIndex() {
 	//Gets the object
 	thisChildren := &this.collList.jiandanIndex
@@ -195,6 +247,9 @@ func (this *Coll) CollJiandanIndex() {
 	//Gets a list of nodes
 	list := doc.Find("#list-girl").Children().Children().Children().Find(".acv_comment").Find("p").Find("a")
 	for i := range list.Nodes {
+		if thisChildren.status == false{
+			return
+		}
 		node := list.Eq(i)
 		v, b := node.Attr("href")
 		if b == false{
@@ -222,6 +277,10 @@ func (this *Coll) CollXiuren() {
 	if this.CollStart(thisChildren,&collOperate) == false{
 		return
 	}
+	//
+	if thisChildren.status == false{
+		return
+	}
 	//finish
 	this.CollEnd(thisChildren,&collOperate)
 }
@@ -234,6 +293,10 @@ func (this *Coll) CollMeizitu() {
 	if this.CollStart(thisChildren,&collOperate) == false{
 		return
 	}
+	//
+	if thisChildren.status == false{
+		return
+	}
 	//finish
 	this.CollEnd(thisChildren,&collOperate)
 }
@@ -244,6 +307,10 @@ func (this *Coll) CollLocal() {
 	thisChildren := &this.collList.local
 	var collOperate CollOperate
 	if this.CollStart(thisChildren,&collOperate) == false{
+		return
+	}
+	//
+	if thisChildren.status == false{
 		return
 	}
 	//finish
@@ -302,4 +369,14 @@ func (this *Coll) CollEnd(thisChildren *CollChildren,collOperate *CollOperate) {
 	}else{
 		collOperate.NewLog(collOperate.lang.Get("coll-no"),nil)
 	}
+}
+
+//Check that the Collector is present
+func (this *Coll) CheckCollExisit(name string) bool{
+	for _,value := range this.collListK{
+		if name == value{
+			return true
+		}
+	}
+	return false
 }

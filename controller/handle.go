@@ -3,6 +3,7 @@ package controller
 import (
 	"html/template"
 	"net/http"
+	"encoding/json"
 )
 
 //The page handle
@@ -197,6 +198,38 @@ func (this *Handle) actionSet(w http.ResponseWriter, r *http.Request) {
 		break
 	case "get-status":
 		this.PostText(w, r, coll.GetStatus())
+		break
+	case "clear":
+		postName := r.FormValue("name")
+		if postName == ""{
+			return
+		}
+		res := map[string]bool{
+			"result" : coll.ClearColl(postName),
+		}
+		resJson,err := json.Marshal(res)
+		if err != nil{
+			log.NewLog("",err)
+			return
+		}
+		resJsonC := string(resJson)
+		this.PostText(w, r, resJsonC)
+		break
+	case "close":
+		postName := r.FormValue("name")
+		if postName == ""{
+			return
+		}
+		res := map[string]bool{
+			"result" : coll.ChangeStatus(postName,false),
+		}
+		resJson,err := json.Marshal(res)
+		if err != nil{
+			log.NewLog("",err)
+			return
+		}
+		resJsonC := string(resJson)
+		this.PostText(w, r, resJsonC)
 		break
 	default:
 		this.page404(w, r)

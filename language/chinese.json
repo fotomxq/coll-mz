@@ -13,6 +13,9 @@
 	"coll-error-move-file" : "无法转移文件，URL : ",
 	"coll-error-new-id" : "无法向数据库添加该文件信息，URL : ",
 	"coll-new-id" : "在数据库建立了新的数据，ID : ",
-	"coll-num" : "采集结束，发现多个文件 : ",
-	"coll-no" : "采集结束，没有发现任何文件。"
+	"coll-num" : "采集结束，发现文件数量 : ",
+	"coll-no" : "采集结束，没有发现任何文件。",
+	"coll-err-next" : "下一个页面不存在。",
+	"coll-err-next-open" : "找到了下一个页面，但无法访问该页面，URL : ",
+	"coll-err-clear-coll" : "无法删除文件数据，请手动删除该目录 : "
 }

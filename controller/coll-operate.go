@@ -12,6 +12,7 @@ type CollOperate struct {
 	fields []string
 	//Data folder path
 	dataSrc string
+	sourceSrc string
 	//Authentication module
 	matchString MatchString
 	//Language data
@@ -43,6 +44,7 @@ type CollFields struct {
 func (this *CollOperate) init(db *Database,dataSrc string,collChildren *CollChildren,lang *Language) {
 	this.db = db
 	this.dataSrc = dataSrc
+	this.sourceSrc = this.dataSrc + GetPathSep() + "coll-file" + GetPathSep() + collChildren.source
 	this.fields = []string{"id","parent","star","sha1","src","source","url","name", "file_type","size","coll_time", }
 	this.collChildren = collChildren
 	logSrc := this.dataSrc + GetPathSep() + "coll-log"
@@ -71,6 +73,32 @@ func (this *CollOperate) ViewData(id int64) (CollFields,bool) {
 	return res,true
 }
 
+//Empty a data set
+func (this *CollOperate) ClearColl() bool {
+	//Delete all database data
+	query := "delete from `coll` where `source` = ?"
+	stmt,err := this.db.db.Exec(query,this.collChildren.source)
+	if err != nil{
+		this.NewLog("",err)
+		return false
+	}
+	_,err = stmt.RowsAffected()
+	if err != nil{
+		this.NewLog("",err)
+		return false
+	}
+	//Delete all file data
+	err = DeleteFile(this.sourceSrc)
+	if err != nil{
+		this.NewLog(this.lang.Get("coll-err-clear-coll") + this.sourceSrc,err)
+		return false
+	}
+	//Delete the log data
+	this.ClearLog()
+	//return
+	return true
+}
+
 //Automatically builds new data
 func (this *CollOperate) AutoCollFile(url string,name string,parent string,parentID int64) int64 {
 	//Buffer files and get information
@@ -97,7 +125,7 @@ func (this *CollOperate) AutoCollFile(url string,name string,parent string,paren
 	//Establish database data
 	newID := this.CreateNewData(parentID,cacheFileInfo["sha1"],fileSrc,url,name,cacheFileInfo["type"],cacheFileInfo["size"])
 	if newID > 0{
-		this.NewLog(this.lang.Get("coll-error-move-file") + strconv.FormatInt(newID,10),nil)
+		this.NewLog(this.lang.Get("coll-new-id") + strconv.FormatInt(newID,10) + " , URL : " + url,nil)
 	}else{
 		this.NewLog(this.lang.Get("coll-error-move-file") + url,nil)
 	}
@@ -193,6 +221,9 @@ func (this *CollOperate) NewLog(msg string,err error) {
 
 //Get the latest log content
 func (this *CollOperate) GetLog(name string) string{
+	if IsFile(this.log.lastSrc) == false{
+		return ""
+	}
 	content,err := LoadFile(this.log.lastSrc)
 	if err != nil{
 		log.NewLog("",err)
@@ -271,7 +302,7 @@ func (this *CollOperate) GetCacheFIleInfo(url string) (map[string]string,bool) {
 func (this *CollOperate) SaveCacheToFile(parentName string,cacheFileInfo map[string]string) string {
 	//Create a directory path
 	t := time.Now()
-	dirSrc := this.dataSrc + GetPathSep() + "coll-file" + GetPathSep() + this.collChildren.source + GetPathSep() + t.Format("200601")
+	dirSrc := this.sourceSrc + GetPathSep() + t.Format("200601")
 	if parentName != ""{
 		dirSrc += GetPathSep() + parentName
 	}

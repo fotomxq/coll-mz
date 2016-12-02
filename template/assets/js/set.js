@@ -1,6 +1,6 @@
 //从服务器传送动作
 function postServerActionData(action, func) {
-    $.get('/action-set?action=' + action, func);
+    $.get('/action-set?action=' + action, func,'json');
 }
 
 //状态值
@@ -53,6 +53,10 @@ function getCollStatus(){
         //变动日志显示内容
         if(collNowTagKey != ""){
             $('#log-content').html(collStatusData[collNowTagKey]['log']);
+            $('#coll-tools').show();
+            $('#coll-title').html(collNowTagKey);
+            $('a[href="#action-coll-close"]').attr('data-key',collNowTagKey);
+            $('a[href="#action-coll-clear"]').attr('data-key',collNowTagKey);
         }
     },'json');
     //自动运行
@@ -76,6 +80,22 @@ function sendNewLog(msg) {
     $('#log-content').html('<p>' + msg + '</p>' + $('#log-content').html());
 }
 
+//关闭采集器
+function actionCollClose(name){
+    $.get('/action-set?action=close&name='+name, function(data){
+        sendNewLog('强制关闭了该采集器。');
+    },'json');
+}
+
+//清空采集数据
+function actionCollClear(name){
+    $.get('/action-set?action=clear&name='+name, function(data){
+        sendNewLog('清空了该采集器所有数据。');
+    },'json');
+}
+
+
+
 //初始化启动
 $(document).ready(function() {
     //初始化所有复选框
@@ -86,4 +106,12 @@ $(document).ready(function() {
     runCollAll();
     //获取采集状态
     getCollStatus();
+    //按钮设定
+    $('#coll-tools').hide();
+    $('a[href="#action-coll-close"]').click(function(){
+        actionCollClose($(this).attr('data-key'));
+    });
+    $('a[href="#action-coll-clear"]').click(function(){
+        actionCollClear($(this).attr('data-key'));
+    });
 });
