@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/PuerkitoBio/goquery"
-	"encoding/json"
 	"strconv"
 	"strings"
 )
@@ -94,8 +93,9 @@ func (this *Coll) Run(name string) {
 }
 
 //Gets the running state
-func (this *Coll) GetStatus() (string){
+func (this *Coll) GetStatus() (map[string]interface{},bool){
 	res := make(map[string]interface{})
+	var b bool = false
 	for _,value := range this.collListK{
 		valueC := make(map[string]interface{})
 		c := this.GetCollChildren(value)
@@ -114,13 +114,8 @@ func (this *Coll) GetStatus() (string){
 		}
 		res[value] = valueC
 	}
-	resJson,err := json.Marshal(res)
-	if err != nil{
-		log.NewLog("",err)
-		return ""
-	}
-	resJsonStr := string(resJson)
-	return resJsonStr
+	b = true
+	return res,b
 }
 
 //Empty a data set
@@ -174,18 +169,20 @@ func (this *Coll) CollJiandan() {
 			continue
 		}
 		//Get the number of pages
-		nextURLs := GetURLNameType(nextURL)
-		if nextURLs["full-name"] == ""{
+		nextURLs := strings.Split(nextURL, "/")
+		if len(nextURLs) > 1{
 			errNum += 1
 			continue
 		}
+		log.NewLog("poarent : " + nextURLs[len(nextURLs)-2],nil)
 		var parent string
-		nextURLss := strings.Split(nextURLs["full-name"], "#")
+		nextURLss := strings.Split(nextURLs[len(nextURLs)-1], "#")
 		parent = nextURLss[0]
-		if parent != ""{
+		if parent == ""{
 			errNum += 1
 			continue
 		}
+		log.NewLog("poarent : " + parent,nil)
 		//Gets a list of nodes
 		nodes := doc.Find(".commentlist").Children()
 		for i := range nodes.Nodes {

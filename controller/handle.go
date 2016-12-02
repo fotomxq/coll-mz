@@ -68,6 +68,25 @@ func (this *Handle) showTip(w http.ResponseWriter, r *http.Request, title string
 	this.ShowTemplate(w, r, "tip.html", data)
 }
 
+//Common JSON processing
+// w http.ResponseWriter
+// r *http.Request
+// data interface{} -The data to be sent
+// b bool - Whether to run successfully
+func (this *Handle) postJSONData(w http.ResponseWriter, r *http.Request,data interface{},b bool) {
+	res := make(map[string]interface{})
+	res["result"] = b
+	res["data"] = data
+	resJson,err := json.Marshal(res)
+	if err != nil{
+		log.NewLog("",err)
+		this.PostText(w, r, "{'result':false,'data':''}")
+	}else{
+		resJsonC := string(resJson)
+		this.PostText(w, r, resJsonC)
+	}
+}
+
 //Check that you are logged in
 func (this *Handle) CheckLogin(w http.ResponseWriter, r *http.Request) bool {
 	if this.user.CheckLogin(w, r) == false {
@@ -192,44 +211,35 @@ func (this *Handle) actionSet(w http.ResponseWriter, r *http.Request) {
 	//Gets the submit action type
 	postAction := r.FormValue("action")
 	switch postAction {
-	case "coll-all":
-		coll.Run("")
-		this.PostText(w, r, "coll-run-ok")
+	case "coll":
+		postName := r.FormValue("name")
+		if postName == ""{
+			return
+		}
+		if postName == "run-all" {
+			coll.Run("")
+		}else{
+			coll.Run(postName)
+		}
+		this.postJSONData(w,r,"",true)
 		break
 	case "get-status":
-		this.PostText(w, r, coll.GetStatus())
+		data,b := coll.GetStatus()
+		this.postJSONData(w,r,data,b)
 		break
 	case "clear":
 		postName := r.FormValue("name")
 		if postName == ""{
 			return
 		}
-		res := map[string]bool{
-			"result" : coll.ClearColl(postName),
-		}
-		resJson,err := json.Marshal(res)
-		if err != nil{
-			log.NewLog("",err)
-			return
-		}
-		resJsonC := string(resJson)
-		this.PostText(w, r, resJsonC)
+		this.postJSONData(w,r,coll.ClearColl(postName),true)
 		break
 	case "close":
 		postName := r.FormValue("name")
 		if postName == ""{
 			return
 		}
-		res := map[string]bool{
-			"result" : coll.ChangeStatus(postName,false),
-		}
-		resJson,err := json.Marshal(res)
-		if err != nil{
-			log.NewLog("",err)
-			return
-		}
-		resJsonC := string(resJson)
-		this.PostText(w, r, resJsonC)
+		this.postJSONData(w,r,coll.ChangeStatus(postName,false),true)
 		break
 	default:
 		this.page404(w, r)
