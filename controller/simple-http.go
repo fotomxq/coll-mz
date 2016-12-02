@@ -19,11 +19,18 @@ func SimpleHttpGet(sendURL string, params map[string][]string) ([]byte, error) {
 	//If the parameter has Chinese parameters, this method will be URLEncode.
 	urlU.RawQuery = urlParams.Encode()
 	resp, err := http.Get(urlU.String())
-	defer resp.Body.Close()
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadAll(resp.Body)
+	res,err := ioutil.ReadAll(resp.Body)
+	if err != nil{
+		return res,err
+	}
+	err = resp.Body.Close()
+	if err != nil{
+		return res,err
+	}
+	return res,err
 }
 
 //Gets the URL data post mode
@@ -34,7 +41,15 @@ func SimpleHttpPost(sendURL string, params map[string][]string) ([]byte, error) 
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadAll(resp.Body)
+	res,err := ioutil.ReadAll(resp.Body)
+	if err != nil{
+		return res,err
+	}
+	err = resp.Body.Close()
+	if err != nil{
+		return res,err
+	}
+	return res,err
 }
 
 //Get the file name and type by URL

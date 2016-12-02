@@ -107,8 +107,9 @@ func (this *Coll) GetStatus() (map[string]interface{},bool){
 			if err != nil{
 				valueC["log"] = ""
 				log.NewLog("",err)
+			}else{
+				valueC["log"] = string(logContentByte)
 			}
-			valueC["log"] = string(logContentByte)
 		}else{
 			valueC["log"] = ""
 		}
@@ -158,6 +159,7 @@ func (this *Coll) CollJiandan() {
 	nextURL := "http://jandan.net/ooxx"
 	var b bool
 	errNum := 0
+	var parent string
 	for{
 		if thisChildren.status == false{
 			return
@@ -169,20 +171,19 @@ func (this *Coll) CollJiandan() {
 			continue
 		}
 		//Get the number of pages
-		nextURLs := strings.Split(nextURL, "/")
-		if len(nextURLs) > 1{
-			errNum += 1
-			continue
+		var nowPage string
+		nowPage,err = doc.Find(".current-comment-page").Eq(0).Html()
+		if err != nil{
+			collOperate.NewLog(collOperate.lang.Get("coll-error-now-page"),err)
+			break
 		}
-		log.NewLog("poarent : " + nextURLs[len(nextURLs)-2],nil)
-		var parent string
-		nextURLss := strings.Split(nextURLs[len(nextURLs)-1], "#")
-		parent = nextURLss[0]
+		parent = strings.Replace(nowPage,"[","",-1)
+		parent = strings.Replace(parent,"]","",-1)
 		if parent == ""{
 			errNum += 1
+			collOperate.NewLog(collOperate.lang.Get("coll-error-now-page"),nil)
 			continue
 		}
-		log.NewLog("poarent : " + parent,nil)
 		//Gets a list of nodes
 		nodes := doc.Find(".commentlist").Children()
 		for i := range nodes.Nodes {

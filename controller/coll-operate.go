@@ -233,6 +233,9 @@ func (this *CollOperate) GetLog(name string) string{
 
 //clear log
 func (this *CollOperate) ClearLog(){
+	if IsFile(this.log.lastSrc) == false{
+		return
+	}
 	err = WriteFile(this.log.lastSrc,[]byte(""))
 	if err != nil{
 		log.NewLog("",err)
