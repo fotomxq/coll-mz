@@ -12,7 +12,7 @@ type Coll struct {
 	dataSrc string
 	lang *Language
 	collList CollList
-	collListK []string
+	collListV map[string]*CollChildren
 }
 
 //Collector list
@@ -22,12 +22,14 @@ type CollList struct {
 	jiandanIndex CollChildren
 	xiuren CollChildren
 	meizitu CollChildren
+	xiuhaotu CollChildren
 }
 
 //Collector list children
 type CollChildren struct {
 	status bool
 	source string
+	url string
 }
 
 //Initialize the collector
@@ -37,24 +39,41 @@ func (this *Coll) init(db *Database,dataSrc string){
 	this.collList.local = CollChildren{
 		status : false,
 		source : "local",
+		url : "",
 	}
 	this.collList.jiandan = CollChildren{
 		status : false,
 		source : "jiandan",
+		url : "http://jandan.net/ooxx",
 	}
 	this.collList.jiandanIndex = CollChildren{
 		status : false,
 		source : "jiandan-index",
+		url : "http://jandan.net",
 	}
 	this.collList.xiuren = CollChildren{
 		status : false,
 		source : "xiuren",
+		url : "",
 	}
 	this.collList.meizitu = CollChildren{
 		status : false,
 		source : "meizitu",
+		url : "",
 	}
-	this.collListK = []string{"local","jiandan","jiandan-index","xiuren","meizitu"}
+	this.collList.xiuhaotu = CollChildren{
+		status : false,
+		source : "xiuhaotu",
+		url : "http://showhaotu.xyz/explore",
+	}
+	this.collListV = map[string]*CollChildren{
+		"local" : &this.collList.local,
+		"jiandan" : &this.collList.jiandan,
+		"jiandan-index" : &this.collList.jiandanIndex,
+		"xiuren" : &this.collList.xiuren,
+		"meizitu" : &this.collList.meizitu,
+		"xiuhaotu" : &this.collList.xiuhaotu,
+	}
 }
 
 ////////////////////////////////////////////////
@@ -80,11 +99,14 @@ func (this *Coll) Run(name string) {
 	case "meizitu":
 		go this.CollMeizitu()
 		break
+	case "xiuhaotu":
+		go this.CollXiuhaotu()
+		break
 	case "":
 		//Run all collectors
 		log.NewLog(this.lang.Get("coll-run-all"),nil)
-		for _,v := range this.collListK{
-			this.Run(v)
+		for key := range this.collListV{
+			this.Run(key)
 		}
 		break
 	default:
@@ -96,11 +118,12 @@ func (this *Coll) Run(name string) {
 func (this *Coll) GetStatus() (map[string]interface{},bool){
 	res := make(map[string]interface{})
 	var b bool = false
-	for _,value := range this.collListK{
+	for key := range this.collListV{
 		valueC := make(map[string]interface{})
-		c := this.GetCollChildren(value)
+		c := this.GetCollChildren(key)
 		valueC["status"] = c.status
 		valueC["source"] = c.source
+		valueC["url"] = c.url
 		src := this.dataSrc + GetPathSep() + "coll-log" + GetPathSep() + c.source + ".log"
 		if IsFile(src) == true{
 			logContentByte,err := LoadFile(src)
@@ -113,7 +136,7 @@ func (this *Coll) GetStatus() (map[string]interface{},bool){
 		}else{
 			valueC["log"] = ""
 		}
-		res[value] = valueC
+		res[key] = valueC
 	}
 	b = true
 	return res,b
@@ -156,7 +179,7 @@ func (this *Coll) CollJiandan() {
 		return
 	}
 	//start
-	nextURL := "http://jandan.net/ooxx"
+	nextURL := thisChildren.url
 	var b bool
 	errNum := 0
 	var parent string
@@ -202,7 +225,7 @@ func (this *Coll) CollJiandan() {
 					continue
 				}
 				newID := collOperate.AutoCollFile(nodeURL,"",parent,0)
-				if newID < 1{
+				if newID < 1 && newID != -1{
 					errNum += 1
 					continue
 				}
@@ -234,7 +257,7 @@ func (this *Coll) CollJiandanIndex() {
 		return
 	}
 	//start
-	indexURL := "http://jandan.net"
+	indexURL := thisChildren.url
 	//Get the page data
 	doc,err := goquery.NewDocument(indexURL)
 	if err != nil{
@@ -299,6 +322,22 @@ func (this *Coll) CollMeizitu() {
 	this.CollEnd(thisChildren,&collOperate)
 }
 
+//Collect Mzitu data
+func (this *Coll) CollXiuhaotu() {
+	//Gets the object
+	thisChildren := &this.collList.xiuhaotu
+	var collOperate CollOperate
+	if this.CollStart(thisChildren,&collOperate) == false{
+		return
+	}
+	//
+	if thisChildren.status == false{
+		return
+	}
+	//finish
+	this.CollEnd(thisChildren,&collOperate)
+}
+
 //Collect local data
 func (this *Coll) CollLocal() {
 	//Gets the object
@@ -313,28 +352,6 @@ func (this *Coll) CollLocal() {
 	}
 	//finish
 	this.CollEnd(thisChildren,&collOperate)
-}
-
-//Gets the CollListChildren handle
-func (this *Coll) GetCollChildren(name string) *CollChildren{
-	switch name {
-	case "local":
-		return &this.collList.local
-		break
-	case "jiandan" :
-		return &this.collList.jiandan
-		break
-	case "jiandan-index" :
-		return &this.collList.jiandanIndex
-		break
-	case "xiuren":
-		return &this.collList.xiuren
-		break
-	case "meizitu":
-		return &this.collList.meizitu
-		break
-	}
-	return &this.collList.local
 }
 
 //Create new CollListChildren
@@ -363,7 +380,7 @@ func (this *Coll) CollEnd(thisChildren *CollChildren,collOperate *CollOperate) {
 	thisChildren.status = false
 	collOperate.NewLog(collOperate.lang.Get("coll-stop"),nil)
 	if collOperate.collNum > 0{
-		collOperate.NewLog(collOperate.lang.Get("coll-num") + strconv.Itoa(collOperate.collNum),nil)
+		collOperate.NewLog(collOperate.lang.Get("coll-num") + strconv.Itoa(collOperate.collNum) + collOperate.lang.Get("coll-ig-num") + strconv.Itoa(collOperate.collIgnoreNum),nil)
 	}else{
 		collOperate.NewLog(collOperate.lang.Get("coll-no"),nil)
 	}
@@ -371,10 +388,15 @@ func (this *Coll) CollEnd(thisChildren *CollChildren,collOperate *CollOperate) {
 
 //Check that the Collector is present
 func (this *Coll) CheckCollExisit(name string) bool{
-	for _,value := range this.collListK{
-		if name == value{
+	for key := range this.collListV{
+		if name == key{
 			return true
 		}
 	}
 	return false
+}
+
+//Gets the CollListChildren handle
+func (this *Coll) GetCollChildren(name string) *CollChildren{
+	return this.collListV[name]
 }

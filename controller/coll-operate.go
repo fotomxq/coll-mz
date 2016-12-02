@@ -23,6 +23,8 @@ type CollOperate struct {
 	log Log
 	//coll num
 	collNum int
+	//The number is ignored
+	collIgnoreNum int
 }
 
 //Collector Type
@@ -101,6 +103,12 @@ func (this *CollOperate) ClearColl() bool {
 
 //Automatically builds new data
 func (this *CollOperate) AutoCollFile(url string,name string,parent string,parentID int64) int64 {
+	//Check url if the data already exists
+	if(this.CheckDataURL(url) == true){
+		this.NewLog(this.lang.Get("coll-error-repeat-url") + url,nil)
+		return -1
+	}
+	this.NewLog(this.lang.Get("coll-new-url") + url,nil)
 	//Buffer files and get information
 	cacheFileInfo,b := this.GetCacheFIleInfo(url)
 	if b == false{
@@ -110,10 +118,11 @@ func (this *CollOperate) AutoCollFile(url string,name string,parent string,paren
 	if name == ""{
 		name = cacheFileInfo["name"]
 	}
-	//Check if the data already exists
+	//Check sha1 if the data already exists
 	if this.CheckDataSha1(cacheFileInfo["sha1"]) == true{
 		_ = this.DeleteFile(cacheFileInfo["cache-src"])
-		return 0
+		this.NewLog(this.lang.Get("coll-error-repeat-sha1") + url + " , sha1 : " + cacheFileInfo["sha1"],nil)
+		return -1
 	}
 	//Transfer buffer files
 	fileSrc := this.SaveCacheToFile(parent,cacheFileInfo)
@@ -142,6 +151,23 @@ func (this *CollOperate) CheckDataSha1(sha1 string) bool {
 		return false
 	}
 	if id > 0{
+		this.collIgnoreNum += 1
+		return true
+	}
+	return false
+}
+
+//Check whether the file is duplicated
+func (this *CollOperate) CheckDataURL(url string) bool {
+	query := "select `id` from `coll` where `url` = ?"
+	row := this.db.db.QueryRow(query,url)
+	var id int64
+	err = row.Scan(&id)
+	if err != nil{
+		return false
+	}
+	if id > 0{
+		this.collIgnoreNum += 1
 		return true
 	}
 	return false
@@ -233,10 +259,9 @@ func (this *CollOperate) GetLog(name string) string{
 
 //clear log
 func (this *CollOperate) ClearLog(){
-	if IsFile(this.log.lastSrc) == false{
-		return
-	}
-	err = WriteFile(this.log.lastSrc,[]byte(""))
+	src := this.dataSrc + GetPathSep() + "coll-log" + GetPathSep() + this.collChildren.source + ".log"
+	cByte := []byte("")
+	err = WriteFile(src,cByte)
 	if err != nil{
 		log.NewLog("",err)
 	}

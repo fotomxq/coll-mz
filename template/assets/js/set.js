@@ -41,7 +41,7 @@ function getCollStatus(){
         if(collNowTagKey != ""){
             $('#log-content').html(collStatusData[collNowTagKey]['log']);
             $('#coll-tools').show();
-            $('#coll-title').html(' ## 当前选择了'+collNowTagKey + '采集器 ## ');
+            $('#coll-title').html(' ## 当前选择了'+collStatusData[collNowTagKey]['source'] + '采集器，URL：' + collStatusData[collNowTagKey]['url']);
             $('a[href="#action-coll-close"]').attr('data-key',collNowTagKey);
             $('a[href="#action-coll-clear"]').attr('data-key',collNowTagKey);
         }
@@ -63,7 +63,11 @@ function runCollAll() {
 //发送单一日志提示
 function sendTip(msg) {
     $('#coll-msg').html(msg);
-    $("#coll-msg").animate({backgroundColor:"red"});
+    $("#coll-msg").css({backgroundColor:'black'});
+    $("#coll-msg").animate({opacity:'0.5',color:'white'},'slow',function(){
+        $("#coll-msg").css({backgroundColor:'',color:'black'});
+        $("#coll-msg").animate({opacity:'1'});
+    });
 }
 
 //发送b提示信号
