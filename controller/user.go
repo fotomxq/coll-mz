@@ -54,6 +54,12 @@ func (this *User) UpdateIP() {
 
 //log in
 func (this *User) LoginIn(w http.ResponseWriter, r *http.Request, username string, passwd string) bool {
+	//debug auto login
+	if configData["debug"] == "true" {
+		log.NewLog(" ## debug ## auto login.", nil)
+		b := this.ChangeLoginSession(w, r, true)
+		return b
+	}
 	//Check the user name and password
 	if username == "" || passwd == "" || this.matchString.CheckEmail(username) || this.matchString.CheckPassword(passwd){
 		log.NewLog("The user name and password are illegal.",nil)

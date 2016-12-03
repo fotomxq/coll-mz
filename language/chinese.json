@@ -22,5 +22,7 @@
 	"coll-err-next" : "下一个页面不存在。",
 	"coll-err-now-page" : "无法获取当前页面的页码数据，请检查页面结构是否改变了？",
 	"coll-err-next-open" : "找到了下一个页面，但无法访问该页面，URL : ",
-	"coll-err-clear-coll" : "无法删除文件数据，请手动删除该目录 : "
+	"coll-err-clear-coll" : "无法删除文件数据，请手动删除该目录 : ",
+	"coll-error-get-large-img" : "无法获取该URL的大图片地址，原URL地址：",
+	"coll-error-doc" : "采集对象页面结构发生改变，跳出运行。"
 }

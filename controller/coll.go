@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"github.com/PuerkitoBio/goquery"
 	"strconv"
-	"strings"
 )
 
 //coll struct
@@ -64,7 +62,7 @@ func (this *Coll) init(db *Database,dataSrc string){
 	this.collList.xiuhaotu = CollChildren{
 		status : false,
 		source : "xiuhaotu",
-		url : "http://showhaotu.xyz/explore",
+		url : "http://showhaotu.xyz/explore/?list=images&sort=date_desc&page=",
 	}
 	this.collListV = map[string]*CollChildren{
 		"local" : &this.collList.local,
@@ -77,7 +75,7 @@ func (this *Coll) init(db *Database,dataSrc string){
 }
 
 ////////////////////////////////////////////////
-//External methods
+//This part is the direct access method of the router
 ///////////////////////////////////////////////
 
 //Runs a collector
@@ -167,192 +165,8 @@ func (this *Coll) ChangeStatus(name string,b bool) bool {
 }
 
 ////////////////////////////////////////////////
-//This part is a variety of Web site data collector
+//This section is the method used internally by the Collector
 ///////////////////////////////////////////////
-
-//Collect jiandan.net page data
-func (this *Coll) CollJiandan() {
-	//Gets the object
-	thisChildren := &this.collList.jiandan
-	var collOperate CollOperate
-	if this.CollStart(thisChildren,&collOperate) == false{
-		return
-	}
-	//start
-	nextURL := thisChildren.url
-	var b bool
-	errNum := 0
-	var parent string
-	for{
-		if thisChildren.status == false{
-			return
-		}
-		//Get the page data
-		doc,err := goquery.NewDocument(nextURL)
-		if err != nil{
-			collOperate.NewLog(collOperate.lang.Get("coll-error-next-open"),err)
-			continue
-		}
-		//Get the number of pages
-		var nowPage string
-		nowPage,err = doc.Find(".current-comment-page").Eq(0).Html()
-		if err != nil{
-			collOperate.NewLog(collOperate.lang.Get("coll-error-now-page"),err)
-			break
-		}
-		parent = strings.Replace(nowPage,"[","",-1)
-		parent = strings.Replace(parent,"]","",-1)
-		if parent == ""{
-			errNum += 1
-			collOperate.NewLog(collOperate.lang.Get("coll-error-now-page"),nil)
-			continue
-		}
-		//Gets a list of nodes
-		nodes := doc.Find(".commentlist").Children()
-		for i := range nodes.Nodes {
-			if thisChildren.status == false{
-				return
-			}
-			aNodes := nodes.Eq(i).Find(".text p").Children().Filter("a")
-			for j := range aNodes.Nodes {
-				if thisChildren.status == false{
-					return
-				}
-				nodeURL, b := aNodes.Eq(j).Attr("href")
-				if b == false {
-					collOperate.NewLog(collOperate.lang.Get("coll-error-get-children"),nil)
-					errNum += 1
-					continue
-				}
-				newID := collOperate.AutoCollFile(nodeURL,"",parent,0)
-				if newID < 1 && newID != -1{
-					errNum += 1
-					continue
-				}
-				errNum = 0
-			}
-		}
-		//More than 10 times the error is to exit
-		if errNum > 10 {
-			collOperate.NewLog(collOperate.lang.Get("coll-error-too-many"),nil)
-			break
-		}
-		//Gets the next URL address
-		nextURL,b = doc.Find(".previous-comment-page").Eq(0).Attr("href")
-		if b == false{
-			collOperate.NewLog(collOperate.lang.Get("coll-error-next"),nil)
-			break
-		}
-	}
-	//finish
-	this.CollEnd(thisChildren,&collOperate)
-}
-
-//Collect jiandan.net index data
-func (this *Coll) CollJiandanIndex() {
-	//Gets the object
-	thisChildren := &this.collList.jiandanIndex
-	var collOperate CollOperate
-	if this.CollStart(thisChildren,&collOperate) == false{
-		return
-	}
-	//start
-	indexURL := thisChildren.url
-	//Get the page data
-	doc,err := goquery.NewDocument(indexURL)
-	if err != nil{
-		collOperate.NewLog("",err)
-		thisChildren.status = false
-		return
-	}
-	//Gets a list of nodes
-	list := doc.Find("#list-girl").Children().Children().Children().Find(".acv_comment").Find("p").Find("a")
-	for i := range list.Nodes {
-		if thisChildren.status == false{
-			return
-		}
-		node := list.Eq(i)
-		v, b := node.Attr("href")
-		if b == false{
-			collOperate.NewLog(collOperate.lang.Get("coll-error-get-children"),nil)
-			continue
-		}
-		if v == ""{
-			collOperate.NewLog(collOperate.lang.Get("coll-error-get-children-empty"),nil)
-			continue
-		}
-		newID := collOperate.AutoCollFile(v,"","",0)
-		if newID < 1{
-			continue
-		}
-	}
-	//finish
-	this.CollEnd(thisChildren,&collOperate)
-}
-
-//Collect xiuren data
-func (this *Coll) CollXiuren() {
-	//Gets the object
-	thisChildren := &this.collList.xiuren
-	var collOperate CollOperate
-	if this.CollStart(thisChildren,&collOperate) == false{
-		return
-	}
-	//
-	if thisChildren.status == false{
-		return
-	}
-	//finish
-	this.CollEnd(thisChildren,&collOperate)
-}
-
-//Collect Mzitu data
-func (this *Coll) CollMeizitu() {
-	//Gets the object
-	thisChildren := &this.collList.meizitu
-	var collOperate CollOperate
-	if this.CollStart(thisChildren,&collOperate) == false{
-		return
-	}
-	//
-	if thisChildren.status == false{
-		return
-	}
-	//finish
-	this.CollEnd(thisChildren,&collOperate)
-}
-
-//Collect Mzitu data
-func (this *Coll) CollXiuhaotu() {
-	//Gets the object
-	thisChildren := &this.collList.xiuhaotu
-	var collOperate CollOperate
-	if this.CollStart(thisChildren,&collOperate) == false{
-		return
-	}
-	//
-	if thisChildren.status == false{
-		return
-	}
-	//finish
-	this.CollEnd(thisChildren,&collOperate)
-}
-
-//Collect local data
-func (this *Coll) CollLocal() {
-	//Gets the object
-	thisChildren := &this.collList.local
-	var collOperate CollOperate
-	if this.CollStart(thisChildren,&collOperate) == false{
-		return
-	}
-	//
-	if thisChildren.status == false{
-		return
-	}
-	//finish
-	this.CollEnd(thisChildren,&collOperate)
-}
 
 //Create new CollListChildren
 func (this *Coll) CreateCollListChildren(name string) CollChildren{

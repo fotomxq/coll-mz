@@ -6,5 +6,6 @@
     "coll-encryptFileType": "",
     "data-src": "D:\\org",
     "server-local": ":8888",
-    "language" : "chinese"
+    "language" : "chinese",
+    "debug" : "true"
 }

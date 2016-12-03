@@ -263,3 +263,38 @@ func (this *Handle) actionView(w http.ResponseWriter, r *http.Request) {
 	}
 	this.UpdateLanguage()
 }
+
+//debug
+func (this *Handle) actionDebug(w http.ResponseWriter, r *http.Request) {
+	if configData["debug"] != "true"{
+		this.page404(w,r)
+		return
+	}
+	//If not, jump
+	if this.CheckLogin(w, r) == false {
+		return
+	}
+	//Make sure that post / get is fine
+	b := this.CheckURLPost(r)
+	if b == false {
+		return
+	}
+	//Gets the submit action type
+	postAction := r.FormValue("action")
+	switch postAction {
+	case "coll":
+		postName := r.FormValue("name")
+		if postName == "" {
+			return
+		}
+		if postName == "run-all" {
+			coll.Run("")
+		} else {
+			coll.Run(postName)
+		}
+		this.postJSONData(w, r, "", true)
+		break
+	default:
+		break
+	}
+}

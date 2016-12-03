@@ -29,6 +29,7 @@ func (this *Router) RunServer(db *Database) {
 	http.HandleFunc("/center", this.handle.pageCenter)
 	http.HandleFunc("/action-center", this.handle.actionCenter)
 	http.HandleFunc("/action-view", this.handle.actionView)
+	http.HandleFunc("/debug", this.handle.actionDebug)
 	//Start the server listening
 	log.NewLog("Server run : "+configData["server-local"].(string), nil)
 	err = http.ListenAndServe(configData["server-local"].(string), nil)
