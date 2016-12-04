@@ -42,8 +42,7 @@ function getCollStatus(){
             $('#log-content').html(collStatusData[collNowTagKey]['log']);
             $('#coll-tools').show();
             $('#coll-title').html(' ## 当前选择了'+collStatusData[collNowTagKey]['source'] + '采集器，URL：' + collStatusData[collNowTagKey]['url']);
-            $('a[href="#action-coll-close"]').attr('data-key',collNowTagKey);
-            $('a[href="#action-coll-clear"]').attr('data-key',collNowTagKey);
+            $('#coll-tools').attr('data-key',collNowTagKey);
         }
     },'json');
     //自动运行
@@ -79,6 +78,16 @@ function sendBoolTip(b,msgT,msgF) {
         }
 }
 
+//启动某个采集器
+function actionCollRun(name){
+    $.get('/action-set?action=coll&name='+name, function(data){
+        if(!data){
+            return false;
+        }
+        sendBoolTip(data['result'],'启动了该采集器。','尝试启动该采集器，但失败了。');
+    },'json');
+}
+
 //关闭采集器
 function actionCollClose(name){
     $.get('/action-set?action=close&name='+name, function(data){
@@ -108,15 +117,18 @@ $(document).ready(function() {
     //初始化所有下拉菜单
     $('.ui.selection.dropdown').dropdown();
     //自动启动采集器
-    runCollAll();
+    //runCollAll();
     //获取采集状态
     getCollStatus();
     //按钮设定
     $('#coll-tools').hide();
+    $('a[href="#action-coll-run"]').click(function(){
+        actionCollRun($('#coll-tools').attr('data-key'));
+    });
     $('a[href="#action-coll-close"]').click(function(){
-        actionCollClose($(this).attr('data-key'));
+        actionCollClose($('#coll-tools').attr('data-key'));
     });
     $('a[href="#action-coll-clear"]').click(function(){
-        actionCollClear($(this).attr('data-key'));
+        actionCollClear($('#coll-tools').attr('data-key'));
     });
 });

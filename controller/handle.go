@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 	"encoding/json"
+	"strconv"
 )
 
 //The page handle
@@ -254,6 +255,72 @@ func (this *Handle) actionCenter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	this.UpdateLanguage()
+}
+
+//Feedback center view content action
+func (this *Handle) actionViewList(w http.ResponseWriter, r *http.Request) {
+	if this.CheckLogin(w, r) == false {
+		return
+	}
+	//Make sure that post / get is fine
+	b := this.CheckURLPost(r)
+	if b == false {
+		return
+	}
+	this.UpdateLanguage()
+	//get post
+	postCollName := r.FormValue("coll")
+	postParent,err := strconv.ParseInt(r.FormValue("parent"),10,0)
+	if err != nil{
+		log.NewLog("",err)
+		this.postJSONData(w,r,"",false)
+		return
+	}
+	postStar,err := strconv.Atoi(r.FormValue("star"))
+	if err != nil{
+		log.NewLog("",err)
+		this.postJSONData(w,r,"",false)
+		return
+	}
+	postTitle := r.FormValue("title")
+	postPage,err := strconv.Atoi(r.FormValue("page"))
+	if err != nil{
+		log.NewLog("",err)
+		this.postJSONData(w,r,"",false)
+		return
+	}
+	postMax,err := strconv.Atoi(r.FormValue("max"))
+	if err != nil{
+		log.NewLog("",err)
+		this.postJSONData(w,r,"",false)
+		return
+	}
+	postSort,err := strconv.Atoi(r.FormValue("sort"))
+	if err != nil{
+		log.NewLog("",err)
+		this.postJSONData(w,r,"",false)
+		return
+	}
+	postDesc := r.FormValue("desc")
+	var postDescBool bool
+	if postDesc == "true"{
+		postDescBool = true
+	}else{
+		postDescBool = false
+	}
+	//get data
+	data := make(map[string]interface{})
+	data["status"],b = coll.GetStatus()
+	if b == false{
+		this.postJSONData(w,r,"",false)
+		return
+	}
+	data["list"],b =coll.ViewList(postCollName,postParent,postStar,postTitle,postPage,postMax,postSort,postDescBool)
+	if b == false{
+		this.postJSONData(w,r,"",false)
+		return
+	}
+	this.postJSONData(w,r,data,true)
 }
 
 //Feedback center view content action

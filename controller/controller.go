@@ -43,8 +43,14 @@ func (this *Controller) Init() {
 	log.init(configData["data-src"].(string) + GetPathSep() + "sys-log", true, true, true, true, true, true)
 	//Connect database
 	dbTemplateSrc := "config" + sep + "coll-mz-default.sqlite"
-	dbSrc := configData["data-src"].(string) + sep + "database" + sep + "coll-mz.sqlite"
+	dbDirSrc :=  configData["data-src"].(string) + sep + "database"
+	dbSrc := dbDirSrc + sep + "coll-mz.sqlite"
 	if IsFile(dbSrc) == false{
+		err = CreateDir(dbDirSrc)
+		if err != nil{
+			log.NewLog("",err)
+			return
+		}
 		b,err := CopyFile(dbTemplateSrc,dbSrc)
 		if err != nil || b == false{
 			log.NewLog("Unable to create the total database file.",err)
@@ -60,6 +66,7 @@ func (this *Controller) Init() {
 	//Initializes the coll object
 	collDatabaseTemplateSrc := "config" + sep + "coll-default.sqlite"
 	coll.init(&this.db,configData["data-src"].(string),collDatabaseTemplateSrc)
+	coll.AutoTask()
 	//Start the server
 	this.router.RunServer(&this.db)
 }

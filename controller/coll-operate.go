@@ -3,6 +3,7 @@ package controller
 import (
 	"strconv"
 	"time"
+	"database/sql"
 )
 
 type CollOperate struct {
@@ -58,8 +59,68 @@ func (this *CollOperate) init(db *Database,dataSrc string,collChildren *CollChil
 }
 
 //View the data list
-func (this *CollOperate) ViewDataList(parent int64,star int,searchTitle string,page int,max int,sort int,desc bool) {
-
+func (this *CollOperate) ViewDataList(parent int64,star int,searchTitle string,page int,max int,sort int,desc bool) ([]map[string]string,bool) {
+	query := "select " + this.db.GetFieldsToStr(this.fields) + " from `coll` where `parent` = ?"
+	if star > 0{
+		query += " and `star` = ?"
+	}
+	if searchTitle != ""{
+		query += " and `name` = ?"
+	}
+	sortStr := "id"
+	if this.fields[sort] != ""{
+		sortStr = this.fields[sort]
+	}
+	query += " " + this.db.GetPageSortStr(page,max,sortStr,desc)
+	var rows *sql.Rows
+	if star > 0 && searchTitle != ""{
+		rows,err = this.db.db.Query(query,parent,star,searchTitle)
+	}
+	if star > 0{
+		rows,err = this.db.db.Query(query,parent,star)
+	}
+	if searchTitle != ""{
+		rows,err = this.db.db.Query(query,parent,searchTitle)
+	}
+	if star < 1 && searchTitle == ""{
+		rows,err = this.db.db.Query(query,parent)
+	}
+	var result []map[string]string
+	if err != nil{
+		this.NewLog("",err)
+		return result,false
+	}
+	for {
+		b := rows.Next()
+		if b == false{
+			break
+		}
+		var thisRes CollFields
+		err = rows.Scan(&thisRes.id,&thisRes.sha1,&thisRes.coll_time,&thisRes.file_type,&thisRes.name,&thisRes.parent,&thisRes.size,&thisRes.source,&thisRes.src,&thisRes.star,&thisRes.url)
+		if err != nil{
+			log.NewLog("",err)
+			return result,false
+		}
+		idStr := strconv.FormatInt(thisRes.id,10)
+		parentStr := strconv.FormatInt(thisRes.parent,10)
+		starStr := strconv.Itoa(thisRes.star)
+		sizeStr := strconv.FormatInt(thisRes.size,10)
+		thisResArr := map[string]string{
+			"id" : idStr,
+			"parent" : parentStr,
+			"star" : starStr,
+			"sha1" : thisRes.sha1,
+			"src" : thisRes.src,
+			"source" : thisRes.source,
+			"url" : thisRes.url,
+			"name" : thisRes.name,
+			"file_type" : thisRes.file_type,
+			"size" : sizeStr,
+			"coll_time" : thisRes.coll_time,
+		}
+		result = append(result,thisResArr)
+	}
+	return result,true
 }
 
 //View the data

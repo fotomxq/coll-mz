@@ -28,6 +28,7 @@ func (this *Router) RunServer(db *Database) {
 	http.HandleFunc("/action-set", this.handle.actionSet)
 	http.HandleFunc("/center", this.handle.pageCenter)
 	http.HandleFunc("/action-center", this.handle.actionCenter)
+	http.HandleFunc("/action-list", this.handle.actionViewList)
 	http.HandleFunc("/action-view", this.handle.actionView)
 	http.HandleFunc("/debug", this.handle.actionDebug)
 	//Start the server listening
