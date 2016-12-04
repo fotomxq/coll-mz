@@ -175,8 +175,8 @@ func (this *CollOperate) CheckDataURL(url string) bool {
 
 //Create a new data record
 func (this *CollOperate) CreateNewData(parent int64,sha1 string,src string,url string,name string,fileType string,size string) int64 {
-	query := "insert into `coll`(" + this.db.GetFieldsToStr(this.fields) + ") values(null,?,0,?,?,?,?,?,?,?,now())"
-	stmt,err := this.db.db.Exec(query,parent,sha1,src,this.collChildren.source,url,name,fileType,size)
+	query := "insert into `coll`(" + this.db.GetFieldsToStr(this.fields) + ") values(null,?,0,?,?,?,?,?,?,?,?)"
+	stmt,err := this.db.db.Exec(query,parent,sha1,src,this.collChildren.source,url,name,fileType,size,this.GetNowTimeUnix())
 	if err != nil{
 		this.NewLog("",err)
 		return 0
@@ -358,4 +358,10 @@ func (this *CollOperate) DeleteFile(src string) bool {
 		return false
 	}
 	return true
+}
+
+//get now time unix
+func (this *CollOperate) GetNowTimeUnix() int64{
+	t := time.Now()
+	return t.Unix()
 }

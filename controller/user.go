@@ -169,14 +169,14 @@ func (this *User) CreateNewUser(username string, passwd string) int64 {
 		return 0
 	}
 	//Start creating a new user
-	query := "insert into `user`(" + this.db.GetFieldsToStr(this.fields) + ") values(null,?,?,?,now(),0)"
+	query := "insert into `user`(" + this.db.GetFieldsToStr(this.fields) + ") values(null,?,?,?,?,0)"
 	this.UpdateIP()
 	passwdSha1 := this.GetPasswdSha1(passwd)
 	if passwdSha1 == "" {
 		log.NewLog("The SHA1 value of the password can not be calculated.", nil)
 		return 0
 	}
-	stmt, err := this.db.db.Exec(query, username, passwdSha1, this.ip)
+	stmt, err := this.db.db.Exec(query, username, passwdSha1, this.ip,this.GetNowTimeUnix())
 	if err != nil {
 		log.NewLog("", err)
 		return 0
@@ -296,9 +296,9 @@ func (this *User) GetUnixTime() int64 {
 
 //Update table information
 func (this *User) UpdateLoginInfo(id int64) bool {
-	query := "update `user` set `last_ip` = ?,`last_time` = now() where `id` = ?"
+	query := "update `user` set `last_ip` = ?,`last_time` = ? where `id` = ?"
 	this.UpdateIP()
-	smat, err := this.db.db.Exec(query, this.ip, id)
+	smat, err := this.db.db.Exec(query, this.ip,this.GetNowTimeUnix(), id)
 	if err != nil {
 		log.NewLog("The user information can not be updated when the user logs in E1.", err)
 		return false
@@ -314,4 +314,10 @@ func (this *User) UpdateLoginInfo(id int64) bool {
 //Gets the password SHA1 value
 func (this *User) GetPasswdSha1(passwd string) string {
 	return this.matchString.GetSha1(passwd)
+}
+
+//get now time unix
+func (this *User) GetNowTimeUnix() int64{
+	t := time.Now()
+	return t.Unix()
 }

@@ -35,21 +35,31 @@ func (this *Controller) Init() {
 		log.SendFmtPrintln("Unable to read the configuration file, can not start the program.Config src : " + configSrc)
 		return
 	}
-	if configData["database-type"] == nil {
+	if configData["server-local"] == nil || configData["language"] == nil || configData["data-src"] == nil {
 		log.SendFmtPrintln("The content of the configuration file is incorrect. Please check again.")
 		return
 	}
 	//Initialize the log
-	log.init(configData["data-src"].(string) + GetPathSep() + "log", true, true, true, true, true, true)
+	log.init(configData["data-src"].(string) + GetPathSep() + "sys-log", true, true, true, true, true, true)
 	//Connect database
-	err = this.db.Connect(configData["database-type"].(string), configData["database-dns"].(string))
-	defer this.db.Close()
+	dbTemplateSrc := "config" + sep + "coll-mz-default.sqlite"
+	dbSrc := configData["data-src"].(string) + sep + "database" + sep + "coll-mz.sqlite"
+	if IsFile(dbSrc) == false{
+		b,err := CopyFile(dbTemplateSrc,dbSrc)
+		if err != nil || b == false{
+			log.NewLog("Unable to create the total database file.",err)
+			return
+		}
+	}
+	err = this.db.Connect("sqlite3",dbSrc)
 	if err != nil {
 		log.NewLog("Unable to connect to the database.", err)
 		return
 	}
+	defer this.db.Close()
 	//Initializes the coll object
-	coll.init(&this.db,configData["data-src"].(string))
+	collDatabaseTemplateSrc := "config" + sep + "coll-default.sqlite"
+	coll.init(&this.db,configData["data-src"].(string),collDatabaseTemplateSrc)
 	//Start the server
 	this.router.RunServer(&this.db)
 }

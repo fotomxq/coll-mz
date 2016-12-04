@@ -2,6 +2,7 @@ package controller
 
 import (
 	"strconv"
+	"time"
 )
 
 //coll struct
@@ -11,6 +12,7 @@ type Coll struct {
 	lang *Language
 	collList CollList
 	collListV map[string]*CollChildren
+	collDatabaseTemplateSrc string
 }
 
 //Collector list
@@ -28,12 +30,20 @@ type CollChildren struct {
 	status bool
 	source string
 	url string
+	db Database
 }
 
 //Initialize the collector
-func (this *Coll) init(db *Database,dataSrc string){
+func (this *Coll) init(db *Database,dataSrc string,collDatabaseTemplateSrc string){
 	this.db = db
 	this.dataSrc = dataSrc
+	this.collDatabaseTemplateSrc = collDatabaseTemplateSrc
+	if IsFile(this.dataSrc) == false{
+		err = CreateDir(this.dataSrc + GetPathSep() + "database")
+		if err != nil{
+			return
+		}
+	}
 	this.collList.local = CollChildren{
 		status : false,
 		source : "local",
@@ -164,6 +174,19 @@ func (this *Coll) ChangeStatus(name string,b bool) bool {
 	return true
 }
 
+//auto coll task
+func (this *Coll) AutoTask(){
+	task := time.NewTicker(time.Minute * 120)
+	for _ = range task.C{
+		for _,collValue := range this.collListV{
+			if collValue.status == true{
+				continue
+			}
+			this.Run(collValue.source)
+		}
+	}
+}
+
 ////////////////////////////////////////////////
 //This section is the method used internally by the Collector
 ///////////////////////////////////////////////
@@ -178,7 +201,20 @@ func (this *Coll) CreateCollListChildren(name string) CollChildren{
 
 //coll start
 func (this *Coll) CollStart(thisChildren *CollChildren,collOperate *CollOperate) bool {
-	collOperate.init(this.db,this.dataSrc,thisChildren,this.lang)
+	dbSrc := this.dataSrc + GetPathSep() + "database" + GetPathSep() + thisChildren.source + ".sqlite"
+	if IsFile(dbSrc) == false{
+		b,err := CopyFile(this.collDatabaseTemplateSrc,dbSrc)
+		if err != nil || b == false{
+			collOperate.NewLog(collOperate.lang.Get("coll-error-database-create"),err)
+			return false
+		}
+	}
+	err = thisChildren.db.Connect("sqlite3",dbSrc)
+	if err != nil{
+		collOperate.NewLog(collOperate.lang.Get("coll-error-database-connect"),err)
+		return false
+	}
+	collOperate.init(&thisChildren.db,this.dataSrc,thisChildren,this.lang)
 	if thisChildren.status == true{
 		collOperate.NewLog(collOperate.lang.Get("coll-is-running"),nil)
 		return false
@@ -191,6 +227,10 @@ func (this *Coll) CollStart(thisChildren *CollChildren,collOperate *CollOperate)
 
 //coll end
 func (this *Coll) CollEnd(thisChildren *CollChildren,collOperate *CollOperate) {
+	err = thisChildren.db.Close()
+	if err != nil{
+		collOperate.NewLog(collOperate.lang.Get("coll-error-database-close"),err)
+	}
 	thisChildren.status = false
 	collOperate.NewLog(collOperate.lang.Get("coll-stop"),nil)
 	if collOperate.collNum > 0{
