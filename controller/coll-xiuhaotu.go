@@ -27,6 +27,7 @@ func (this *Coll) CollXiuhaotu() {
 		}
 		//Gets the current page URL
 		thisURL := nextPageURL + strconv.Itoa(page)
+		collOperate.NewLog("Get Page : " + thisURL,nil)
 		doc,err := goquery.NewDocument(thisURL)
 		if err != nil{
 			collOperate.NewLog(collOperate.lang.Get("coll-error-next-open"),err)

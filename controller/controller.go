@@ -66,7 +66,7 @@ func (this *Controller) Init() {
 	//Initializes the coll object
 	collDatabaseTemplateSrc := "config" + sep + "coll-default.sqlite"
 	coll.init(&this.db,configData["data-src"].(string),collDatabaseTemplateSrc)
-	coll.AutoTask()
+	go coll.AutoTask()
 	//Start the server
 	this.router.RunServer(&this.db)
 }

@@ -68,7 +68,7 @@ func (this *Coll) init(db *Database,dataSrc string,collDatabaseTemplateSrc strin
 	this.collList.meizitu = CollChildren{
 		status : false,
 		source : "meizitu",
-		url : "",
+		url : "http://www.mzitu.com/page/",
 	}
 	this.collList.xiuhaotu = CollChildren{
 		status : false,
