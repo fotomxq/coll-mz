@@ -3,6 +3,7 @@ package controller
 import (
 	"strconv"
 	"github.com/PuerkitoBio/goquery"
+	"strings"
 )
 
 //Collect Mzitu data
@@ -29,24 +30,36 @@ func (this *Coll) CollMeizitu() {
 			break
 		}
 		//Gets and traverses the nodes of all page pages
-		nodes := doc.Find("#pins li a")
+		nodes := doc.Find("#pins li")
 		for nodeKey := range nodes.Nodes{
-			//Resolve to get subpages
-			thisChildrenPageURL,b := nodes.Eq(nodeKey).Attr("href")
+			//Gets the page URL and title
+			thisCURL,b := nodes.Eq(nodeKey).Children().Eq(0).Attr("href")
 			if b == false{
 				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children"),nil)
 				errNum += 1
 				continue
 			}
-			childrenDoc,err := goquery.NewDocument(thisChildrenPageURL)
+			thisCTitle,b := nodes.Eq(nodeKey).Children().Eq(1).Html()
+			if b == false{
+				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children"),nil)
+				errNum += 1
+				continue
+			}
+			//Get the page doc
+			childrenDoc,err := goquery.NewDocument(thisCURL)
 			if err != nil{
 				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children"),nil)
 				errNum += 1
 				continue
 			}
 			//Loop traversal gets all subpage nodes
-			///////////////
 		}
+		//More than 10 times the error is to exit
+		if errNum > 10 {
+			collOperate.NewLog(collOperate.lang.Get("coll-error-too-many"),nil)
+			break
+		}
+		//Gets the next page
 		page += 1
 	}
 	//finish
