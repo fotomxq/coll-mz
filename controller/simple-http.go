@@ -85,22 +85,3 @@ func GetURLNameType(sendURL string) map[string]string {
 	}
 	return res
 }
-
-//Decompose the URL address
-func GetURLNames(sendURL string) (map[string]string,bool){
-	res := map[string]string{
-		"only-url" : "http://localhost/",
-		"only-name" : "name",
-		"full-name" : "name.xxx",
-		"only-type" : ".xxx",
-	}
-	urls := strings.Split(sendURL,"/")
-	if len(urls) < 2{
-		return res,false
-	}
-	lastKey := len(urls) - 1
-	if urls[lastKey] == ""{
-
-	}
-	return res,true
-}

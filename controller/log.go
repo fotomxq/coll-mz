@@ -26,6 +26,12 @@ type Log struct {
 //This function must be executed before using Log.
 func (this *Log) init(logDirSrc string, isSendErrorToFmt bool, isSendMsgToFmt bool, isSendErrorToFile bool, isSendMsgToFile bool, isAppendTime bool, isAppendIP bool) {
 	this.logDirSrc = logDirSrc
+	if IsFolder(logDirSrc) == false{
+		err = CreateDir(logDirSrc)
+		if err != nil{
+			this.SendFmtPrintln("The log module was initialized and the storage directory could not be created.Error : " + err.Error())
+		}
+	}
 	this.isSendErrorToFmt = isSendErrorToFmt
 	this.isSendMsgToFmt = isSendMsgToFmt
 	this.isSendErrorToFile = isSendErrorToFile

@@ -14,14 +14,7 @@
 </head>
 
 <body>
-    <div class="ui fixed inverted menu">
-        <div class="ui container">
-            <a href="#" class="header item">
-                <img class="logo" src="/assets/imgs/logo-100.png"> COLL-MZ
-            </a>
-            <a href="/login" class="item">登录</a>
-        </div>
-    </div>
+    {{template "menu"}}
     <div class="ui main text container">
         <h1 class="ui header">{{.contentTitle}}</h1>
         <p>{{.content}}</p>

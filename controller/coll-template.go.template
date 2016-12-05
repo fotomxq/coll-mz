@@ -1,0 +1,33 @@
+package controller
+
+//function template
+//Collect `edit name`
+func (this *Coll) CollName() { `edit name`
+	//Gets the object
+	thisChildren := &this.collList.Name `edit name`
+	var collOperate CollOperate
+	if this.CollStart(thisChildren,&collOperate) == false{
+		return
+	}
+	// `edit`
+	if thisChildren.status == false{
+		return
+	}
+	//finish
+	this.CollEnd(thisChildren,&collOperate)
+}
+
+//test template
+testDoc,err := goquery.NewDocument("http://www.")
+if err != nil{
+    collOperate.NewLog("test err 1",err)
+}
+docErrSrc := this.collErrSrc + GetPathSep() + "test-name.html"
+testHtml,err := testDoc.Html()
+if err != nil{
+    collOperate.NewLog("test err 2",err)
+}
+err = WriteFile(docErrSrc,[]byte(testHtml))
+if err != nil{
+    collOperate.NewLog("test err 3",err)
+}

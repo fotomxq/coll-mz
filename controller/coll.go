@@ -13,6 +13,7 @@ type Coll struct {
 	collList CollList
 	collListV map[string]*CollChildren
 	collDatabaseTemplateSrc string
+	collErrSrc string
 }
 
 //Collector list
@@ -42,6 +43,14 @@ func (this *Coll) init(db *Database,dataSrc string,collDatabaseTemplateSrc strin
 	if IsFile(this.dataSrc) == false{
 		err = CreateDir(this.dataSrc + GetPathSep() + "database")
 		if err != nil{
+			return
+		}
+	}
+	this.collErrSrc = this.dataSrc + GetPathSep() + "coll-error"
+	if IsFolder(this.collErrSrc) == false {
+		err = CreateDir(this.collErrSrc)
+		if err != nil {
+			log.NewLog("",err)
 			return
 		}
 	}

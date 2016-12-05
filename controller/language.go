@@ -26,7 +26,7 @@ func (this *Language) Init(languageType string) bool {
 
 //Get the language
 func (this *Language) Get(name string) string {
-	if this.content[name] == nil {
+	if this.content[name] == "" {
 		return ""
 	}
 	return this.content[name].(string)

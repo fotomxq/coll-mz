@@ -50,10 +50,15 @@ func (this *Handle) ToURL(w http.ResponseWriter, r *http.Request, urlName string
 
 //Output template
 func (this *Handle) ShowTemplate(w http.ResponseWriter, r *http.Request, templateFileName string, data interface{}) {
-	t, err := template.ParseFiles(this.GetTempSrc(templateFileName))
+	t, err := template.ParseFiles(this.GetTempSrc(templateFileName),this.GetTempSrc("page-header.html"),this.GetTempSrc("page-menu.html"),this.GetTempSrc("page-footer.html"),this.GetTempSrc("page-menu-nologin.html"))
 	if err != nil {
 		log.NewLog("The template does not output properly,template file name : "+templateFileName, err)
 		return
+	}
+	if data == nil{
+		data = map[string]string{
+			"debug" : configData["debug"].(string),
+		}
 	}
 	t.Execute(w, data)
 }
@@ -65,6 +70,7 @@ func (this *Handle) showTip(w http.ResponseWriter, r *http.Request, title string
 		"contentTitle": contentTitle,
 		"content":      content,
 		"gotoURL":      gotoURL,
+		"debug" : configData["debug"].(string),
 	}
 	this.ShowTemplate(w, r, "tip.html", data)
 }
@@ -347,21 +353,34 @@ func (this *Handle) actionDebug(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//Gets the submit action type
+	_,_ = coll.GetStatus()
 	postAction := r.FormValue("action")
+	postType := r.FormValue("type")
+	var resStr string
 	switch postAction {
 	case "coll":
-		postName := r.FormValue("name")
-		if postName == "" {
-			return
-		}
-		if postName == "run-all" {
-			coll.Run("")
-		} else {
-			coll.Run(postName)
-		}
-		this.postJSONData(w, r, "", true)
+		go coll.CollDebug()
 		break
 	default:
+		break
+	}
+	//show data
+	switch postType {
+	case "json":
+		this.postJSONData(w, r, resStr, b)
+		return
+		break
+	case "html":
+		this.PostText(w,r,resStr)
+		return
+		break
+	default:
+		data := map[string]interface{}{
+			"debug" : configData["debug"].(string),
+			"html" : resStr,
+		}
+		this.ShowTemplate(w,r,"debug.html",data)
+		return
 		break
 	}
 }

@@ -162,6 +162,61 @@ func (this *CollOperate) ClearColl() bool {
 	return true
 }
 
+//Create an upper level ID
+func (this *CollOperate) AutoCollParent(parentTitle string,parentURL string) (int64,string){
+	//Create parent directory data
+	parentSha1 := this.matchString.GetSha1(parentTitle + parentURL)
+	if parentSha1 == ""{
+		this.NewLog(this.lang.Get("coll-error-sha1") + " parent : " + parentTitle + " , url : " + parentURL,nil)
+		return 0,""
+	}
+	//Check parent sha1 if the data already exists
+	if this.CheckDataSha1(parentSha1) == true{
+		this.NewLog(this.lang.Get("coll-error-repeat-sha1") + parentURL + " , sha1 : " + parentSha1,nil)
+		return -1,""
+	}
+	//Create parent database data
+	parentID := this.CreateNewData(0,parentSha1,"",parentURL,parentTitle,"folder","0")
+	if parentID > 0{
+		this.NewLog(this.lang.Get("coll-new-id") + strconv.FormatInt(parentID,10) + " , URL : " + parentURL,nil)
+	}else{
+		this.NewLog(this.lang.Get("coll-error-move-file") + parentURL,nil)
+	}
+	return parentID,parentSha1
+}
+
+//Automatically collect collection
+func (this *CollOperate) AutoCollParentFiles(parentTitle string,parentURL string,urls []string) int64 {
+	//Create parent directory data
+	parentSha1 := this.matchString.GetSha1(parentTitle + parentURL)
+	if parentSha1 == ""{
+		this.NewLog(this.lang.Get("coll-error-sha1") + " parent : " + parentTitle + " , url : " + parentURL,nil)
+		return 0
+	}
+	//Check parent sha1 if the data already exists
+	if this.CheckDataSha1(parentSha1) == true{
+		this.NewLog(this.lang.Get("coll-error-repeat-sha1") + parentURL + " , sha1 : " + parentSha1,nil)
+		return -1
+	}
+	//Create parent database data
+	parentID := this.CreateNewData(0,parentSha1,"",parentURL,parentTitle,"folder","0")
+	if parentID > 0{
+		this.NewLog(this.lang.Get("coll-new-id") + strconv.FormatInt(parentID,10) + " , URL : " + parentURL,nil)
+	}else{
+		this.NewLog(this.lang.Get("coll-error-move-file") + parentURL,nil)
+	}
+	//Traverse the generated subfile data
+	for _,value := range urls{
+		newID := this.AutoCollFile(value,parentTitle,parentSha1,parentID)
+		if newID > 0{
+			this.NewLog(this.lang.Get("coll-new-id") + strconv.FormatInt(newID,10) + " , URL : " + value,nil)
+		}else{
+			this.NewLog(this.lang.Get("coll-error-move-file") + value,nil)
+		}
+	}
+	return parentID
+}
+
 //Automatically builds new data
 func (this *CollOperate) AutoCollFile(url string,name string,parent string,parentID int64) int64 {
 	//Check url if the data already exists
