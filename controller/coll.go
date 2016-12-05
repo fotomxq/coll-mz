@@ -307,3 +307,12 @@ func (this *Coll) SendErrorHTML(name string,html *goquery.Selection) {
 		log.NewLog("",err)
 	}
 }
+
+//Sending an HTML to the error file was originally text for debugging.
+func (this *Coll) SendErrorHTMLStr(name string,html string) {
+	src := this.collErrSrc + GetPathSep() + name + ".html"
+	err = WriteFile(src,[]byte(html))
+	if err != nil{
+		log.NewLog("",err)
+	}
+}
