@@ -3,6 +3,7 @@ package controller
 import (
 	"strconv"
 	"time"
+	"github.com/PuerkitoBio/goquery"
 )
 
 //coll struct
@@ -24,6 +25,7 @@ type CollList struct {
 	xiuren CollChildren
 	meizitu CollChildren
 	xiuhaotu CollChildren
+	feig CollChildren
 }
 
 //Collector list children
@@ -84,6 +86,11 @@ func (this *Coll) init(db *Database,dataSrc string,collDatabaseTemplateSrc strin
 		source : "xiuhaotu",
 		url : "http://showhaotu.xyz/explore/?list=images&sort=date_desc&page=",
 	}
+	this.collList.feig = CollChildren{
+		status : false,
+		source : "feig",
+		url : "http://www.girl13.com/page/",
+	}
 	this.collListV = map[string]*CollChildren{
 		"local" : &this.collList.local,
 		"jiandan" : &this.collList.jiandan,
@@ -91,6 +98,7 @@ func (this *Coll) init(db *Database,dataSrc string,collDatabaseTemplateSrc strin
 		"xiuren" : &this.collList.xiuren,
 		"meizitu" : &this.collList.meizitu,
 		"xiuhaotu" : &this.collList.xiuhaotu,
+		"feig" : &this.collList.feig,
 	}
 }
 
@@ -119,6 +127,9 @@ func (this *Coll) Run(name string) {
 		break
 	case "xiuhaotu":
 		go this.CollXiuhaotu()
+		break
+	case "feig":
+		go this.CollFeig()
 		break
 	case "":
 		//Run all collectors
@@ -281,4 +292,18 @@ func (this *Coll) CheckCollExisit(name string) bool{
 //Gets the CollListChildren handle
 func (this *Coll) GetCollChildren(name string) *CollChildren{
 	return this.collListV[name]
+}
+
+//Sending an HTML to the error file was originally text for debugging.
+func (this *Coll) SendErrorHTML(name string,html *goquery.Selection) {
+	src := this.collErrSrc + GetPathSep() + name + ".html"
+	c,err := html.Html()
+	if err != nil{
+		log.NewLog("",err)
+		return
+	}
+	err = WriteFile(src,[]byte(c))
+	if err != nil{
+		log.NewLog("",err)
+	}
 }

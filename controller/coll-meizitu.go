@@ -128,6 +128,7 @@ func (this *Coll) CollMeizitu() {
 					}
 					break
 				}
+				errNum = 0
 				nextNum += 1
 			}
 		}
