@@ -1,5 +1,6 @@
 //状态值
 var collStatusData = "";
+var collStatusOldData = "";
 //当前单击tag
 var collNowTagKey = "";
 
@@ -19,6 +20,7 @@ function getCollStatus(){
         collStatusData = data['data'];
         //如果第一次获取，初始化标签组
         if($('#coll-status').html() == ""){
+            collStatusOldData = collStatusData;
             for(var key in collStatusData){
                 $('#coll-status').html($('#coll-status').html() + '<a href="#coll-tag" data-key="'+key+'" class="ui grey label">'+collStatusData[key]['source']+'</a>');
             }
@@ -39,7 +41,16 @@ function getCollStatus(){
         }
         //变动日志显示内容
         if(collNowTagKey != ""){
-            $('#log-content').html(collStatusData[collNowTagKey]['log']);
+            $('#log-content').html(collStatusData[collNowTagKey]['log']+collStatusOldData[collNowTagKey]['log']);
+            //判断日志数据是否超过上限，超过则尝试清空日志，并覆盖到旧日志数据中
+            if(collStatusData[collNowTagKey]['log'].length > 10000){
+                collStatusOldData[collNowTagKey]['log'] = collStatusData[collNowTagKey]['log'];
+                actionCollLogClear(collNowTagKey);
+            }else{
+                if(collStatusData[collNowTagKey]['log'].length > 5000){
+                    collStatusOldData[collNowTagKey]['log'] = "";
+                }
+            }
             $('#coll-tools').show();
             $('#coll-title').html(' ## 当前选择了'+collStatusData[collNowTagKey]['source'] + '采集器，URL：' + collStatusData[collNowTagKey]['url']);
             $('#coll-tools').attr('data-key',collNowTagKey);
@@ -98,6 +109,17 @@ function actionCollClose(name){
     },'json');
 }
 
+//清空日志
+function actionCollLogClear(name){
+    $.get('/action-set?action=clear-log&name='+name, function(data){
+        if(!data){
+            return false;
+        }
+        sendBoolTip(data['result'],'清空了该采集器日志。','尝试清空该采集器日志，但失败了。');
+    },'json');
+}
+
+
 //清空采集数据
 function actionCollClear(name){
     $.get('/action-set?action=clear&name='+name, function(data){
@@ -127,6 +149,9 @@ $(document).ready(function() {
     });
     $('a[href="#action-coll-close"]').click(function(){
         actionCollClose($('#coll-tools').attr('data-key'));
+    });
+    $('a[href="#action-log-clear"]').click(function(){
+        actionCollLogClear($('#coll-tools').attr('data-key'));
     });
     $('a[href="#action-coll-clear"]').click(function(){
         actionCollClear($('#coll-tools').attr('data-key'));

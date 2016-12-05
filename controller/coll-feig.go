@@ -46,7 +46,7 @@ func (this *Coll) CollFeig() {
 				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children-empty") + " , error node src.",nil)
 			}
 			newID := collOperate.AutoCollFile(nodeURL,nodeTitle,strconv.Itoa(page),0)
-			if newID < 1{
+			if newID < 1 && newID != -1{
 				errNum += 1
 				collOperate.NewLog(collOperate.lang.Get("coll-error-new-id") + " , error node new id.",nil)
 			}

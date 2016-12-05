@@ -171,6 +171,22 @@ func (this *Coll) GetStatus() (map[string]interface{},bool){
 	return res,b
 }
 
+//clear log
+func (this *Coll) ClearLog(name string) bool{
+	exisit := this.CheckCollExisit(name)
+	if exisit == false{
+		return false
+	}
+	thisChildren := this.GetCollChildren(name)
+	src := this.dataSrc + GetPathSep() + "coll-log" + GetPathSep() + thisChildren.source + ".log"
+	cByte := []byte("")
+	err = WriteFile(src,cByte)
+	if err != nil{
+		log.NewLog("",err)
+	}
+	return true
+}
+
 //Empty a data set
 func (this *Coll) ClearColl(name string) bool {
 	exisit := this.CheckCollExisit(name)

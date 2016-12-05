@@ -108,7 +108,8 @@ func (this *Coll) CollMeizitu() {
 			}
 			//Create an upper level ID
 			parentID,parentSha1 := collOperate.AutoCollParent(thisCTitle,thisCURL)
-			if parentID < 1{
+			if parentID < 1 && parentID != -1{
+				errNum += 1
 				continue
 			}
 			//Synthesize the final URL address
@@ -122,7 +123,7 @@ func (this *Coll) CollMeizitu() {
 				nextImgURL := imgURL + nextNumStr + "." + thisCThumbsURLNames[1]
 				newID := collOperate.AutoCollFile(nextImgURL,thisCTitle,parentSha1,parentID)
 				if newID < 1{
-					if nextNum < 2{
+					if nextNum < 2 {
 						_ = collOperate.DeleteData(parentID)
 						errNum = 11
 					}

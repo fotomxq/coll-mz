@@ -218,6 +218,9 @@ func (this *CollOperate) AutoCollParentFiles(parentTitle string,parentURL string
 }
 
 //Automatically builds new data
+// return -1 - The data has been collected
+// return 0 - Acquisition failed
+// return >0 - Acquires the new ID of the data
 func (this *CollOperate) AutoCollFile(url string,name string,parent string,parentID int64) int64 {
 	//Check url if the data already exists
 	if(this.CheckDataURL(url) == true){

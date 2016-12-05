@@ -241,6 +241,13 @@ func (this *Handle) actionSet(w http.ResponseWriter, r *http.Request) {
 		}
 		this.postJSONData(w,r,coll.ClearColl(postName),true)
 		break
+	case "clear-log":
+		postName := r.FormValue("name")
+		if postName == ""{
+			return
+		}
+		this.postJSONData(w,r,coll.ClearLog(postName),true)
+		break
 	case "close":
 		postName := r.FormValue("name")
 		if postName == ""{
@@ -249,7 +256,7 @@ func (this *Handle) actionSet(w http.ResponseWriter, r *http.Request) {
 		this.postJSONData(w,r,coll.ChangeStatus(postName,false),true)
 		break
 	default:
-		this.page404(w, r)
+		this.postJSONData(w,r,"",false)
 		return
 		break
 	}
