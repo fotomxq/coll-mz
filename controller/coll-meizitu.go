@@ -122,7 +122,7 @@ func (this *Coll) CollMeizitu() {
 				}
 				nextImgURL := imgURL + nextNumStr + "." + thisCThumbsURLNames[1]
 				newID := collOperate.AutoCollFile(nextImgURL,thisCTitle,parentSha1,parentID)
-				if newID < 1{
+				if newID < 1 && newID != -1{
 					if nextNum < 2 {
 						_ = collOperate.DeleteData(parentID)
 						errNum = 11

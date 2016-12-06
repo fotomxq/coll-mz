@@ -58,6 +58,11 @@ function getCollStatus(){
             //更新日志显示
             $('#log-content').html(collStatusData[collNowTagKey]['log']+collStatusOldData[collNowTagKey]['log']);
         }
+        if(collNowTagKey != ""){
+            if(collStatusData[collNowTagKey]['dev']){
+                $('#coll-title').html($('#coll-title').html() + '<div class="ui left pointing red basic label">警告，该采集器还在开发阶段，可能存在不稳定性。</div>');
+            }
+        }
     },'json');
     //自动运行
     setTimeout('getCollStatus()', 1000);

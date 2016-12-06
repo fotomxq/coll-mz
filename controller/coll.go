@@ -35,6 +35,7 @@ type CollChildren struct {
 	url string
 	db Database
 	dbStatus bool
+	dev bool
 }
 
 //Initialize the collector
@@ -60,36 +61,43 @@ func (this *Coll) init(db *Database,dataSrc string,collDatabaseTemplateSrc strin
 		status : false,
 		source : "local",
 		url : "",
+		dev : true,
 	}
 	this.collList.jiandan = CollChildren{
 		status : false,
 		source : "jiandan",
 		url : "http://jandan.net/ooxx",
+		dev : false,
 	}
 	this.collList.jiandanIndex = CollChildren{
 		status : false,
 		source : "jiandan-index",
 		url : "http://jandan.net",
+		dev : false,
 	}
 	this.collList.xiuren = CollChildren{
 		status : false,
 		source : "xiuren",
 		url : "",
+		dev : true,
 	}
 	this.collList.meizitu = CollChildren{
 		status : false,
 		source : "meizitu",
 		url : "http://www.mzitu.com/page/",
+		dev : false,
 	}
 	this.collList.xiuhaotu = CollChildren{
 		status : false,
 		source : "xiuhaotu",
 		url : "http://showhaotu.xyz/explore/?list=images&sort=date_desc&page=",
+		dev : true,
 	}
 	this.collList.feig = CollChildren{
 		status : false,
 		source : "feig",
 		url : "http://www.girl13.com/page/",
+		dev : false,
 	}
 	this.collListV = map[string]*CollChildren{
 		"local" : &this.collList.local,
@@ -153,6 +161,7 @@ func (this *Coll) GetStatus() (map[string]interface{},bool){
 		valueC["status"] = c.status
 		valueC["source"] = c.source
 		valueC["url"] = c.url
+		valueC["dev"] = c.dev
 		src := this.dataSrc + GetPathSep() + "coll-log" + GetPathSep() + c.source + ".log"
 		if IsFile(src) == true{
 			logContentByte,err := LoadFile(src)
