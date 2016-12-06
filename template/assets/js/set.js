@@ -30,30 +30,33 @@ function getCollStatus(){
         }
         //更新状态提示
         for(var key in collStatusData){
+            //强制赋予当前选择为第一个key值
             if(collNowTagKey == ''){
                 collNowTagKey = key
             }
+            //更新采集状态提示
+            $('#coll-title').html(' ## 当前选择了'+collStatusData[collNowTagKey]['source'] + '采集器，URL：' + collStatusData[collNowTagKey]['url'] + '，该采集器');
             if(collStatusData[key]['status'] == true){
                 $('a[href="#coll-tag"][data-key="'+collStatusData[key]['source']+'"]').attr('class','ui blue label');
+                $('#coll-title').html($('#coll-title').html() + '正在采集数据。 ## ');
             }else{
                 $('a[href="#coll-tag"][data-key="'+collStatusData[key]['source']+'"]').attr('class','ui grey label');
+                $('#coll-title').html($('#coll-title').html() + '已经停止运行了。 ## ');
             }
-        }
-        //变动日志显示内容
-        if(collNowTagKey != ""){
-            $('#log-content').html(collStatusData[collNowTagKey]['log']+collStatusOldData[collNowTagKey]['log']);
             //判断日志数据是否超过上限，超过则尝试清空日志，并覆盖到旧日志数据中
-            if(collStatusData[collNowTagKey]['log'].length > 10000){
-                collStatusOldData[collNowTagKey]['log'] = collStatusData[collNowTagKey]['log'];
-                actionCollLogClear(collNowTagKey);
+            if(collStatusData[key]['log'].length > 10000){
+                collStatusOldData[key]['log'] = collStatusData[key]['log'];
+                actionCollLogClear(key);
             }else{
-                if(collStatusData[collNowTagKey]['log'].length > 5000){
-                    collStatusOldData[collNowTagKey]['log'] = "";
+                if(collStatusData[key]['log'].length > 5000){
+                    collStatusOldData[key]['log'] = "";
                 }
             }
+            //显示工具按钮
             $('#coll-tools').show();
-            $('#coll-title').html(' ## 当前选择了'+collStatusData[collNowTagKey]['source'] + '采集器，URL：' + collStatusData[collNowTagKey]['url']);
             $('#coll-tools').attr('data-key',collNowTagKey);
+            //更新日志显示
+            $('#log-content').html(collStatusData[collNowTagKey]['log']+collStatusOldData[collNowTagKey]['log']);
         }
     },'json');
     //自动运行
@@ -95,7 +98,7 @@ function actionCollRun(name){
         if(!data){
             return false;
         }
-        sendBoolTip(data['result'],'启动了该采集器。','尝试启动该采集器，但失败了。');
+        sendBoolTip(data['result'],'启动了'+name+'采集器。','尝试启动'+name+'采集器，但失败了。');
     },'json');
 }
 
@@ -105,7 +108,7 @@ function actionCollClose(name){
         if(!data){
             return false;
         }
-        sendBoolTip(data['result'],'强制关闭了该采集器。','尝试关闭采集器，但失败了。');
+        sendBoolTip(data['result'],'强制关闭了'+name+'采集器。','尝试关闭'+name+'采集器，但失败了。');
     },'json');
 }
 
@@ -115,7 +118,7 @@ function actionCollLogClear(name){
         if(!data){
             return false;
         }
-        sendBoolTip(data['result'],'清空了该采集器日志。','尝试清空该采集器日志，但失败了。');
+        sendBoolTip(data['result'],'日志数据过于庞大，清空了'+name+'采集器日志。','尝试清空'+name+'采集器日志，但失败了。');
     },'json');
 }
 
@@ -126,7 +129,7 @@ function actionCollClear(name){
         if(!data){
             return false;
         }
-        sendBoolTip(data['result'],'清空了该采集器所有数据。','尝试清空该采集器数据，但失败了。');
+        sendBoolTip(data['result'],'清空了'+name+'采集器所有数据。','尝试清空'+name+'采集器数据，但失败了。');
     },'json');
 }
 
@@ -152,6 +155,7 @@ $(document).ready(function() {
     });
     $('a[href="#action-log-clear"]').click(function(){
         actionCollLogClear($('#coll-tools').attr('data-key'));
+        collStatusOldData[$('#coll-tools').attr('data-key')]['log'] = "";
     });
     $('a[href="#action-coll-clear"]').click(function(){
         actionCollClear($('#coll-tools').attr('data-key'));

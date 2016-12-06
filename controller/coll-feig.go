@@ -57,6 +57,7 @@ func (this *Coll) CollFeig() {
 			collOperate.NewLog(collOperate.lang.Get("coll-error-too-many"),nil)
 			break
 		}
+		page += 1
 	}
 	//finish
 	this.CollEnd(thisChildren,&collOperate)
