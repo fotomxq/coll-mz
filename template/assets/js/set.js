@@ -14,6 +14,10 @@ function getCollStatus(){
         if(!data){
             return false;
         }
+        if(!data['login']){
+            window.location.href = '/login';
+            return false;
+        }
         if(!data['result']){
             sendTip("无法获取状态信息。");
             return false;

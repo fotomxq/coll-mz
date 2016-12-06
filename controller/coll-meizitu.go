@@ -14,6 +14,7 @@ func (this *Coll) CollMeizitu() {
 	if this.CollStart(thisChildren,&collOperate) == false{
 		return
 	}
+	defer this.CollEnd(thisChildren,&collOperate)
 	//start
 	page := 1
 	errNum := 0
@@ -141,6 +142,4 @@ func (this *Coll) CollMeizitu() {
 		//Gets the next page
 		page += 1
 	}
-	//finish
-	this.CollEnd(thisChildren,&collOperate)
 }

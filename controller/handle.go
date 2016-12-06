@@ -84,6 +84,7 @@ func (this *Handle) postJSONData(w http.ResponseWriter, r *http.Request,data int
 	res := make(map[string]interface{})
 	res["result"] = b
 	res["data"] = data
+	res["login"] = this.user.CheckLogin(w, r)
 	resJson,err := json.Marshal(res)
 	if err != nil{
 		log.NewLog("",err)

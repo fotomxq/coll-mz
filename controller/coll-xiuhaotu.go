@@ -14,70 +14,61 @@ func (this *Coll) CollXiuhaotu() {
 	if this.CollStart(thisChildren,&collOperate) == false{
 		return
 	}
+	defer this.CollEnd(thisChildren,&collOperate)
 	//start
-	nextPageURL := thisChildren.url
-	page := 1
+	var page int = 0
 	var errNum int = 0
-	var runStop = true
 	//Traverse the page count
 	for{
 		//Forced interrupt handling
 		if thisChildren.status == false{
 			return
 		}
-		//Gets the current page URL
-		thisURL := nextPageURL + strconv.Itoa(page)
-		collOperate.NewLog("Get Page : " + thisURL,nil)
-		doc,err := goquery.NewDocument(thisURL)
+		//Get the page
+		pageURL := thisChildren.url + strconv.Itoa(page)
+		pageDoc,err := goquery.NewDocument(pageURL)
 		if err != nil{
-			collOperate.NewLog(collOperate.lang.Get("coll-error-next-open"),err)
-			errNum += 1
+			collOperate.NewLog(collOperate.lang.Get("coll-err-next"),nil)
 			break
 		}
-		nodes := doc.Find(".image-container")
-		//Traverse nodes
+		this.DebugErrorHTMLDoc("coll-xiuhaotu-doc-page",pageDoc)
+		//$('.pad-content-listing').eq(0).find('img')
+		nodes := pageDoc.Find(".pad-content-listing").Eq(0).Find("img")
+		this.DebugErrorHTMLNode("coll-xiuhaotu-nodes",nodes)
+		//Traverse all nodes
 		for nodeKey := range nodes.Nodes{
 			//Forced interrupt handling
 			if thisChildren.status == false{
 				return
 			}
-			runStop = false
-			//Gets the image URL address
-			nodeImgURL,b := nodes.Eq(nodeKey).Children().Attr("src")
-			if b == false || nodeImgURL == ""{
-				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children"),nil)
-				errNum += 1
-				break
-			}
-			//Analysis URL address, access to large picture URL
-			largeImgURL := strings.Replace(nodeImgURL,".md","",-1)
-			if largeImgURL == ""{
-				collOperate.NewLog(collOperate.lang.Get("coll-error-get-large-img") + nodeImgURL,nil)
+			//get node data
+			node := nodes.Eq(nodeKey)
+			nodeTitle,b := node.Attr("alt")
+			if b == false{
+				collOperate.NewLog(collOperate.lang.Get("coll-error-too-many"),nil)
 				errNum += 1
 				continue
 			}
-			//save large picture url
-			newID := collOperate.AutoCollFile(largeImgURL,"","",0)
+			nodeURL,b := node.Attr("src")
+			if b == false{
+				collOperate.NewLog(collOperate.lang.Get("coll-error-get-large-img"),nil)
+				errNum += 1
+				continue
+			}
+			nodeURL = strings.Replace(nodeURL,".md","",-1)
+			newID := collOperate.AutoCollFile(nodeURL,nodeTitle,strconv.Itoa(page),0)
 			if newID < 1 && newID != -1{
 				errNum += 1
 				continue
 			}
-			//The number of error records is 0
-			errNum = 0
 		}
-		//Forced interrupt handling
+		//More than 10 times the error is to exit
 		if errNum > 10{
 			collOperate.NewLog(collOperate.lang.Get("coll-error-too-many"),nil)
 			break
 		}
-		if runStop == true{
-			collOperate.NewLog(collOperate.lang.Get("coll-error-doc"),nil)
-			break
-		}
-		//Increase the number of pages
+		//Gets the next page
 		page += 1
 	}
-	//finish
-	this.CollEnd(thisChildren,&collOperate)
 }
 

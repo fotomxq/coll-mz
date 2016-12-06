@@ -10,6 +10,7 @@ func (this *Coll) CollJiandanIndex() {
 	if this.CollStart(thisChildren,&collOperate) == false{
 		return
 	}
+	defer this.CollEnd(thisChildren,&collOperate)
 	//start
 	indexURL := thisChildren.url
 	//Get the page data
@@ -40,6 +41,4 @@ func (this *Coll) CollJiandanIndex() {
 			continue
 		}
 	}
-	//finish
-	this.CollEnd(thisChildren,&collOperate)
 }

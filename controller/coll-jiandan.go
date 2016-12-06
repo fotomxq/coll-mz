@@ -13,6 +13,7 @@ func (this *Coll) CollJiandan() {
 	if this.CollStart(thisChildren,&collOperate) == false{
 		return
 	}
+	defer this.CollEnd(thisChildren,&collOperate)
 	//start
 	nextURL := thisChildren.url
 	var b bool
@@ -79,6 +80,4 @@ func (this *Coll) CollJiandan() {
 			break
 		}
 	}
-	//finish
-	this.CollEnd(thisChildren,&collOperate)
 }

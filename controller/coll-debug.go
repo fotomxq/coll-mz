@@ -37,3 +37,40 @@ func (this *Coll) CollDebug() () {
 	this.CollEnd(thisChildren, &collOperate)
 	return
 }
+
+//Sending an HTML to the error file was originally text for debugging.
+func (this *Coll) DebugErrorHTMLNode(name string,html *goquery.Selection) {
+	src := this.collErrSrc + GetPathSep() + name + ".html"
+	c,err := html.Html()
+	if err != nil{
+		log.NewLog("",err)
+		return
+	}
+	err = WriteFile(src,[]byte(c))
+	if err != nil{
+		log.NewLog("",err)
+	}
+}
+
+//Sending an HTML to the error file was originally text for debugging.
+func (this *Coll) DebugErrorHTMLDoc(name string,doc *goquery.Document) {
+	src := this.collErrSrc + GetPathSep() + name + ".html"
+	c,err := doc.Html()
+	if err != nil{
+		log.NewLog("",err)
+		return
+	}
+	err = WriteFile(src,[]byte(c))
+	if err != nil{
+		log.NewLog("",err)
+	}
+}
+
+//Sending an HTML to the error file was originally text for debugging.
+func (this *Coll) DebugErrorHTMLStr(name string,html string) {
+	src := this.collErrSrc + GetPathSep() + name + ".html"
+	err = WriteFile(src,[]byte(html))
+	if err != nil{
+		log.NewLog("",err)
+	}
+}

@@ -3,7 +3,6 @@ package controller
 import (
 	"strconv"
 	"time"
-	"github.com/PuerkitoBio/goquery"
 )
 
 //coll struct
@@ -78,7 +77,7 @@ func (this *Coll) init(db *Database,dataSrc string,collDatabaseTemplateSrc strin
 	this.collList.xiuren = CollChildren{
 		status : false,
 		source : "xiuren",
-		url : "",
+		url : "http://www.xiuren.org/page-1.html",
 		dev : true,
 	}
 	this.collList.meizitu = CollChildren{
@@ -317,27 +316,4 @@ func (this *Coll) CheckCollExisit(name string) bool{
 //Gets the CollListChildren handle
 func (this *Coll) GetCollChildren(name string) *CollChildren{
 	return this.collListV[name]
-}
-
-//Sending an HTML to the error file was originally text for debugging.
-func (this *Coll) SendErrorHTML(name string,html *goquery.Selection) {
-	src := this.collErrSrc + GetPathSep() + name + ".html"
-	c,err := html.Html()
-	if err != nil{
-		log.NewLog("",err)
-		return
-	}
-	err = WriteFile(src,[]byte(c))
-	if err != nil{
-		log.NewLog("",err)
-	}
-}
-
-//Sending an HTML to the error file was originally text for debugging.
-func (this *Coll) SendErrorHTMLStr(name string,html string) {
-	src := this.collErrSrc + GetPathSep() + name + ".html"
-	err = WriteFile(src,[]byte(html))
-	if err != nil{
-		log.NewLog("",err)
-	}
 }

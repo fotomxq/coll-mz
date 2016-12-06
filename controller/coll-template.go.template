@@ -9,12 +9,11 @@ func (this *Coll) CollName() { `edit name`
 	if this.CollStart(thisChildren,&collOperate) == false{
 		return
 	}
+	defer this.CollEnd(thisChildren,&collOperate)
 	// `edit`
 	if thisChildren.status == false{
 		return
 	}
-	//finish
-	this.CollEnd(thisChildren,&collOperate)
 }
 
 //test template

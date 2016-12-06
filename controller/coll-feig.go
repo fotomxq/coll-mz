@@ -13,6 +13,7 @@ func (this *Coll) CollFeig() {
 	if this.CollStart(thisChildren,&collOperate) == false{
 		return
 	}
+	defer this.CollEnd(thisChildren,&collOperate)
 	//start
 	var errNum int = 0
 	var page int = 1
@@ -39,16 +40,18 @@ func (this *Coll) CollFeig() {
 			if b == false{
 				errNum += 1
 				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children-empty") + " , error node title.",nil)
+				continue
 			}
 			nodeURL,b := node.Attr("src")
 			if b == false{
 				errNum += 1
 				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children-empty") + " , error node src.",nil)
+				continue
 			}
 			newID := collOperate.AutoCollFile(nodeURL,nodeTitle,strconv.Itoa(page),0)
 			if newID < 1 && newID != -1{
 				errNum += 1
-				collOperate.NewLog(collOperate.lang.Get("coll-error-new-id") + " , error node new id.",nil)
+				continue
 			}
 			errNum = 0
 		}
@@ -59,6 +62,4 @@ func (this *Coll) CollFeig() {
 		}
 		page += 1
 	}
-	//finish
-	this.CollEnd(thisChildren,&collOperate)
 }

@@ -8,10 +8,9 @@ func (this *Coll) CollLocal() {
 	if this.CollStart(thisChildren,&collOperate) == false{
 		return
 	}
+	defer this.CollEnd(thisChildren,&collOperate)
 	//
 	if thisChildren.status == false{
 		return
 	}
-	//finish
-	this.CollEnd(thisChildren,&collOperate)
 }
