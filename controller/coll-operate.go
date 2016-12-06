@@ -138,14 +138,8 @@ func (this *CollOperate) ViewData(id int64) (CollFields,bool) {
 
 //Empty a data set
 func (this *CollOperate) ClearColl() bool {
-	//Delete all database data
-	query := "truncate table `coll`"
-	stmt,err := this.db.db.Exec(query,this.collChildren.source)
-	if err != nil{
-		this.NewLog("",err)
-		return false
-	}
-	_,err = stmt.RowsAffected()
+	//Close the database and rebuild the database
+	err = this.db.Close()
 	if err != nil{
 		this.NewLog("",err)
 		return false

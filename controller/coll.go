@@ -205,6 +205,17 @@ func (this *Coll) ClearColl(name string) bool {
 	var collOperate CollOperate
 	collOperate.init(this.db,this.dataSrc,thisChildren,this.lang)
 	b := collOperate.ClearColl()
+	if b == false{
+		return false
+	}
+	dbSrc := this.dataSrc + GetPathSep() + "database" + GetPathSep() + thisChildren.source + ".sqlite"
+	err = DeleteFile(dbSrc)
+	if err != nil{
+		log.NewLog("",err)
+		return false
+	}
+	//thisChildren.dbStatus = false
+	//b = this.CollConnectDB(thisChildren,&collOperate)
 	return b
 }
 
