@@ -208,10 +208,8 @@ func (this *CollOperate) AutoCollParentFiles(parentTitle string,parentURL string
 	//Traverse the generated subfile data
 	for _,value := range urls{
 		newID := this.AutoCollFile(value,parentTitle,parentSha1,parentID)
-		if newID > 0{
-			this.NewLog(this.lang.Get("coll-new-id") + strconv.FormatInt(newID,10) + " , URL : " + value,nil)
-		}else{
-			this.NewLog(this.lang.Get("coll-error-move-file") + value,nil)
+		if newID < 1 && newID != -1 {
+			continue
 		}
 	}
 	return parentID

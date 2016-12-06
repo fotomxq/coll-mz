@@ -22,7 +22,7 @@ func (this *Coll) CollXiuren() {
 		//get page doc
 		pageDoc,err := goquery.NewDocument(pageURL)
 		if err != nil{
-			collOperate.NewLog(collOperate.lang.Get("coll-err-next"),nil)
+			collOperate.NewLog(collOperate.lang.Get("coll-err-next") + " ~ page doc.",nil)
 			break
 		}
 		//get nodes
@@ -37,22 +37,22 @@ func (this *Coll) CollXiuren() {
 			//parent and childrens
 			var childrenURLs []string
 			//Get the children title and url
-			parentTitle,b := pageNode.Attr("alt")
+			parentTitle,b := pageNode.Children().Attr("alt")
 			if b == false{
-				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children"),nil)
+				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children") + " ~ c 1.",nil)
 				errNum += 1
 				continue
 			}
 			parentURL,b := pageNode.Attr("href")
 			if b == false{
-				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children"),nil)
+				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children") + " ~ c 2.",nil)
 				errNum += 1
 				continue
 			}
 			//Get the children page
 			childrenDoc,err := goquery.NewDocument(parentURL)
 			if err != nil{
-				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children"),nil)
+				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children") + " ~ c 3.",nil)
 				errNum += 1
 				continue
 			}
@@ -62,7 +62,7 @@ func (this *Coll) CollXiuren() {
 				childrenNode := childrenNodes.Eq(childrenKey)
 				childrenURL,b := childrenNode.Attr("href")
 				if b == false{
-					collOperate.NewLog(collOperate.lang.Get("coll-error-get-children"),nil)
+					collOperate.NewLog(collOperate.lang.Get("coll-error-get-children") + " ~ c 4",nil)
 					errNum += 1
 					continue
 				}
@@ -70,7 +70,7 @@ func (this *Coll) CollXiuren() {
 			}
 			//If the collected image data is too small
 			if len(childrenURLs) < 2{
-				collOperate.NewLog(collOperate.lang.Get("coll-error-get-large-img"),nil)
+				collOperate.NewLog(collOperate.lang.Get("coll-error-get-large-img") + " ~ c 5.",nil)
 				break
 			}
 			//create database id
@@ -83,7 +83,7 @@ func (this *Coll) CollXiuren() {
 			}
 			//too many error
 			if errNum > 10{
-				collOperate.NewLog(collOperate.lang.Get("coll-error-too-many"),nil)
+				collOperate.NewLog(collOperate.lang.Get("coll-error-too-many") + " ~ c 6.",nil)
 				break
 			}
 		}

@@ -142,21 +142,53 @@ func (this *Coll) CollLocalParentFiles(thisChildren *CollChildren,collOperate *C
 
 //local专用通用清理模块
 //删除所有文件
-func (this *Coll) CollLocalParentDelete(parentSrc string) bool {
-
+func (this *Coll) CollLocalParentDelete(collOperate *CollOperate,parentSrc string) bool {
+	//删除该目录后重建
+	err := DeleteFile(parentSrc)
+	if err != nil{
+		collOperate.NewLog("删除文件夹失败。",err)
+		return false
+	}
+	//返回
+	return true
 }
 
 //local文本数据采集器
 func (this *Coll) CollLocalTxt(thisChildren *CollChildren,collOperate *CollOperate,collLocalDir string){
 	//初始化获取
 	dir,fileList := this.CollLocalStart(collOperate,collLocalDir,"txt")
+	if dir == ""{
+		return
+	}
+	//获取dir名称
+	parentNames,err := GetFileNames(dir)
+	if err != nil{
+		collOperate.NewLog("",err)
+		return
+	}
+	parentName := parentNames["only-name"]
+	//重新建立文件数据，剔除所有目录、非txt文件
+	var newFileList []string
+	for _,v := range fileList {
+		if IsFolder(v) == true{
+			continue
+		}
+		names,err := GetFileNames(v)
+		if err != nil{
+			collOperate.NewLog("",err)
+			continue
+		}
+		if names["type"] == "txt" {
+			newFileList = append(newFileList,v)
+		}
+	}
 	//开始构建数据
-	b := this.CollLocalParentFiles(thisChildren,collOperate,parentTitle,parentSrc,fileSrcList)
+	b := this.CollLocalParentFiles(thisChildren,collOperate,parentName,dir,newFileList)
 	if b == false{
 		return
 	}
 	//清理剩余文件
-	b = this.CollLocalParentDelete(parentSrc)
+	b = this.CollLocalParentDelete(collOperate,dir)
 	if b == false{
 		collOperate.NewLog("清理文件失败。",nil)
 	}
@@ -165,17 +197,17 @@ func (this *Coll) CollLocalTxt(thisChildren *CollChildren,collOperate *CollOpera
 //local下载视频数据采集器
 func (this *Coll) CollLocalDownloadMovie(thisChildren *CollChildren,collOperate *CollOperate,collLocalDir string){
 	//初始化获取
-	dir,fileList := this.CollLocalStart(collOperate,collLocalDir,"download-movie")
+	//dir,fileList := this.CollLocalStart(collOperate,collLocalDir,"download-movie")
 }
 
 //local漫画数据采集器
 func (this *Coll) CollLocalManhua(thisChildren *CollChildren,collOperate *CollOperate,collLocalDir string){
 	//初始化获取
-	dir,fileList := this.CollLocalStart(collOperate,collLocalDir,"manhua")
+	//dir,fileList := this.CollLocalStart(collOperate,collLocalDir,"manhua")
 }
 
 //local保存网页数据采集器
 func (this *Coll) CollLocalSaveImgsHtml(thisChildren *CollChildren,collOperate *CollOperate,collLocalDir string){
 	//初始化获取
-	dir,fileList := this.CollLocalStart(collOperate,collLocalDir,"save-imgs-html")
+	//dir,fileList := this.CollLocalStart(collOperate,collLocalDir,"save-imgs-html")
 }

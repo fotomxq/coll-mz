@@ -78,7 +78,7 @@ func (this *Coll) init(db *Database,dataSrc string,collDatabaseTemplateSrc strin
 		status : false,
 		source : "xiuren",
 		url : "http://www.xiuren.org/page-1.html",
-		dev : true,
+		dev : false,
 	}
 	this.collList.meizitu = CollChildren{
 		status : false,
