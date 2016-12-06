@@ -139,7 +139,7 @@ func (this *CollOperate) ViewData(id int64) (CollFields,bool) {
 //Empty a data set
 func (this *CollOperate) ClearColl() bool {
 	//Delete all database data
-	query := "delete from `coll` where `source` = ?"
+	query := "truncate table `coll`"
 	stmt,err := this.db.db.Exec(query,this.collChildren.source)
 	if err != nil{
 		this.NewLog("",err)
