@@ -58,7 +58,7 @@ func (this *Coll) CollFeig() {
 		//More than 10 times the error is to exit
 		if errNum > 10 {
 			collOperate.NewLog(collOperate.lang.Get("coll-error-too-many"),nil)
-			break
+			return
 		}
 		page += 1
 	}

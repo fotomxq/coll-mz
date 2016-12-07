@@ -71,7 +71,7 @@ func (this *Coll) CollJiandan() {
 		//More than 10 times the error is to exit
 		if errNum > 10 {
 			collOperate.NewLog(collOperate.lang.Get("coll-error-too-many"),nil)
-			break
+			return
 		}
 		//Gets the next URL address
 		nextURL,b = doc.Find(".previous-comment-page").Eq(0).Attr("href")

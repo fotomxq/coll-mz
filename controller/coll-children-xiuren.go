@@ -34,6 +34,16 @@ func (this *Coll) CollXiuren() {
 			}
 			//get node
 			pageNode := pageNodes.Eq(pageNodeKey)
+			//get next page
+			if pageNodeKey == len(pageNodes.Nodes) - 1{
+				var b bool
+				pageURL,b = pageNode.Attr("href")
+				if b == false{
+					collOperate.NewLog(collOperate.lang.Get("coll-err-next") + " ~ get next page",nil)
+					return
+				}
+				continue
+			}
 			//parent and childrens
 			var childrenURLs []string
 			//Get the children title and url
@@ -48,6 +58,12 @@ func (this *Coll) CollXiuren() {
 				collOperate.NewLog(collOperate.lang.Get("coll-error-get-children") + " ~ c 2.",nil)
 				errNum += 1
 				continue
+			}
+			//check parent sha1
+			parentSha1 := collOperate.matchString.GetSha1(parentTitle + parentURL)
+			if parentSha1 == ""{
+				collOperate.NewLog(this.lang.Get("coll-error-sha1") + " parent : " + parentTitle + " , url : " + parentURL,nil)
+				return
 			}
 			//Get the children page
 			childrenDoc,err := goquery.NewDocument(parentURL)
@@ -78,13 +94,16 @@ func (this *Coll) CollXiuren() {
 			if newID < 0 && newID != -1{
 				continue
 			}
+			if newID == -1{
+				continue
+			}
 			if newID > 0{
 				errNum = 0
 			}
 			//too many error
 			if errNum > 10{
 				collOperate.NewLog(collOperate.lang.Get("coll-error-too-many") + " ~ c 6.",nil)
-				break
+				return
 			}
 		}
 	}
