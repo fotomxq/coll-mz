@@ -11,7 +11,7 @@ function getCollStatus() {
             return false;
         }
         if(!data['login']){
-            //window.location.href = '/login';
+            window.location.href = '/login';
             return false;
         }
         if(!data['result']){
@@ -24,34 +24,67 @@ function getCollStatus() {
         if($('#coll-status').html() == ""){
             collStatusOldData = collStatusData;
             for(var key in collStatusData){
-                $('#coll-status').html($('#coll-status').html() + '<a href="#coll-tag" data-key="'+key+'" class="ui grey label"><i class="selected radio icon"></i> '+collStatusData[key]['source']+'</a>');
+                $('#coll-status').html($('#coll-status').html() + '<a href="#coll-status" data-key="'+key+'" class="ui grey label"><i class="selected radio icon"></i> '+collStatusData[key]['source']+'</a>');
             }
-            $('a[href="#coll-tag"]').click(function(){
-                key = $(this).attr('data-key');
-                if(collStatusData[key]["status"] == false){
-                    collNowTagKey = key;
-                }
-                sendBoolTip(collStatusData[key]["status"],"已经切换到" + collStatusData[key]["source"] + "采集器。",collStatusData[key]["source"]+"采集器正在运行中，请等待结束后再浏览采集数据。");
+            $('a[href="#coll-status"]').click(function(){
+                collNowTagKey = $(this).attr('data-key');
+                sendBoolTip(collNowTagKey,"已经切换到" + collStatusData[collNowTagKey]["source"] + "采集器。",collStatusData[collNowTagKey]["source"]+"采集器正在运行中，请等待结束后再浏览采集数据。");
+                $('#coll-content').html('');
+                parent = 0;
+                page = 1;
+                lastData = '';
+                searchTitle = '';
+                getCollView();
             });
         }
-        //归零
-        collNowRunNum = 0;
-        //更新状态提示
-        for(var key in collStatusData){
-            //强制赋予当前选择为第一个key值
-            if(collNowTagKey == ''){
-                collNowTagKey = key;
-            }
+        //60秒刷新一次数据
+        setTimeout('getCollStatus()', 60000);
+    },'json');
+}
+
+//coll view相关参数
+var viewStatus = false;
+var parent = 0;
+var star = 0;
+var searchTitle = '';
+var page = 1;
+var max = 10;
+var sort = 0;
+var desc = 'false';
+//避免数据重复构建
+var lastData = "";
+
+//浏览采集器内的数据
+function getCollView(){
+    $.get('/action-list?coll='+collStatusData[collNowTagKey]['source']+'&parent='+parent+'&star='+star+'&page='+page+'&title='+searchTitle+'&max='+max+'&sort='+sort+'&desc='+desc, function(data){
+        //不存在数据则返回
+        if(!data){
+            return false;
         }
-        //自动运行
-        //如果有采集器运行，则1秒刷新
-        //如果没有采集器运行，则60秒刷新
-        if(collNowRunNum > 0){
-            setTimeout('getCollStatus()', 1000);
-        }else{
-            setTimeout('getCollStatus()', 60000);
+        if(!data['login']){
+            window.location.href = '/login';
+            return false;
         }
-    });
+        if(!data['result']){
+            sendTip("无法获取状态信息。");
+            return false;
+        }
+        if(!data['data']){
+            return false;
+        }
+        //避免数据重复
+        if(data['data'] == lastData){
+            return false;
+        }
+        lastData = data['data']
+        //遍历将数据添加到HTML中
+        for(var key in data['data']){
+            var node = data['data'][key];
+            $('#coll-content').append('<img class="ui fluid image column" src="/action-view?coll='+collStatusData[collNowTagKey]['source']+'&id='+node['id']+'">');
+        }
+        //激活查询状态
+        viewStatus = true;
+    },'json');
 }
 
 //发送单一日志提示
@@ -73,7 +106,29 @@ function sendBoolTip(b,msgT,msgF) {
         }
 }
 
-$(function() {
+//初始化
+$(document).ready(function() {
+    //初始化所有复选框
+    $('.ui.radio.checkbox').checkbox();
+    //初始化所有下拉菜单
+    $('.ui.selection.dropdown').dropdown();
     //获取status数据
     getCollStatus();
+    //自动下一页
+    $('#coll-content').visibility({
+        once: false,
+        observeChanges: true,
+        onBottomVisible:function(){
+            if(viewStatus == true){
+                page += 1;
+                getCollView();
+            }
+        }
+    });
+    $('#next-page').click(function(){
+        if(viewStatus == true){
+            page += 1;
+            getCollView();
+        }
+    });
 });

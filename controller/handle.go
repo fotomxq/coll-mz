@@ -283,6 +283,7 @@ func (this *Handle) actionViewList(w http.ResponseWriter, r *http.Request) {
 	}
 	this.UpdateLanguage()
 	//get post
+	// need : coll string \ parent int64 \ star int \ page int \ max int \ sort int \ desc bool
 	postCollName := r.FormValue("coll")
 	postParent,err := strconv.ParseInt(r.FormValue("parent"),10,0)
 	if err != nil{
@@ -323,13 +324,16 @@ func (this *Handle) actionViewList(w http.ResponseWriter, r *http.Request) {
 		postDescBool = false
 	}
 	//get data
-	data := make(map[string]interface{})
-	data["status"],b = coll.GetStatus()
+	collStatus,b := coll.GetStatus()
 	if b == false{
 		this.postJSONData(w,r,"",false)
 		return
 	}
-	data["list"],b =coll.ViewList(postCollName,postParent,postStar,postTitle,postPage,postMax,postSort,postDescBool)
+	if collStatus["status"] == true{
+		this.postJSONData(w,r,"",false)
+		return
+	}
+	data,b := coll.ViewList(postCollName,postParent,postStar,postTitle,postPage,postMax,postSort,postDescBool)
 	if b == false{
 		this.postJSONData(w,r,"",false)
 		return
@@ -342,7 +346,43 @@ func (this *Handle) actionView(w http.ResponseWriter, r *http.Request) {
 	if this.CheckLogin(w, r) == false {
 		return
 	}
+	//Make sure that post / get is fine
+	b := this.CheckURLPost(r)
+	if b == false {
+		return
+	}
 	this.UpdateLanguage()
+	//get post
+	postCollName := r.FormValue("coll")
+	if postCollName == ""{
+		this.PostText(w,r,"404 Error...")
+		return
+	}
+	postID,err := strconv.ParseInt(r.FormValue("id"),10,0)
+	if err != nil{
+		log.NewLog("",err)
+		this.PostText(w,r,"404 Error...")
+		return
+	}
+	//get source src
+	fileSrc := coll.View(postCollName,postID)
+	if fileSrc == ""{
+		this.PostText(w,r,"404 Error...")
+		return
+	}
+	//get file data
+	fileData,err := LoadFile(fileSrc)
+	if err != nil{
+		log.NewLog("",err)
+		this.PostText(w,r,"404 Error...")
+		return
+	}
+	_,err = w.Write(fileData)
+	if err != nil{
+		log.NewLog("",err)
+		this.PostText(w,r,"404 Error...")
+		return
+	}
 }
 
 //debug

@@ -9,6 +9,7 @@ func (this *Coll) ViewList(collName string,parent int64,star int,searchTitle str
 	if this.CollConnectDB(thisChildren,&collOperate) == false{
 		return result,false
 	}
+	collOperate.init(&thisChildren.db, this.dataSrc, thisChildren, this.lang)
 	//get data
 	result,b := collOperate.ViewDataList(parent,star,searchTitle,page,max,sort,desc)
 	if b == false{
@@ -19,4 +20,25 @@ func (this *Coll) ViewList(collName string,parent int64,star int,searchTitle str
 	this.CollCloseDB(thisChildren,&collOperate)
 	//return
 	return result,true
+}
+
+//Gets the list to the JSON data format
+func (this *Coll) View(collName string,id int64) (string) {
+	//Gets the object
+	thisChildren := this.GetCollChildren(collName)
+	var collOperate CollOperate
+	if this.CollConnectDB(thisChildren,&collOperate) == false{
+		return ""
+	}
+	collOperate.init(&thisChildren.db, this.dataSrc, thisChildren, this.lang)
+	//get data
+	result := collOperate.ViewDataSrc(id)
+	if result == ""{
+		log.NewLog("Failed to get database list data.",nil)
+		return ""
+	}
+	//close db
+	this.CollCloseDB(thisChildren,&collOperate)
+	//return
+	return result
 }

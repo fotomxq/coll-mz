@@ -4,5 +4,5 @@
     "data-src": "content",
     "server-local": ":8888",
     "language" : "chinese",
-    "debug" : "true"
+    "debug" : "false"
 }

@@ -60,16 +60,33 @@ func (this *CollOperate) init(db *Database,dataSrc string,collChildren *CollChil
 
 //View the data list
 func (this *CollOperate) ViewDataList(parent int64,star int,searchTitle string,page int,max int,sort int,desc bool) ([]map[string]string,bool) {
-	query := "select " + this.db.GetFieldsToStr(this.fields) + " from `coll` where `parent` = ?"
+	query := "select `id`,`star`,`name`,`file_type` from `coll` where `parent` = ?"
 	if star > 0{
 		query += " and `star` = ?"
 	}
 	if searchTitle != ""{
 		query += " and `name` = ?"
 	}
-	sortStr := "id"
-	if this.fields[sort] != ""{
-		sortStr = this.fields[sort]
+	var sortStr string
+	switch(sort){
+	case 0:
+		sortStr = "id"
+		break
+	case 2:
+		sortStr = "star"
+		break
+	case 7:
+		sortStr = "name"
+		break
+	case 9:
+		sortStr = "size"
+		break
+	case 10:
+		sortStr = "coll_time"
+		break
+	default:
+		sortStr = "id"
+		break
 	}
 	query += " " + this.db.GetPageSortStr(page,max,sortStr,desc)
 	var rows *sql.Rows
@@ -96,44 +113,35 @@ func (this *CollOperate) ViewDataList(parent int64,star int,searchTitle string,p
 			break
 		}
 		var thisRes CollFields
-		err = rows.Scan(&thisRes.id,&thisRes.sha1,&thisRes.coll_time,&thisRes.file_type,&thisRes.name,&thisRes.parent,&thisRes.size,&thisRes.source,&thisRes.src,&thisRes.star,&thisRes.url)
+		err = rows.Scan(&thisRes.id,&thisRes.star,&thisRes.name,&thisRes.file_type)
 		if err != nil{
 			log.NewLog("",err)
 			return result,false
 		}
 		idStr := strconv.FormatInt(thisRes.id,10)
-		parentStr := strconv.FormatInt(thisRes.parent,10)
 		starStr := strconv.Itoa(thisRes.star)
-		sizeStr := strconv.FormatInt(thisRes.size,10)
 		thisResArr := map[string]string{
 			"id" : idStr,
-			"parent" : parentStr,
 			"star" : starStr,
-			"sha1" : thisRes.sha1,
-			"src" : thisRes.src,
-			"source" : thisRes.source,
-			"url" : thisRes.url,
 			"name" : thisRes.name,
-			"file_type" : thisRes.file_type,
-			"size" : sizeStr,
-			"coll_time" : thisRes.coll_time,
+			"file-type" : thisRes.file_type,
 		}
 		result = append(result,thisResArr)
 	}
 	return result,true
 }
 
-//View the data
-func (this *CollOperate) ViewData(id int64) (CollFields,bool) {
-	query := "select `id` from `coll` where `id` = ?"
+//View the data src
+func (this *CollOperate) ViewDataSrc(id int64) (string) {
+	query := "select `src` from `coll` where `id` = ?"
 	row := this.db.db.QueryRow(query,id)
 	var res CollFields
-	err = row.Scan(&res.id,&res.sha1,&res.coll_time,&res.file_type,&res.name,&res.parent,&res.size,&res.source,&res.src,&res.star,&res.url)
+	err = row.Scan(&res.src)
 	if err != nil{
 		log.NewLog("",err)
-		return res,false
+		return ""
 	}
-	return res,true
+	return res.src
 }
 
 //Empty a data set

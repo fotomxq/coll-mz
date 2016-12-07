@@ -16,8 +16,13 @@
     {{template "menu" .}}
     <!-- content -->
     <div class="ui main container">
-        <div class="dividing" id="coll-status"></div>
-        <div id="coll-msg"></div>
+        <div class="ui one column grid">
+            <div class="dividing column" id="coll-status"></div>
+            <div class="column" id="coll-msg"></div>
+            <hr>
+            <div id="coll-content" class="ui three column grid"></div>
+            <div class="column red" id="next-page">获取下一页</div>
+        </div>
     </div>
     <!-- script -->
     {{template "footer"}}

@@ -111,9 +111,10 @@ func (this *Database) GetPageSortStr(page int, max int, sort string, desc bool) 
 	if desc == true {
 		descStr = "desc"
 	} else {
-		descStr = "ase"
+		descStr = "asc"
 	}
-	return "limit " + strconv.Itoa(page) + "," + strconv.Itoa(max) + " order by `" + sort + "` " + descStr
+	newPage := (page-1) * max
+	return "order by `" + sort + "` " + descStr + " limit " + strconv.Itoa(newPage) + "," + strconv.Itoa(max)
 }
 
 //Obtain a list of data according to the field.
