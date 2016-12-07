@@ -361,6 +361,21 @@ func (this *CollOperate) NewLog(msg string,err error) {
 	if err != nil && msg == ""{
 		msg = this.collChildren.source + " Error ~ " + msg + "<br />"
 	}
+	if IsFile(this.log.lastSrc) == true{
+		//if log file size > 20KB
+		if GetFileSize(this.log.lastSrc) > 20480 {
+			content,err := LoadFile(this.log.lastSrc)
+			if err != nil{
+				log.NewLog("",err)
+			}
+			contentStr := string(content)
+			newContent := this.matchString.SubStr(contentStr,0,len(contentStr) / 2)
+			err = WriteFile(this.log.lastSrc,[]byte(newContent))
+			if err != nil{
+				log.NewLog("",err)
+			}
+		}
+	}
 	this.log.NewLog(msg,err)
 }
 

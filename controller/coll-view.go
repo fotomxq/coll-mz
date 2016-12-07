@@ -5,6 +5,9 @@ func (this *Coll) ViewList(collName string,parent int64,star int,searchTitle str
 	var result []map[string]string
 	//Gets the object
 	thisChildren := this.GetCollChildren(collName)
+	if thisChildren.status == true{
+		return result,false
+	}
 	var collOperate CollOperate
 	if this.CollConnectDB(thisChildren,&collOperate) == false{
 		return result,false

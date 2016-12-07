@@ -28,6 +28,10 @@ function getCollStatus() {
             }
             $('a[href="#coll-status"]').click(function(){
                 collNowTagKey = $(this).attr('data-key');
+                if(collStatusData[collNowTagKey]["status"] == true){
+                    sendTip("该采集器还在工作中，暂时不能浏览，请等待采集完成后再访问。");
+                    return false;
+                }
                 sendBoolTip(collNowTagKey,"已经切换到" + collStatusData[collNowTagKey]["source"] + "采集器。",collStatusData[collNowTagKey]["source"]+"采集器正在运行中，请等待结束后再浏览采集数据。");
                 $('#coll-content').html('');
                 parent = 0;

@@ -195,200 +195,77 @@ func (this *Coll) CollLocalEnd(thisChildren *CollChildren,collOperate *CollOpera
 	collOperate.NewLog(name + "采集结束。",nil)
 }
 
-//local文本数据采集器
-func (this *Coll) CollLocalTxt(thisChildren *CollChildren,collOperate *CollOperate,collLocalDir string){
+//local保存网页数据采集器
+func (this *Coll) CollLocalAutoSave(thisChildren *CollChildren,collOperate *CollOperate,collLocalDir string,localName string,filter string,fileMinSize int64,parentFolderName string){
 	//初始化获取
-	localName := "txt"
-	dir,fileList := this.CollLocalStart(collOperate,collLocalDir,localName,localName)
+	dir,fileList := this.CollLocalStart(collOperate,collLocalDir,localName,filter)
 	if dir == ""{
 		return
 	}
-	//重新建立文件数据，剔除所有目录
-	var newFileList []string
+	//重新建立文件数据，只保留文件夹
+	var folderList []string
 	for _,v := range fileList {
 		if IsFolder(v) == true{
+			folderList = append(folderList,v)
+		}
+	}
+	//遍历文件夹，获取子页面数据
+	for _,folderV := range folderList{
+		//获取上级页面的基本信息
+		folderNames,err := GetFileNames(folderV)
+		if err != nil{
+			collOperate.NewLog("无法获取文件夹的名称。",nil)
 			continue
 		}
-		newFileList = append(newFileList,v)
-	}
-	//开始构建数据
-	b := this.CollLocalParentFiles(thisChildren,collOperate,localName,localName,dir,"txt-folder",newFileList)
-	if b == false{
-		return
+		//获取文件列表
+		clist,err := GetFileList(folderV,filter,true)
+		if err != nil{
+			collOperate.NewLog("无法获取子文件夹的文件列表。",err)
+			continue
+		}
+		//剔除目录和小于fileMinSize的文件
+		var newCList []string
+		for _,cValue := range clist{
+			if IsFolder(cValue) == true{
+				continue
+			}
+			cFileSize := GetFileSize(cValue)
+			if cFileSize > fileMinSize{
+				newCList = append(newCList,cValue)
+			}
+		}
+		if len(newCList) < 2{
+			collOperate.NewLog("文件太少了，无法建立数据。",nil)
+			continue
+		}
+		//开始构建数据
+		b := this.CollLocalParentFiles(thisChildren,collOperate,localName,folderNames["name"],folderV,parentFolderName,newCList)
+		if b == false{
+			return
+		}
 	}
 	//收尾工作
 	//必须放在这里，否则将清空所有未采集文件
 	//避免因中途采集失败，而直接删除所有未采集数据的问题
 	this.CollLocalEnd(thisChildren,collOperate,localName,dir)
+}
+
+//local文本数据采集器
+func (this *Coll) CollLocalTxt(thisChildren *CollChildren,collOperate *CollOperate,collLocalDir string){
+	this.CollLocalAutoSave(thisChildren,collOperate,collLocalDir,"txt","txt",3072,"txt-folder")
 }
 
 //local下载视频数据采集器
 func (this *Coll) CollLocalDownloadMovie(thisChildren *CollChildren,collOperate *CollOperate,collLocalDir string){
-	//初始化获取
-	localName := "download-movie"
-	filter := "mp4|jpg"
-	dir,fileList := this.CollLocalStart(collOperate,collLocalDir,localName,filter)
-	if dir == ""{
-		return
-	}
-	//重新建立文件数据，只保留文件夹
-	var folderList []string
-	for _,v := range fileList {
-		if IsFolder(v) == true{
-			folderList = append(folderList,v)
-		}
-	}
-	//遍历文件夹，获取子页面数据
-	for _,folderV := range folderList{
-		//获取上级页面的基本信息
-		folderNames,err := GetFileNames(folderV)
-		if err != nil{
-			collOperate.NewLog("无法获取文件夹的名称。",nil)
-			continue
-		}
-		//获取文件列表
-		clist,err := GetFileList(folderV,filter,true)
-		if err != nil{
-			collOperate.NewLog("无法获取子文件夹的文件列表。",err)
-			continue
-		}
-		//剔除目录和小于5MB的文件
-		var newCList []string
-		for _,cValue := range clist{
-			if IsFolder(cValue) == true{
-				continue
-			}
-			cFileSize := GetFileSize(cValue)
-			if cFileSize > 5242880 {
-				newCList = append(newCList,cValue)
-			}
-		}
-		if len(newCList) < 2{
-			collOperate.NewLog("文件太少了，无法建立数据。",nil)
-			continue
-		}
-		//开始构建数据
-		b := this.CollLocalParentFiles(thisChildren,collOperate,localName,folderNames["name"],folderV,"movie-folder",newCList)
-		if b == false{
-			return
-		}
-	}
-	//收尾工作
-	//必须放在这里，否则将清空所有未采集文件
-	//避免因中途采集失败，而直接删除所有未采集数据的问题
-	this.CollLocalEnd(thisChildren,collOperate,localName,dir)
+	this.CollLocalAutoSave(thisChildren,collOperate,collLocalDir,"download-movie","mp4|jpg",5242880,"movie-folder")
 }
 
 //local漫画数据采集器
 func (this *Coll) CollLocalManhua(thisChildren *CollChildren,collOperate *CollOperate,collLocalDir string){
-	//初始化获取
-	localName := "manhua"
-	filter := "jpg|jpeg|png"
-	dir,fileList := this.CollLocalStart(collOperate,collLocalDir,localName,filter)
-	if dir == ""{
-		return
-	}
-	//重新建立文件数据，只保留文件夹
-	var folderList []string
-	for _,v := range fileList {
-		if IsFolder(v) == true{
-			folderList = append(folderList,v)
-		}
-	}
-	//遍历文件夹，获取子页面数据
-	for _,folderV := range folderList{
-		//获取上级页面的基本信息
-		folderNames,err := GetFileNames(folderV)
-		if err != nil{
-			collOperate.NewLog("无法获取文件夹的名称。",nil)
-			continue
-		}
-		//获取文件列表
-		clist,err := GetFileList(folderV,filter,true)
-		if err != nil{
-			collOperate.NewLog("无法获取子文件夹的文件列表。",err)
-			continue
-		}
-		//剔除目录和小于50KB的文件
-		var newCList []string
-		for _,cValue := range clist{
-			if IsFolder(cValue) == true{
-				continue
-			}
-			cFileSize := GetFileSize(cValue)
-			if cFileSize > 50240{
-				newCList = append(newCList,cValue)
-			}
-		}
-		if len(newCList) < 2{
-			collOperate.NewLog("文件太少了，无法建立数据。",nil)
-			continue
-		}
-		//开始构建数据
-		b := this.CollLocalParentFiles(thisChildren,collOperate,localName,folderNames["name"],folderV,"manhua-folder",newCList)
-		if b == false{
-			return
-		}
-	}
-	//收尾工作
-	//必须放在这里，否则将清空所有未采集文件
-	//避免因中途采集失败，而直接删除所有未采集数据的问题
-	this.CollLocalEnd(thisChildren,collOperate,localName,dir)
+	this.CollLocalAutoSave(thisChildren,collOperate,collLocalDir,"manhua","jpg|jpeg|png",50240,"manhua-folder")
 }
 
 //local保存网页数据采集器
 func (this *Coll) CollLocalSaveImgsHtml(thisChildren *CollChildren,collOperate *CollOperate,collLocalDir string){
-	//初始化获取
-	localName := "save-imgs-html"
-	filter := "jpg|gif|jpeg|png"
-	dir,fileList := this.CollLocalStart(collOperate,collLocalDir,localName,filter)
-	if dir == ""{
-		return
-	}
-	//重新建立文件数据，只保留文件夹
-	var folderList []string
-	for _,v := range fileList {
-		if IsFolder(v) == true{
-			folderList = append(folderList,v)
-		}
-	}
-	//遍历文件夹，获取子页面数据
-	for _,folderV := range folderList{
-		//获取上级页面的基本信息
-		folderNames,err := GetFileNames(folderV)
-		if err != nil{
-			collOperate.NewLog("无法获取文件夹的名称。",nil)
-			continue
-		}
-		//获取文件列表
-		clist,err := GetFileList(folderV,filter,true)
-		if err != nil{
-			collOperate.NewLog("无法获取子文件夹的文件列表。",err)
-			continue
-		}
-		//剔除目录和小于10KB的文件
-		var newCList []string
-		for _,cValue := range clist{
-			if IsFolder(cValue) == true{
-				continue
-			}
-			cFileSize := GetFileSize(cValue)
-			if cFileSize > 10240{
-				newCList = append(newCList,cValue)
-			}
-		}
-		if len(newCList) < 2{
-			collOperate.NewLog("文件太少了，无法建立数据。",nil)
-			continue
-		}
-		//开始构建数据
-		b := this.CollLocalParentFiles(thisChildren,collOperate,localName,folderNames["name"],folderV,"html-folder",newCList)
-		if b == false{
-			return
-		}
-	}
-	//收尾工作
-	//必须放在这里，否则将清空所有未采集文件
-	//避免因中途采集失败，而直接删除所有未采集数据的问题
-	this.CollLocalEnd(thisChildren,collOperate,localName,dir)
+	this.CollLocalAutoSave(thisChildren,collOperate,collLocalDir,"save-imgs-html","jpg|gif|jpeg|png",10240,"html-folder")
 }
