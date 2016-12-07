@@ -1,6 +1,8 @@
 package controller
 
-import "strconv"
+import (
+	"strconv"
+)
 
 //Collect local data
 func (this *Coll) CollLocal() {
@@ -11,8 +13,8 @@ func (this *Coll) CollLocal() {
 		return
 	}
 	defer this.CollEnd(thisChildren,&collOperate)
-	//该采集模块比较特殊，所以将在代码内写入中文注释
-	//该模版不会使用到colloperate.auto这些自动化采集模块
+	//该采集模块比较特殊，为方便理解，所以将在代码内写入中文注释
+	//该模版不会使用到colloperate.auto这些自动化采集模块，而是在该文件内单独构建通用处理模块
 	//逻辑上将按照流程，采集各目录下的文件，每种文件都有各自的特点
 	//在采集前，建议先运行一次，这样可以自动建立相关需要的目录
 	collOperate.NewLog("在采集前，建议先运行一次，这样可以自动建立相关需要的目录。",nil)
@@ -50,11 +52,16 @@ func (this *Coll) CollLocal() {
 
 //local专用通用启动模块
 //在内部采集启动前，务必运行该模块
+// collOperate *CollOperate
+// collLocalDir string local总采集器路径
+// name string 子采集器名称
+// fileFilter string 可选，文件列表过滤文件，不支持二级子目录下文件过滤，但会返回相关目录名称，eg : jpg|gif|txt
 // return string - 该采集项目存储目录路径
 // return []string - 该目录下文件列表
-func (this *Coll) CollLocalStart(collOperate *CollOperate,collLocalDir string,name string) (string,[]string) {
+func (this *Coll) CollLocalStart(collOperate *CollOperate,collLocalDir string,name string,fileFilter string) (string,[]string) {
 	//构建存储路径
 	dir := collLocalDir + GetPathSep() + name
+	collOperate.NewLog(" ## 开始整理" + name + "文件夹数据 ## ",nil)
 	var fileList []string
 	//如果不存在目录，则创建
 	if IsFolder(dir) == false{
@@ -76,7 +83,7 @@ func (this *Coll) CollLocalStart(collOperate *CollOperate,collLocalDir string,na
 		return "",fileList
 	}
 	//直接获取该目录下所有文件
-	fileList,err = GetFileList(dir)
+	fileList,err = GetFileList(dir,fileFilter,true)
 	if err != nil{
 		collOperate.NewLog("无法获取目录下的文件列表。",nil)
 		return "",fileList
@@ -123,8 +130,31 @@ func (this *Coll) CollLocalParentFiles(thisChildren *CollChildren,collOperate *C
 			errNum += 1
 			continue
 		}
+		//获取文件基本信息
+		cacheFileInfo := make(map[string]string)
+		cacheFileInfo["cache-src"] = value
+		fileNames,err := GetFileNames(value)
+		if err != nil{
+			collOperate.NewLog("无法获取文件名称和类型信息。",err)
+			errNum += 1
+			continue
+		}
+		if fileNames["name"] == "" || fileNames["type"] == "" || fileNames["onlyName"] == ""{
+			collOperate.NewLog("无法获取文件名称和类型内容。",err)
+			errNum += 1
+			continue
+		}
+		cacheFileInfo["full-name"] = fileSha1 + "." + fileNames["type"]
+		fileSize := GetFileSize(value)
+		if fileSize < 1{
+			collOperate.NewLog("无法获取文件大小。",nil)
+			errNum += 1
+			continue
+		}
+		//构建文件存储路径
+		newFileSrc := collOperate.SaveCacheToFile("txt",cacheFileInfo)
 		//创建文件
-		newID := collOperate.AutoCollFile(value,parentTitle,parentSha1,parentID)
+		newID := collOperate.CreateNewData(parentID,fileSha1,newFileSrc,value,fileNames["onlyName"],fileNames["type"],strconv.FormatInt(fileSize,10))
 		if newID > 0{
 			collOperate.NewLog(this.lang.Get("coll-new-id") + strconv.FormatInt(newID,10) + " , URL : " + value,nil)
 		}else{
@@ -142,28 +172,33 @@ func (this *Coll) CollLocalParentFiles(thisChildren *CollChildren,collOperate *C
 
 //local专用通用清理模块
 //删除所有文件
-func (this *Coll) CollLocalParentDelete(collOperate *CollOperate,parentSrc string) bool {
-	//删除该目录后重建
-	err := DeleteFile(parentSrc)
+func (this *Coll) CollLocalEnd(thisChildren *CollChildren,collOperate *CollOperate,name string,parentSrc string) {
+	//删除子采集文件夹目录，之后再创建
+	err = DeleteFile(parentSrc)
 	if err != nil{
 		collOperate.NewLog("删除文件夹失败。",err)
-		return false
+		return
 	}
-	//返回
-	return true
+	err = CreateDir(parentSrc)
+	if err != nil{
+		collOperate.NewLog("删除后创建文件夹失败。",err)
+		return
+	}
+	collOperate.NewLog(name + "采集结束。",nil)
 }
 
 //local文本数据采集器
 func (this *Coll) CollLocalTxt(thisChildren *CollChildren,collOperate *CollOperate,collLocalDir string){
 	//初始化获取
-	dir,fileList := this.CollLocalStart(collOperate,collLocalDir,"txt")
+	name := "txt"
+	dir,fileList := this.CollLocalStart(collOperate,collLocalDir,name,name)
 	if dir == ""{
 		return
 	}
 	//获取dir名称
 	parentNames,err := GetFileNames(dir)
 	if err != nil{
-		collOperate.NewLog("",err)
+		collOperate.NewLog("无法获取parent名称和类型数据。",err)
 		return
 	}
 	parentName := parentNames["only-name"]
@@ -187,11 +222,8 @@ func (this *Coll) CollLocalTxt(thisChildren *CollChildren,collOperate *CollOpera
 	if b == false{
 		return
 	}
-	//清理剩余文件
-	b = this.CollLocalParentDelete(collOperate,dir)
-	if b == false{
-		collOperate.NewLog("清理文件失败。",nil)
-	}
+	//收尾工作
+	this.CollLocalEnd(thisChildren,collOperate,name,dir)
 }
 
 //local下载视频数据采集器

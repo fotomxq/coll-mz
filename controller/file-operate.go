@@ -114,14 +114,46 @@ func IsFolder(src string) bool {
 }
 
 //Gets a list of files under the folder
-func GetFileList(src string) ([]string, error) {
+// src string
+// filter string eg : gif|jpg
+// isSrc bool
+func GetFileList(src string,filter string,isSrc bool) ([]string, error) {
 	var fs []string
 	dir, err := ioutil.ReadDir(src)
 	if err != nil {
 		return nil, err
 	}
+	var filters []string
+	if filter != ""{
+		filters = strings.Split(filter,"|")
+	}
 	for _, v := range dir {
-		fs = append(fs, v.Name())
+		var appendSrc string
+		if isSrc == true{
+			appendSrc = src + GetPathSep() + v.Name()
+		}else{
+			appendSrc = v.Name()
+		}
+		if v.IsDir() == true {
+			fs = append(fs, appendSrc)
+			continue
+		}
+		if filter == "" {
+			fs = append(fs, appendSrc)
+			continue
+		}
+		names := strings.Split(v.Name(),".")
+		if len(names) == 1{
+			fs = append(fs, appendSrc)
+			continue
+		}
+		t := names[len(names)-1]
+		for _,filterValue := range filters{
+			if t != filterValue{
+				continue
+			}
+			fs = append(fs, appendSrc)
+		}
 	}
 	return fs, nil
 }
@@ -162,17 +194,19 @@ func GetFileNames(src string) (map[string]string, error) {
 	res := map[string]string{
 		"name":     info.Name(),
 		"type":     "",
-		"onlyName": "",
+		"onlyName": info.Name(),
 	}
-	if res["name"] != "" {
-		names := strings.Split(res["name"], ".")
-		if len(names) > 1 {
-			res["type"] = names[len(names)-1]
-			for i := range names {
-				if i != len(names)-1 {
-					res["onlyName"] = res["onlyName"] + names[i]
-				}
-			}
+	if res["name"] == "" {
+		return res, nil
+	}
+	names := strings.Split(res["name"], ".")
+	if len(names) < 2 {
+		return res, nil
+	}
+	res["type"] = names[len(names)-1]
+	for i := range names {
+		if i != len(names)-1 {
+			res["onlyName"] = res["onlyName"] + "." + names[i]
 		}
 	}
 	return res, nil
