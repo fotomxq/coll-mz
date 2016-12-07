@@ -56,11 +56,17 @@ func (this *Coll) init(db *Database,dataSrc string,collDatabaseTemplateSrc strin
 			return
 		}
 	}
+	this.collList.xiuhaotu = CollChildren{
+		status : false,
+		source : "xiuhaotu",
+		url : "http://showhaotu.xyz/explore/?list=images&sort=date_desc&page=",
+		dev : true,
+	}
 	this.collList.local = CollChildren{
 		status : false,
 		source : "local",
 		url : "",
-		dev : true,
+		dev : false,
 	}
 	this.collList.jiandan = CollChildren{
 		status : false,
@@ -85,12 +91,6 @@ func (this *Coll) init(db *Database,dataSrc string,collDatabaseTemplateSrc strin
 		source : "meizitu",
 		url : "http://www.mzitu.com/page/",
 		dev : false,
-	}
-	this.collList.xiuhaotu = CollChildren{
-		status : false,
-		source : "xiuhaotu",
-		url : "http://showhaotu.xyz/explore/?list=images&sort=date_desc&page=",
-		dev : true,
 	}
 	this.collList.feig = CollChildren{
 		status : false,
