@@ -79,7 +79,7 @@ var listSearchTitle = '';
 var listPage = 1;
 var listMax = 20;
 var listSort = 0;
-var listDesc = 'false';
+var listDesc = 'true';
 var nextPageBool = true;
 //避免数据重复构建
 var lastData = "";
@@ -232,7 +232,27 @@ function sendBoolTip(b,msgT,msgF) {
 $(document).ready(function() {
     //自适应宽度
     $('.main').css('width',$('body').width()-100+'px');
-    //在菜单栏强行插入选项按钮
+    //隐藏页码调整工具栏
+    $('#page-tools').hide();
+    //菜单栏强行插入页码工具显示
+    var toolItems = new Array();
+    toolItems[0] = {name:'<i class="chevron down icon"></i> 倒序排列',key:'desc',value:'true'};
+    toolItems[1] = {name:'<i class="chevron up icon"></i> 正序排列',key:'desc',value:'false'};
+    toolItems[2] = {name:'<i class="browser icon"></i> 每次获取文件数=20',key:'max',value:'20'};
+    toolItems[3] = {name:'<i class="browser icon"></i> 每次获取文件数=30',key:'max',value:'30'};
+    toolItems[4] = {name:'<i class="browser icon"></i> 每次获取文件数=40',key:'max',value:'40'};
+    toolItemsStr = '';
+    for(var key in toolItems){
+        toolItemsStr += '<a class="item" href="#menu-page-tools-'+toolItems[key]['key']+'" data-value="'+toolItems[key]['value']+'">'+toolItems[key]['name']+'</a>';
+    }
+    $('a[href="/set"]').after('<div class="ui dropdown item"><div class="text"><i class="server icon"></i> 列表选项</div><i class="dropdown icon"></i><div class="menu">' +toolItemsStr+ '</div></div>');
+    $('a[href="#menu-page-tools-desc"]').click(function(){
+        listDesc = $(this).attr('data-value');
+    });
+    $('a[href="#menu-page-tools-max"]').click(function(){
+        listMax = $(this).attr('data-value');
+    });
+    //在菜单栏强行插入宫格选项按钮
     var viewMode = new Array();
     viewMode[0] = {name:'宫格X6模式',value:'six'};
     viewMode[1] = {name:'宫格X4模式',value:'four'};
