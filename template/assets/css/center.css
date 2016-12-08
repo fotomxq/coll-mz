@@ -18,3 +18,10 @@ body {
     margin: 5em 0em 0em;
     padding: 5em 0em;
 }
+
+#next-page{
+    background-color : #0f0f10;
+    color : #FFFFFF;
+    text-align: center;
+    cursor: pointer;
+}
