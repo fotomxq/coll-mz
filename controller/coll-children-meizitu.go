@@ -120,13 +120,16 @@ func (this *Coll) CollMeizitu() {
 			imgURL := thisCThumbsURLs[0] +"/"+ thisCThumbsURLs[1] +"/"+ thisCThumbsURLs[2] +"/"+ thisCThumbsURLs[3] +"/"+ thisCThumbsURLs[4] + "/" + thisCThumbsURLNames3[0] + sep
 			nextNum := 1
 			for {
+				if thisChildren.status == false{
+					return
+				}
 				nextNumStr := strconv.Itoa(nextNum)
 				if nextNum < 10 {
 					nextNumStr = "0" + nextNumStr
 				}
 				nextImgURL := imgURL + nextNumStr + "." + thisCThumbsURLNames[1]
 				newID := collOperate.AutoCollFile(nextImgURL,thisCTitle,parentSha1,parentID)
-				if newID < 1 && newID != -1{
+				if newID < 1{
 					if nextNum < 2 {
 						_ = collOperate.DeleteData(parentID)
 						errNum = 11
@@ -135,6 +138,9 @@ func (this *Coll) CollMeizitu() {
 				}
 				errNum = 0
 				nextNum += 1
+				if nextNum > 99{
+					break
+				}
 			}
 		}
 		//More than 10 times the error is to exit

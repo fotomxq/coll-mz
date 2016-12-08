@@ -130,24 +130,24 @@ function getCollView(){
             //根据类型判断插入什么内容
             switch(node['file-type']){
                 case 'txt':
-                    appendHtml += node['name']+'&nbsp;<img class="ui fluid image" src="/assets/imgs/documents.png">';
+                    appendHtml += '<img class="ui fluid image" src="/assets/imgs/documents.png">' + node['name'];
                     break;
                 case 'jpg':
                 case 'gif':
                 case 'jpeg':
                 case 'png':
-                    appendHtml += '&nbsp;<img class="ui fluid image" src="/action-view?coll='+source+'&id='+node['id']+'">';
+                    appendHtml += '<img class="ui fluid image" src="/action-view?coll='+source+'&id='+node['id']+'">';
                     break;
                 case 'manhua-folder':
-                    appendHtml += node['name']+'&nbsp;<img class="ui fluid image" src="/assets/imgs/photos.png">';
+                    appendHtml += '<img class="ui fluid image" src="/assets/imgs/photos.png">' + node['name'];
                     break;
                 case 'movie-folder':
-                    appendHtml += node['name']+'&nbsp;<img class="ui fluid image" src="/assets/imgs/videos.png">';
+                    appendHtml += '<img class="ui fluid image" src="/assets/imgs/videos.png">' + node['name'];
                     break;
                 case 'folder':
                 case 'txt-folder':
                 case 'html-folder':
-                    appendHtml += node['name']+'&nbsp;<img class="ui fluid image" src="/assets/imgs/folder.png">';
+                    appendHtml += '<img class="ui fluid image" src="/assets/imgs/folder.png">' + node['name'];
                     break;
                 default:
                     break;
