@@ -228,6 +228,23 @@ function sendBoolTip(b,msgT,msgF) {
         }
 }
 
+//回到上一级
+function backParent(){
+    $('#coll-content').html('');
+    listPage = listParentPage;
+    listParent = listParentID;
+    if(listParentID > 0){
+        listParentID = 0;
+        $('#back-parent').show();
+    }else{
+        $('#back-parent').hide();
+    }
+    listSearchTitle = '';
+    lastData = '';
+    nextPageBool = true;
+    getCollView();
+}
+
 //初始化
 $(document).ready(function() {
     //自适应宽度
@@ -297,19 +314,7 @@ $(document).ready(function() {
     //隐藏上一级按钮
     $('#back-parent').hide();
     $('#back-parent').click(function(){
-            $('#coll-content').html('');
-            listPage = listParentPage;
-            listParent = listParentID;
-            if(listParentID > 0){
-                listParentID = 0;
-                $('#back-parent').show();
-            }else{
-                $('#back-parent').hide();
-            }
-            listSearchTitle = '';
-            lastData = '';
-            nextPageBool = true;
-            getCollView();
+            backParent();
     });
     //关闭遮罩按钮
     $('#show-file-close').click(function(){
@@ -320,6 +325,10 @@ $(document).ready(function() {
         //按下ESC，关闭遮罩
         if (event.keyCode === 27) {
             $('#show-file').dimmer('hide');
+        }
+        //按下BackSpace后退，回去上级
+        if (event.keyCode === 8) {
+            backParent();
         }
         //按下<或>方向键、空格键，切换图片
         if(event.keyCode === 37 || event.keyCode === 39 || event.keyCode === 32){
