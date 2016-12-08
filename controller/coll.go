@@ -303,6 +303,7 @@ func (this *Coll) CollEnd(thisChildren *CollChildren,collOperate *CollOperate) {
 	}else{
 		collOperate.NewLog(collOperate.lang.Get("coll-no"),nil)
 	}
+	collOperate.status = false
 }
 
 //coll close database

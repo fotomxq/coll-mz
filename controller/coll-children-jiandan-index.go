@@ -10,6 +10,9 @@ func (this *Coll) CollJiandanIndex() {
 	if this.CollStart(thisChildren,&collOperate) == false{
 		return
 	}
+	if collOperate.status == false{
+		return
+	}
 	defer this.CollEnd(thisChildren,&collOperate)
 	//start
 	indexURL := thisChildren.url

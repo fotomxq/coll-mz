@@ -204,8 +204,9 @@ func GetFileNames(src string) (map[string]string, error) {
 		return res, nil
 	}
 	res["type"] = names[len(names)-1]
+	res["onlyName"] = ""
 	for i := range names {
-		if i != len(names)-1 {
+		if i < len(names)-1 {
 			res["onlyName"] = res["onlyName"] + "." + names[i]
 		}
 	}

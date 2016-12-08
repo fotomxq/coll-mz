@@ -20,6 +20,19 @@ function getCollStatus() {
         }
         //保存数据
         collStatusData = data['data'];
+        //如果菜单没创建，则创建到菜单栏
+        if(!$('#menu-coll-list').html()){
+            var afertHtml = '';
+            for(var key in collStatusData){
+                var name = collStatusData[key]["source"];
+                afertHtml += '<a class="item" href="#menu-coll-list" data-key="'+name+'"><i class="selected radio icon"></i> '+name+'</a>';
+            }
+            $('a[href="/set"]').after('<div class="ui dropdown item" id="menu-coll-list"><div class="text"><i class="selected radio icon"></i> 采集器</div><i class="dropdown icon"></i><div class="menu">'+afertHtml+'</div></div>');
+            $('#menu-coll-list').dropdown();
+            $('a[href="#menu-coll-list"]').click(function(){
+                setNowCollKey($(this).attr('data-key'));
+            });
+        }
         //如果第一次获取，初始化标签组
         if($('#coll-status').html() == ""){
             collStatusOldData = collStatusData;
@@ -30,21 +43,7 @@ function getCollStatus() {
                 $('#coll-status').html($('#coll-status').html() + '<a href="#coll-status" data-key="'+key+'" class="ui grey label"><i class="selected radio icon"></i> '+collStatusData[key]['source']+'</a>');
             }
             $('a[href="#coll-status"]').click(function(){
-                collNowTagKey = $(this).attr('data-key');
-                if(collStatusData[collNowTagKey]["status"] == true){
-                    sendTip("该采集器还在工作中，暂时不能浏览，请等待采集完成后再访问。");
-                    return false;
-                }
-                $('a[href="#coll-status"]').attr('class','ui grey label');
-                $('a[href="#coll-status"][data-key="'+collNowTagKey+'"]').attr('class','ui blue label');
-                sendBoolTip(collNowTagKey,"已经切换到" + collStatusData[collNowTagKey]["source"] + "采集器。",collStatusData[collNowTagKey]["source"]+"采集器正在运行中，请等待结束后再浏览采集数据。");
-                $('#coll-content').html('');
-                parent = 0;
-                page = 1;
-                lastData = '';
-                searchTitle = '';
-                nextPageBool = true;
-                getCollView();
+                setNowCollKey($(this).attr('data-key'));
             });
         }
         //60秒刷新一次数据
@@ -52,25 +51,46 @@ function getCollStatus() {
     },'json');
 }
 
+//切换当前选择的采集器
+function setNowCollKey(name){
+    collNowTagKey = name;
+    if(collStatusData[collNowTagKey]["status"] == true){
+        sendTip("该采集器还在工作中，暂时不能浏览，请等待采集完成后再访问。");
+        return false;
+    }
+    $('a[href="#coll-status"]').attr('class','ui grey label');
+    $('a[href="#coll-status"][data-key="'+collNowTagKey+'"]').attr('class','ui blue label');
+    sendBoolTip(collNowTagKey,"已经切换到" + collStatusData[collNowTagKey]["source"] + "采集器。",collStatusData[collNowTagKey]["source"]+"采集器正在运行中，请等待结束后再浏览采集数据。");
+    $('#coll-content').html('');
+    listParent = 0;
+    listPage = 1;
+    listSearchTitle = '';
+    lastData = '';
+    nextPageBool = true;
+    getCollView();
+}
+
 //coll view相关参数
 var viewStatus = false;
-var parent = 0;
-var star = 0;
-var searchTitle = '';
-var page = 1;
-var max = 20;
-var sort = 0;
-var desc = 'false';
+var listParent = 0;
+var listStar = 0;
+var listSearchTitle = '';
+var listPage = 1;
+var listMax = 20;
+var listSort = 0;
+var listDesc = 'false';
 var nextPageBool = true;
 //避免数据重复构建
 var lastData = "";
+//跳转到子页面前的上级页数
+var listParentPage = 1;
 
 //浏览采集器内的数据
 function getCollView(){
     if(nextPageBool == false){
         return false;
     }
-    $.get('/action-list?coll='+collStatusData[collNowTagKey]['source']+'&parent='+parent+'&star='+star+'&page='+page+'&title='+searchTitle+'&max='+max+'&sort='+sort+'&desc='+desc, function(data){
+    $.get('/action-list?coll='+collStatusData[collNowTagKey]['source']+'&parent='+listParent+'&star='+listStar+'&page='+listPage+'&title='+listSearchTitle+'&max='+listMax+'&sort='+listSort+'&desc='+listDesc, function(data){
         //不存在数据则返回
         if(!data){
             return false;
@@ -96,11 +116,83 @@ function getCollView(){
         //遍历将数据添加到HTML中
         for(var key in data['data']){
             var node = data['data'][key];
-            $('#coll-content').append('<img class="ui fluid image column" src="/action-view?coll='+collStatusData[collNowTagKey]['source']+'&id='+node['id']+'">');
+            var source = collStatusData[collNowTagKey]['source'];
+            appendHtml = '<a class="column" href="#coll-node" data-source="'+source+'" data-type="'+node['file-type']+'" data-id="'+node['id']+'" data-name="'+node['name']+'">';
+            //根据类型判断插入什么内容
+            switch(node['file-type']){
+                case 'txt':
+                    appendHtml += '<img class="ui fluid image" src="/assets/imgs/documents.png">';
+                    break;
+                case 'jpg':
+                case 'gif':
+                case 'jpeg':
+                case 'png':
+                    appendHtml += '<img class="ui fluid image" src="/action-view?coll='+source+'&id='+node['id']+'">';
+                    break;
+                case 'folder':
+                case 'txt-folder':
+                case 'manhua-folder':
+                case 'movie-folder':
+                case 'html-folder':
+                    appendHtml += '<img class="ui fluid image" src="/assets/imgs/folder.png">';
+                    break;
+                default:
+                    break;
+            }
+            appendHtml += '</a>';
+            $('#coll-content').append(appendHtml);
         }
+        //构建单击按钮
+        $('a[href="#coll-node"]').click(function(){
+            viewFile($(this).attr('data-source'),$(this).attr('data-type'),$(this).attr('data-id'),$(this).attr('data-name'));
+        });
         //激活查询状态
         viewStatus = true;
     },'json');
+}
+
+//进入文件或文件夹
+function viewFile(source,type,id,name){
+    $('#show-file-title').html(name);
+    imgSrc = '/action-view?coll='+source+'&id='+id;
+    $('#show-file-open').attr('href',imgSrc);
+    fileContent = '';
+    switch(type){
+        case 'jpg':
+        case 'gif':
+        case 'jpeg':
+        case 'png':
+            fileContent = '<img src="'+imgSrc+'">';
+            $('#show-file').dimmer('show');
+            break;
+        case 'txt':
+        case 'mp4':
+            $('#show-file').dimmer('show');
+            break;
+        case 'folder':
+        case 'txt-folder':
+        case 'manhua-folder':
+        case 'movie-folder':
+        case 'html-folder':
+            $('#coll-content').html('');
+            if(id == 0){
+                listPage = listParentPage;
+            }else{
+                listPage = 1;
+                $('#back-parent').attr('data-source',source);
+                $('#back-parent').show();
+            }
+            listParentPage = listPage;
+            listParent = id;
+            listSearchTitle = '';
+            lastData = '';
+            nextPageBool = true;
+            getCollView();
+            break;
+        default:
+            break;
+    }
+    $('#show-file-img').html(fileContent);
 }
 
 //发送单一日志提示
@@ -125,7 +217,17 @@ function sendBoolTip(b,msgT,msgF) {
 //初始化
 $(document).ready(function() {
     //在菜单栏强行插入选项按钮
-    $('a[href="/set"]').after('<div class="ui dropdown item"><div class="text"><i class="eye icon"></i> 宫格模式</div><i class="dropdown icon"></i><div class="menu"><a class="item" href="#menu-view-col" data-value="six">宫格X6模式</a><a class="item" href="#menu-view-col" data-value="four">宫格X4模式</a><a class="item" href="#menu-view-col" data-value="three">宫格X3模式</a><a class="item" href="#menu-view-col" data-value="two">宫格X2模式</a><a class="item" href="#menu-view-col" data-value="one">宫格X1模式</a></div></div>');
+    var viewMode = new Array();
+    viewMode[0] = {name:'宫格X6模式',value:'six'};
+    viewMode[1] = {name:'宫格X4模式',value:'four'};
+    viewMode[2] = {name:'宫格X3模式',value:'three'};
+    viewMode[3] = {name:'宫格X2模式',value:'two'};
+    viewMode[4] = {name:'宫格X1模式',value:'one'};
+    viewModeHtml = '';
+    for(var key in viewMode){
+        viewModeHtml += '<a class="item" href="#menu-view-col" data-value="'+viewMode[key]['value']+'"><i class="eye icon"></i> '+viewMode[key]['name']+'</a>';
+    }
+    $('a[href="/set"]').after('<div class="ui dropdown item"><div class="text"><i class="eye icon"></i> 宫格</div><i class="dropdown icon"></i><div class="menu">' +viewModeHtml+ '</div></div>');
     //初始化所有复选框
     $('.ui.radio.checkbox').checkbox();
     //初始化所有下拉菜单
@@ -138,14 +240,14 @@ $(document).ready(function() {
         observeChanges: true,
         onBottomVisible:function(){
             if(viewStatus == true){
-                page += 1;
+                listPage += 1;
                 getCollView();
             }
         }
     });
     $('#next-page').click(function(){
         if(viewStatus == true){
-            page += 1;
+            listPage += 1;
             getCollView();
         }
     });
@@ -153,5 +255,12 @@ $(document).ready(function() {
     $('a[href="#menu-view-col"]').click(function(){
         modeType = $(this).attr('data-value');
         $('#coll-content').attr('class','ui '+modeType+' column grid');
+    });
+    //遮罩
+    $('#show-file').dimmer();
+    //隐藏上一级按钮
+    $('#back-parent').hide();
+    $('#back-parent').click(function(){
+
     });
 });

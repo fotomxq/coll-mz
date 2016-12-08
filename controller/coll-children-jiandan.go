@@ -13,6 +13,9 @@ func (this *Coll) CollJiandan() {
 	if this.CollStart(thisChildren,&collOperate) == false{
 		return
 	}
+	if collOperate.status == false{
+		return
+	}
 	defer this.CollEnd(thisChildren,&collOperate)
 	//start
 	nextURL := thisChildren.url

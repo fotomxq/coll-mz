@@ -14,6 +14,9 @@ func (this *Coll) CollXiuhaotu() {
 	if this.CollStart(thisChildren,&collOperate) == false{
 		return
 	}
+	if collOperate.status == false{
+		return
+	}
 	defer this.CollEnd(thisChildren,&collOperate)
 	//start
 	var page int = 0

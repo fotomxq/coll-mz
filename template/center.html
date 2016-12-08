@@ -15,10 +15,20 @@
     <!-- menu -->
     {{template "menu" .}}
     <!-- content -->
+  <div class="ui dimmer" id="show-file">
+    <div class="content">
+      <div class="center">
+        <h2 class="ui inverted header" id="show-file-title"></h2>
+        <div id="show-file-content"></div>
+        <a class="ui button" href="#" target="_blank" id="show-file-open">查看文件</a>
+      </div>
+    </div>
+  </div>
     <div class="ui main container">
         <div class="ui one column grid">
             <div class="dividing column" id="coll-status"></div>
             <div class="column" id="coll-msg"></div>
+            <div class="column" id="back-parent" data-source="">返回上一级</div>
             <hr>
             <div id="coll-content" class="ui three column grid"></div>
             <div class="column" id="next-page">获取下一页</div>

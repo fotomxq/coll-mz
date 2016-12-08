@@ -12,6 +12,9 @@ func (this *Coll) CollLocal() {
 	if this.CollStart(thisChildren,&collOperate) == false{
 		return
 	}
+	if collOperate.status == false{
+		return
+	}
 	defer this.CollEnd(thisChildren,&collOperate)
 	//该采集模块比较特殊，为方便理解，所以将在代码内写入中文注释
 	//该模版不会使用到colloperate.auto这些自动化采集模块，而是在该文件内单独构建通用处理模块
@@ -147,7 +150,7 @@ func (this *Coll) CollLocalParentFiles(thisChildren *CollChildren,collOperate *C
 			continue
 		}
 		if fileNames["name"] == "" || fileNames["type"] == "" || fileNames["onlyName"] == ""{
-			collOperate.NewLog("无法获取文件名称和类型内容。",err)
+			collOperate.NewLog("无法获取文件名称和类型内容，忽略该文件。",err)
 			errNum += 1
 			continue
 		}

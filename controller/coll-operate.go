@@ -26,6 +26,8 @@ type CollOperate struct {
 	collNum int
 	//The number is ignored
 	collIgnoreNum int
+	//status
+	status bool
 }
 
 //Collector Type
@@ -56,10 +58,15 @@ func (this *CollOperate) init(db *Database,dataSrc string,collChildren *CollChil
 	this.log.SetIsForward(true)
 	this.lang = lang
 	this.collNum = 0
+	this.status = true
 }
 
 //View the data list
 func (this *CollOperate) ViewDataList(parent int64,star int,searchTitle string,page int,max int,sort int,desc bool) ([]map[string]string,bool) {
+	var result []map[string]string
+	if this.status == false{
+		return result,false
+	}
 	query := "select `id`,`star`,`name`,`file_type` from `coll` where `parent` = ?"
 	if star > 0{
 		query += " and `star` = ?"
@@ -102,7 +109,6 @@ func (this *CollOperate) ViewDataList(parent int64,star int,searchTitle string,p
 	if star < 1 && searchTitle == ""{
 		rows,err = this.db.db.Query(query,parent)
 	}
-	var result []map[string]string
 	if err != nil{
 		this.NewLog("",err)
 		return result,false
@@ -133,6 +139,9 @@ func (this *CollOperate) ViewDataList(parent int64,star int,searchTitle string,p
 
 //View the data src
 func (this *CollOperate) ViewDataSrc(id int64) (string) {
+	if this.status == false{
+		return ""
+	}
 	query := "select `src` from `coll` where `id` = ?"
 	row := this.db.db.QueryRow(query,id)
 	var res CollFields
@@ -166,6 +175,9 @@ func (this *CollOperate) ClearColl() bool {
 
 //Create an upper level ID
 func (this *CollOperate) AutoCollParent(parentTitle string,parentURL string) (int64,string){
+	if this.status == false{
+		return 0,""
+	}
 	//Create parent directory data
 	parentSha1 := this.matchString.GetSha1(parentTitle + parentURL)
 	if parentSha1 == ""{
@@ -189,6 +201,9 @@ func (this *CollOperate) AutoCollParent(parentTitle string,parentURL string) (in
 
 //Automatically collect collection
 func (this *CollOperate) AutoCollParentFiles(parentTitle string,parentURL string,urls []string) int64 {
+	if this.status == false{
+		return 0
+	}
 	//Create parent directory data
 	parentSha1 := this.matchString.GetSha1(parentTitle + parentURL)
 	if parentSha1 == ""{
@@ -222,6 +237,9 @@ func (this *CollOperate) AutoCollParentFiles(parentTitle string,parentURL string
 // return 0 - Acquisition failed
 // return >0 - Acquires the new ID of the data
 func (this *CollOperate) AutoCollFile(url string,name string,parent string,parentID int64) int64 {
+	if this.status == false{
+		return 0
+	}
 	//Check url if the data already exists
 	if(this.CheckDataURL(url) == true){
 		this.NewLog(this.lang.Get("coll-error-repeat-url") + url,nil)
