@@ -31,11 +31,11 @@ func (this *Coll) CollLocal() {
 	}
 	collOperate.NewLog("目录构建完成后，您可以在" + collLocalDir + "目录下查看到所有对应文件夹，将手动收集到的内容放入对应文件夹即可。",nil)
 	collOperate.NewLog("文件夹结构主要分别为：",nil)
-	collOperate.NewLog("  txt : 文本文件，eg : txt/name.txt",nil)
+	collOperate.NewLog("  txt : 文本文件，eg : txt/name/name.txt",nil)
 	collOperate.NewLog("    采集所有txt文件，不能嵌套多级目录。",nil)
 	collOperate.NewLog("  save-imgs-html : 保存的图片类网页，eg : save-imgs-html/name/xxx.jpg ;save-imgs-html/name.html",nil)
 	collOperate.NewLog("    采集子目录、子目录下jpg|gif|jpeg|png文件，其他文件自动删除。",nil)
-	collOperate.NewLog("  download-movie : 网上下载的视频，仅支持mp4文件，eg : name/name.mp4",nil)
+	collOperate.NewLog("  download-movie : 网上下载的视频，仅支持mp4文件，eg : download-movie/name/name.mp4",nil)
 	collOperate.NewLog("    采集子目录、子目录下mp4视频、子目录下cover.jpg索引图片。",nil)
 	collOperate.NewLog("  manhua : 网上保存下来的漫画合集，eg : manhua/name/xxx.jpg",nil)
 	collOperate.NewLog("    采集子目录、子目录下jpg文件、子目录下cover.jpg封面图片。",nil)

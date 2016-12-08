@@ -134,14 +134,14 @@ function getCollView(){
                 case 'png':
                     appendHtml += '&nbsp;<img class="ui fluid image" src="/action-view?coll='+source+'&id='+node['id']+'">';
                     break;
-                case 'folder':
-                case 'txt-folder':
                 case 'manhua-folder':
                     appendHtml += node['name']+'&nbsp;<img class="ui fluid image" src="/assets/imgs/photos.png">';
                     break;
                 case 'movie-folder':
                     appendHtml += node['name']+'&nbsp;<img class="ui fluid image" src="/assets/imgs/videos.png">';
                     break;
+                case 'folder':
+                case 'txt-folder':
                 case 'html-folder':
                     appendHtml += node['name']+'&nbsp;<img class="ui fluid image" src="/assets/imgs/folder.png">';
                     break;
