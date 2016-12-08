@@ -120,8 +120,12 @@ function getCollView(){
             var node = data['data'][key];
             var source = collStatusData[collNowTagKey]['source'];
             appendHtml = '<a class="column" href="#coll-node" data-source="'+source+'" data-type="'+node['file-type']+'" data-id="'+node['id']+'" data-name="'+node['name']+'">';
-            if(node['name'] == ""){
+            if(node['name'] == "") {
                 node['name'] = "无标题"
+            }else{
+                if(node['name'].length >= 20){
+                    node['name'] = node['name'].substr(0,25) + '...';
+                }
             }
             //根据类型判断插入什么内容
             switch(node['file-type']){
@@ -165,6 +169,7 @@ function viewFile(source,type,id,name){
     $('#show-file-title').html(name);
     imgSrc = '/action-view?coll='+source+'&id='+id;
     $('#show-file-open').attr('href',imgSrc);
+    $('#show-file').attr('data-id',id);
     fileContent = '';
     switch(type){
         case 'jpg':
@@ -225,6 +230,8 @@ function sendBoolTip(b,msgT,msgF) {
 
 //初始化
 $(document).ready(function() {
+    //自适应宽度
+    $('.main').css('width',$('body').width()-100+'px');
     //在菜单栏强行插入选项按钮
     var viewMode = new Array();
     viewMode[0] = {name:'宫格X6模式',value:'six'};
@@ -287,5 +294,31 @@ $(document).ready(function() {
     //关闭遮罩按钮
     $('#show-file-close').click(function(){
         $('#show-file').dimmer('hide');
+    });
+    //按键监听组
+    $('body').keyup(function(event){
+        //按下ESC，关闭遮罩
+        if (event.keyCode === 27) {
+            $('#show-file').dimmer('hide');
+        }
+        //按下<或>方向键、空格键，切换图片
+        if(event.keyCode === 37 || event.keyCode === 39 || event.keyCode === 32){
+            var id = $('#show-file').attr('data-id');
+            if(id < 1){
+                return false;
+            }
+            var nextNode
+            if (event.keyCode === 37) {
+                nextNode = $('a[href="#coll-node"][data-id="'+id+'"]').prev();
+            }
+            if (event.keyCode === 39 || event.keyCode === 32) {
+                nextNode = $('a[href="#coll-node"][data-id="'+id+'"]').next();
+            }
+            if(!nextNode.html()){
+                $('#show-file').dimmer('hide');
+                return false;
+            }
+            viewFile(nextNode.attr('data-source'),nextNode.attr('data-type'),nextNode.attr('data-id'),nextNode.attr('data-name'));
+        }
     });
 });
