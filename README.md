@@ -16,6 +16,13 @@ COLL-MZ项目主要用于采集煎蛋、飞G、妹子图、Xiuren网站，以及
 * 可根据具体需求，构建其他网站的采集程序；
 * 纯Golang实现。
 
+## 界面预览
+### 浏览界面
+<img src="http://i1.piimg.com/1949/40fac18f0bc10bf7.png">
+
+### 采集界面
+<img src="http://i1.piimg.com/1949/3e0ba3a95e57f8e8.png">
+
 ## 使用方法
 1、下载项目到本地任意文件；
 
