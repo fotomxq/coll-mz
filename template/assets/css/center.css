@@ -25,3 +25,14 @@ body {
     text-align: center;
     cursor: pointer;
 }
+
+#back-parent{
+    background-color : #0f0f10;
+    color : #FFFFFF;
+    text-align: center;
+    cursor: pointer;
+}
+
+#coll-content a{
+    text-align: center;
+}

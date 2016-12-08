@@ -63,6 +63,7 @@ function setNowCollKey(name){
     sendBoolTip(collNowTagKey,"已经切换到" + collStatusData[collNowTagKey]["source"] + "采集器。",collStatusData[collNowTagKey]["source"]+"采集器正在运行中，请等待结束后再浏览采集数据。");
     $('#coll-content').html('');
     listParent = 0;
+    $('#back-parent').hide();
     listPage = 1;
     listSearchTitle = '';
     lastData = '';
@@ -84,6 +85,7 @@ var nextPageBool = true;
 var lastData = "";
 //跳转到子页面前的上级页数
 var listParentPage = 1;
+var listParentID = 0;
 
 //浏览采集器内的数据
 function getCollView(){
@@ -118,23 +120,30 @@ function getCollView(){
             var node = data['data'][key];
             var source = collStatusData[collNowTagKey]['source'];
             appendHtml = '<a class="column" href="#coll-node" data-source="'+source+'" data-type="'+node['file-type']+'" data-id="'+node['id']+'" data-name="'+node['name']+'">';
+            if(node['name'] == ""){
+                node['name'] = "无标题"
+            }
             //根据类型判断插入什么内容
             switch(node['file-type']){
                 case 'txt':
-                    appendHtml += '<img class="ui fluid image" src="/assets/imgs/documents.png">';
+                    appendHtml += node['name']+'&nbsp;<img class="ui fluid image" src="/assets/imgs/documents.png">';
                     break;
                 case 'jpg':
                 case 'gif':
                 case 'jpeg':
                 case 'png':
-                    appendHtml += '<img class="ui fluid image" src="/action-view?coll='+source+'&id='+node['id']+'">';
+                    appendHtml += '&nbsp;<img class="ui fluid image" src="/action-view?coll='+source+'&id='+node['id']+'">';
                     break;
                 case 'folder':
                 case 'txt-folder':
                 case 'manhua-folder':
+                    appendHtml += node['name']+'&nbsp;<img class="ui fluid image" src="/assets/imgs/photos.png">';
+                    break;
                 case 'movie-folder':
+                    appendHtml += node['name']+'&nbsp;<img class="ui fluid image" src="/assets/imgs/videos.png">';
+                    break;
                 case 'html-folder':
-                    appendHtml += '<img class="ui fluid image" src="/assets/imgs/folder.png">';
+                    appendHtml += node['name']+'&nbsp;<img class="ui fluid image" src="/assets/imgs/folder.png">';
                     break;
                 default:
                     break;
@@ -162,7 +171,7 @@ function viewFile(source,type,id,name){
         case 'gif':
         case 'jpeg':
         case 'png':
-            fileContent = '<img src="'+imgSrc+'">';
+            fileContent = '<img style="max-width: '+($('body').width()-100)+'px;max-height: '+($('body').height()-100)+'px;" src="'+imgSrc+'">';
             $('#show-file').dimmer('show');
             break;
         case 'txt':
@@ -192,7 +201,7 @@ function viewFile(source,type,id,name){
         default:
             break;
     }
-    $('#show-file-img').html(fileContent);
+    $('#show-file-content').html(fileContent);
 }
 
 //发送单一日志提示
@@ -261,6 +270,22 @@ $(document).ready(function() {
     //隐藏上一级按钮
     $('#back-parent').hide();
     $('#back-parent').click(function(){
-
+            $('#coll-content').html('');
+            listPage = listParentPage;
+            listParent = listParentID;
+            if(listParentID > 0){
+                listParentID = 0;
+                $('#back-parent').show();
+            }else{
+                $('#back-parent').hide();
+            }
+            listSearchTitle = '';
+            lastData = '';
+            nextPageBool = true;
+            getCollView();
+    });
+    //关闭遮罩按钮
+    $('#show-file-close').click(function(){
+        $('#show-file').dimmer('hide');
     });
 });
