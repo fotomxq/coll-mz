@@ -285,7 +285,11 @@ func GetFileSha1(src string) string {
 	}
 	if content != nil {
 		sha := sha1.New()
-		sha.Write(content)
+		_,err = sha.Write(content)
+		if err != nil{
+			SendLog(err.Error())
+			return ""
+		}
 		res := sha.Sum(nil)
 		return hex.EncodeToString(res)
 	}
