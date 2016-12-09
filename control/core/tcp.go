@@ -4,6 +4,9 @@ import "net"
 
 //TCP处理器
 //用于服务器和客户端双重通讯，根据业务需求使用即可
+//依赖外部库：无
+//依赖内部库：
+// core.SendLog()
 
 //TCP类
 type Tcp struct {

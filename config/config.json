@@ -12,10 +12,14 @@
   },
   "coll" : {
     "auto-run-minute" : "120",
-    "data-src" : "content"
+    "data-src" : "content",
+    "tcp-server-host" : "127.0.0.1:8880"
   },
   "language" : {
     "on" : true,
     "language" : "chinese"
+  },
+  "server" : {
+    "host" : "127.0.0.1:8888"
   }
 }
