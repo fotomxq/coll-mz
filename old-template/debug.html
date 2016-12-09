@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>DEBUG</title>
+    {{template "header"}}
+    <link rel="stylesheet" type="text/css" href="/assets/css/set.css">
+</head>
+
+<body>
+    <!--[if lt IE 8]>
+    <![endif]-->
+    {{template "menu" .}}
+    <!-- content -->
+    <div class="ui main container">
+        <table class="ui single line table">
+            <thead>
+                <tr>
+                    <th>debug url</th>
+                    <th>return type</th>
+                    <th>des</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <a href="#coll-debug" data-url="/debug?action=coll&type=json">采集器测试单元</a>
+                    </td>
+                    <td>JSON</td>
+                    <td>coll-debug.go文件处理，主要用于开发新采集器的测试。</td>
+                </tr>
+            </tbody>
+        </table>
+        <form class="ui form">
+            <div class="field">
+                <label>测试单元输出内容</label>
+                <textarea id="debug-content">{{.html}}</textarea>
+            </div>
+        </form>
+    </div>
+    <!-- script -->
+    {{template "footer"}}
+    <script src="/assets/js/debug.js"></script>
+</body>
+
+</html>

@@ -1,8 +1,21 @@
 {
-    "login-timeout" : "3600",
-    "coll-encryptFileType": "",
-    "data-src": "content",
-    "server-local": ":8888",
-    "language" : "chinese",
-    "debug" : "false"
+  "user" : {
+    "database-on" : true,
+    "database-table-name" : "user",
+    "local-username" : "admin@admin.com",
+    "local-password" : "adminadmin",
+    "login-timeout-minute" : "30"
+  },
+  "database":{
+    "type" : "sqlite3"
+    "dns" : "./config/database.sqlite"
+  },
+  "coll" : {
+    "auto-run-minute" : "120",
+    "data-src" : "content"
+  },
+  "language" : {
+    "on" : true,
+    "language" : "chinese"
+  }
 }
