@@ -16,9 +16,7 @@ import (
 //数据库类型
 type Database struct {
 	//数据库句柄
-	db *sql.DB
-	//连接状态
-	status bool
+	DB *sql.DB
 	//要操作的表
 	table string
 	//要操作的表字段
@@ -34,24 +32,32 @@ type Database struct {
 //param dbDNS string 数据库DNS
 //return bool 连接是否成功
 func (this *Database) Connect(dbType string, dbDNS string) bool {
-	if this.status == true {
+	if this.Status() == true {
 		return true
 	}
-	this.db, err = sql.Open(dbType, dbDNS)
+	this.DB, err = sql.Open(dbType, dbDNS)
 	if err != nil {
 		SendLog(err.Error())
 		return false
 	}
-	this.status = true
 }
 
 //关闭数据库连接
 func (this *Database) Close() {
-	err = this.db.Close()
+	err = this.DB.Close()
 	if err != nil{
 		SendLog(err.Error())
 	}
-	this.status = err != nil
+}
+
+//查看连接状态
+//return bool 是否有连接
+func (this *Database) Status() bool{
+	stats := this.DB.Stats()
+	if stats.OpenConnections > 0{
+		return true
+	}
+	return false
 }
 
 //设定要操作的表
@@ -67,8 +73,11 @@ func (this *Database) Set(table string,fields []string){
 //param id int64 ID
 //return *sql.Row, bool 数据，是否成功
 func (this *Database) GetID(id int64) (*sql.Row, bool) {
+	if this.Status() == false{
+		return nil,false
+	}
 	query := "select " + this.fieldStr + " from `" + this.table + "` where `id` = ?"
-	stmt, err := this.db.Prepare(query)
+	stmt, err := this.DB.Prepare(query)
 	if err != nil {
 		SendLog(err.Error())
 		return nil, false
@@ -83,8 +92,11 @@ func (this *Database) GetID(id int64) (*sql.Row, bool) {
 //param value string 指定值
 //return *sql.Row, bool 数据，是否成功
 func (this *Database) GetFieldValue(field string,value string) (*sql.Row, bool) {
+	if this.Status() == false{
+		return nil,false
+	}
 	query := "select " + this.fieldStr + " from `" + this.table + "` where `" + field + "` = ?"
-	stmt, err := this.db.Prepare(query)
+	stmt, err := this.DB.Prepare(query)
 	if err != nil {
 		return nil, false
 	}
@@ -101,8 +113,11 @@ func (this *Database) GetFieldValue(field string,value string) (*sql.Row, bool) 
 //return map[int]map[string]interface{}, bool 数据，是否成功
 func (this *Database) GetList(page int, max int, sort int, desc bool) (map[int]map[string]interface{}, bool) {
 	var returnResult map[int]map[string]interface{}
+	if this.Status() == false{
+		return returnResult,false
+	}
 	query := "select " + this.fieldStr + " from `" + this.table + "` " + this.GetPageSortStr(page, max, this.fields[sort], desc)
-	stmt, err := this.db.Prepare(query)
+	stmt, err := this.DB.Prepare(query)
 	if err != nil {
 		SendLog(err.Error())
 		return returnResult,false
@@ -122,6 +137,9 @@ func (this *Database) GetList(page int, max int, sort int, desc bool) (map[int]m
 //param values []string 插入的值
 //return int64 ID
 func (this *Database) Insert(values []string) int64 {
+	if this.Status() == false{
+		return -1
+	}
 	query := "insert into `" + this.table + "`(" + this.fieldStr + ") values("
 	var valuesLen int = len(values)-1
 	for key := range values{
@@ -131,7 +149,7 @@ func (this *Database) Insert(values []string) int64 {
 		}
 	}
 	query += ")"
-	stmt, err := this.db.Exec(query)
+	stmt, err := this.DB.Exec(query)
 	if err != nil {
 		SendLog(err.Error())
 		return -1
@@ -150,8 +168,11 @@ func (this *Database) Insert(values []string) int64 {
 //param id int64 要修改的记录ID
 //return int64 影响的记录，-1为出错
 func (this *Database) Update(setField string, setValue string, id int64) int64 {
+	if this.Status() == false{
+		return -1
+	}
 	query := "update `" + this.table + "` set `" + setField + "` = ? where `id` = ?"
-	stmt, err := this.db.Exec(query, setValue, id)
+	stmt, err := this.DB.Exec(query, setValue, id)
 	if err != nil {
 		SendLog(err.Error())
 		return -1
@@ -168,8 +189,11 @@ func (this *Database) Update(setField string, setValue string, id int64) int64 {
 //param id int64 ID
 //return int64 影响的记录，-1为出错
 func (this *Database) Delete(id int64) int64 {
+	if this.Status() == false{
+		return -1
+	}
 	query := "delete from `" + this.table + "` where `id` = ?"
-	smat, err := this.db.Exec(query, id)
+	smat, err := this.DB.Exec(query, id)
 	if err != nil {
 		SendLog(err.Error())
 		return -1
