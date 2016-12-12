@@ -1,25 +1,10 @@
 {
-  "user" : {
-    "database-on" : true,
-    "database-table-name" : "user",
-    "local-username" : "admin@admin.com",
-    "local-password" : "adminadmin",
-    "login-timeout-minute" : "30"
-  },
-  "database":{
-    "type" : "sqlite3"
-    "dns" : "./config/database.sqlite"
-  },
-  "coll" : {
-    "auto-run-minute" : "120",
-    "data-src" : "content",
-    "tcp-server-host" : "127.0.0.1:8880"
-  },
-  "language" : {
-    "on" : true,
-    "language" : "chinese"
-  },
-  "server" : {
-    "host" : "127.0.0.1:8888"
-  }
+  "app-name" : "collmz",
+  "user-username" : "admin@admin.com",
+  "user-password" : "adminadmin",
+  "user-login-timeout-minute" : "30",
+  "language" : "chinese",
+  "server-host" : ":8888",
+  "mgo-host" : "127.0.0.1:27017",
+  "mgo-db" : "collmz"
 }

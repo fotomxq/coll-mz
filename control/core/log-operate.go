@@ -25,8 +25,8 @@ var LogOperateSrc = "log"
 //param message string 日志信息
 func SendLog(message string){
 	//加入时间
-	var t *time.Time
-	t = &time.Now()
+	var t time.Time
+	t = time.Now()
 	message = t.Format("2006-01-02 15:04:05.999999999") + " " + message + "\n"
 	//向控制台输出日志
 	fmt.Println(message)
@@ -43,20 +43,19 @@ func SendLog(message string){
 	//向文件输出日志
 	var messageByte []byte
 	messageByte = []byte(message)
-	info, err := os.Stat(logSrc)
-	if err == nil && !info.IsDir() {
+	//如果文件不存在，则直接创建写入日志
+	_,err = os.Stat(logSrc)
+	if err != nil || os.IsNotExist(err) == true{
 		err = ioutil.WriteFile(logSrc, messageByte, os.ModeAppend)
 		if err != nil{
 			fmt.Println(t.Format("2006-01-02 15:04:05.999999999") + " " + err.Error())
 		}
 		return
 	}
-	if err != nil {
-		fmt.Println(t.Format("2006-01-02 15:04:05.999999999") + " " + err.Error())
-		return
-	}
-	fd, err := os.Open(logSrc)
-	if err != nil {
+	//如果文件存在，则读出文件内容，添加新日志
+	var fd *os.File
+	fd, err = os.Open(logSrc)
+	if err != nil{
 		fmt.Println(t.Format("2006-01-02 15:04:05.999999999") + " " + err.Error())
 		return
 	}
@@ -72,7 +71,7 @@ func SendLog(message string){
 		c,
 		messageByte,
 	}
-	sep := []byte("")
+	var sep []byte
 	messageByte = bytes.Join(s, sep)
 	err = ioutil.WriteFile(logSrc, messageByte, os.ModeAppend)
 	if err != nil{

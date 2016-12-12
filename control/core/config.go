@@ -10,11 +10,11 @@ import "encoding/json"
 
 //读取配置文件
 //param src string 配置文件路径
-//return interface{},bool 配置信息，是否成功读取
-func LoadConfig(src string) (interface{},bool) {
-	var res interface{}
+//return map[string]interface{},bool 配置信息，是否成功读取
+func LoadConfig(src string) (map[string]interface{},bool) {
+	var res map[string]interface{}
 	c, b := LoadFile(src)
-	if b != true {
+	if b == false {
 		return res, false
 	}
 	err = json.Unmarshal(c, &res)
@@ -27,13 +27,13 @@ func LoadConfig(src string) (interface{},bool) {
 
 //保存配置文件
 //param src string 配置文件路径
-//param data interface{} 配置信息
+//param data map[string]interface{} 配置信息
 //return bool 是否写入成功
-func SaveConfigFile(src string, data interface{}) bool {
+func SaveConfigFile(src string, data map[string]interface{}) bool {
 	dataJson, err := json.Marshal(data)
 	if err != nil {
 		SendLog(err.Error())
 		return false
 	}
-	return WriteFile(dataJson, src)
+	return WriteFile(src,dataJson)
 }

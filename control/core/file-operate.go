@@ -40,8 +40,9 @@ func LoadFile (src string) ([]byte, bool) {
 	c,err := ioutil.ReadAll(fd)
 	if err != nil{
 		SendLog(err.Error())
+		return nil,false
 	}
-	return c,err != nil
+	return c,true
 }
 
 //写入文件
@@ -139,7 +140,7 @@ func DeleteF(src string) bool {
 //return bool 是否存在
 func IsExist(src string) bool {
 	_, err := os.Stat(src)
-	return err == nil && os.IsExist(err)
+	return err != nil || os.IsNotExist(err) == false
 }
 
 //判断是否为文件
@@ -302,12 +303,16 @@ func GetFileSha1(src string) string {
 //获取并创建时间序列创建的多级文件夹
 //param src string 文件路径
 //param appendFileType string 是否末尾追加文件类型，如果指定值，则返回
-//return string 新时间周期目录
+//return string 新时间周期目录，失败则返回空字符串
 func GetTimeDirSrc(src string, appendFileType string) string {
 	t := time.Now()
 	sep := GetPathSep()
 	newSrc := src + sep + t.Format("200601")
-	err = CreateFolder(newSrc)
+	var b bool
+	b = CreateFolder(newSrc)
+	if b == false{
+		return ""
+	}
 	newSrc = newSrc + sep
 	if appendFileType != "" {
 		newSrc = newSrc + t.Format("20060102-03") + appendFileType

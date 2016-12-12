@@ -18,7 +18,7 @@ type SessionOperate struct {
 	//会话启动状态
 	status bool
 	//接收和反馈操作句柄
-	w *http.ResponseWriter
+	w http.ResponseWriter
 	r *http.Request
 }
 
@@ -27,7 +27,7 @@ type SessionOperate struct {
 //param name string 标记
 //param w *http.ResponseWriter Http写入对象
 //param r *http.Request Http读取对象
-func (this *SessionOperate) Create(name string,w *http.ResponseWriter, r *http.Request) {
+func (this *SessionOperate) Create(name string,w http.ResponseWriter, r *http.Request) {
 	this.store = sessions.NewCookieStore([]byte(name))
 	this.w = w
 	this.r = r
