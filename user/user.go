@@ -1,12 +1,12 @@
 package user
 
 import (
-	"../core"
 	"time"
 	"net/http"
 	"strconv"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"../core"
 )
 
 //用户处理器包
@@ -135,6 +135,13 @@ func (this *User) GetLoginStatus() int{
 	var b bool
 	res,b = this.session.SessionGet(this.mark)
 	if b == false{
+		return 0
+	}
+	//检查是否存在值
+	if res["login-id"] == nil || res["login-time"] == nil{
+		res["login-id"] = 0
+		res["login-time"] = 0
+		_ = this.session.SessionSet(this.mark,res)
 		return 0
 	}
 	//更新登录时间值

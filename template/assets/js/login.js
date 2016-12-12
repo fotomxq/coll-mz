@@ -1,7 +1,10 @@
+//登陆组件控制
 $(document).ready(function() {
+    //提交表单
     $('.submit').click(function() {
         $('form').submit()
     });
+    //表单限定
     $('.ui.form').form({
         fields: {
             email: {

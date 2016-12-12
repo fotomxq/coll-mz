@@ -16,7 +16,7 @@ type SessionOperate struct {
 	//采集器存储句柄
 	store *sessions.CookieStore
 	//会话启动状态
-	status bool
+	Status bool
 	//接收和反馈操作句柄
 	w http.ResponseWriter
 	r *http.Request
@@ -31,7 +31,7 @@ func (this *SessionOperate) Create(name string,w http.ResponseWriter, r *http.Re
 	this.store = sessions.NewCookieStore([]byte(name))
 	this.w = w
 	this.r = r
-	this.status = true
+	this.Status = true
 }
 
 //获取会话标记对象
@@ -39,7 +39,7 @@ func (this *SessionOperate) Create(name string,w http.ResponseWriter, r *http.Re
 //return map[interface{}]interface{}, bool 会话变量组合，是否失败
 func (this *SessionOperate) SessionGet(mark string) (map[interface{}]interface{}, bool) {
 	var res map[interface{}]interface{}
-	if this.status == false{
+	if this.Status == false{
 		return res,false
 	}
 	s, err := this.store.Get(this.r, mark)
@@ -55,6 +55,9 @@ func (this *SessionOperate) SessionGet(mark string) (map[interface{}]interface{}
 //param data map[interface{}]interface{} 会话变量组合
 //return bool 是否失败
 func (this *SessionOperate) SessionSet(mark string, data map[interface{}]interface{}) bool {
+	if this.Status == false{
+		return false
+	}
 	s, err := this.store.Get(this.r, mark)
 	if err != nil {
 		SendLog(err.Error())
