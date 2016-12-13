@@ -1,11 +1,11 @@
 package main
 
 import (
+	"gopkg.in/mgo.v2"
+	"strconv"
 	"./core"
 	"./router"
 	"./user"
-	"gopkg.in/mgo.v2"
-	"strconv"
 	"./handle"
 )
 
