@@ -14,14 +14,14 @@ func PageLogin(w http.ResponseWriter, r *http.Request) {
 	if checkLogged(w, r) == true {
 		goURL(w, r, "/center")
 	}else{
-
+		showTemplate(w,r,"login.html",nil)
 	}
 }
 
 //登录操作
 //param w http.ResponseWriter 写入http句柄
 //param r *http.Request 读取http句柄
-func Login(w http.ResponseWriter, r *http.Request) {
+func ActionLogin(w http.ResponseWriter, r *http.Request) {
 	//检查是否已经登录
 	if checkLogged(w, r) == true {
 		goURL(w,r,"/center")
@@ -40,7 +40,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 		//提交给登录模块
 		var b bool
-		b = UserOperate.Login(username,passwdSha1,r)
+		b = userLogin(w,r,username,passwdSha1)
 		if b == true{
 			goURL(w,r,"/center")
 		}
@@ -51,9 +51,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 //退出操作
 //param w http.ResponseWriter 写入http句柄
 //param r *http.Request 读取http句柄
-func Logout(w http.ResponseWriter, r *http.Request){
+func ActionLogout(w http.ResponseWriter, r *http.Request){
 	if checkLogged(w,r) == true{
-		UserOperate.Logout()
+		userLogout(w,r)
 	}
 	goURL(w,r,"/login")
 }
@@ -64,7 +64,7 @@ func Logout(w http.ResponseWriter, r *http.Request){
 //return bool 是否登录
 func checkLogged(w http.ResponseWriter, r *http.Request) bool {
 	//确保启动会话
-	startSession(w,r)
+	startSession()
 	//返回是否已经登录
-	return UserOperate.GetLoginStatus() > 0
+	return userCheckLogged(w,r) > 0
 }

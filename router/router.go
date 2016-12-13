@@ -2,7 +2,6 @@ package router
 
 import (
 	"net/http"
-	"../handle"
 	"../core"
 )
 
@@ -26,29 +25,4 @@ func RunSever(host string){
 		core.SendLog(err.Error())
 		return
 	}
-}
-
-//设定登录部分
-func setLogin(){
-	http.HandleFunc("/login",handle.PageLogin)
-	http.HandleFunc("/action-login",handle.Login)
-	http.HandleFunc("/action-logout",handle.Logout)
-}
-
-//设定错误页面
-func set404(){
-	http.HandleFunc("/",handle.Page404)
-}
-
-//静态路由部分
-func setAssets(){
-	http.Handle("/assets/",http.StripPrefix("/assets/",http.FileServer(http.Dir(getTemplateSrc("assets")+core.PathSeparator))))
-	http.HandleFunc("/favicon.ico", handle.FileFavicon)
-}
-
-//获取template路径
-//param name string 路径末尾文件名称
-//return string 路径
-func getTemplateSrc(name string) string{
-	return "." + core.PathSeparator + "template" + core.PathSeparator + name
 }

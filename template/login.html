@@ -6,6 +6,7 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>Login - COLL MZ</title>
     {{template "header"}}
+    <link rel="stylesheet" type="text/css" href="/assets/css/theme.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/login.css">
 </head>
 
@@ -21,8 +22,8 @@
             Coll MZ System
           </div>
         </h2>
-            <form class="ui large form" action="/action-login" method="post">
-                <div class="ui stacked segment">
+            <form class="ui large inverted form" action="/action-login" method="post">
+                <div class="ui stacked inverted segment">
                     <div class="field">
                         <div class="ui left icon input">
                             <i class="user icon"></i>
@@ -35,7 +36,7 @@
                             <input type="password" name="password" placeholder="密码">
                         </div>
                     </div>
-                    <div class="ui fluid large teal submit button">登录</div>
+                    <div class="ui fluid large teal submit button"><i class="unlock icon"></i> 登录</div>
                 </div>
                 <div class="ui error message"></div>
             </form>

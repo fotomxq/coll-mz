@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"encoding/json"
 	"html/template"
-	"../core"
 )
 
 //内部模块组
@@ -13,7 +12,7 @@ import (
 //param name string 路径末尾文件名称
 //return string 路径
 func getTemplateSrc(name string) string{
-	return "template" + core.PathSeparator + name
+	return "template" + PathSep + name
 }
 
 //输出一个简单文本
@@ -23,7 +22,7 @@ func getTemplateSrc(name string) string{
 func postText(w http.ResponseWriter, r *http.Request, contentByte []byte) {
 	_, err := w.Write(contentByte)
 	if err != nil {
-		core.SendLog(err.Error())
+		sendLog(err.Error())
 		return
 	}
 }
@@ -48,7 +47,7 @@ func postJSONData(w http.ResponseWriter, r *http.Request,data interface{},b bool
 	res["login"] = false
 	resJson,err := json.Marshal(res)
 	if err != nil{
-		core.SendLog(err.Error())
+		sendLog(err.Error())
 		return
 	}
 	postText(w, r, resJson)
@@ -61,7 +60,7 @@ func checkPost(r *http.Request) bool{
 	var err error
 	err = r.ParseForm()
 	if err != nil {
-		core.SendLog(err.Error())
+		sendLog(err.Error())
 	}
 	return err == nil
 }
@@ -70,7 +69,7 @@ func checkPost(r *http.Request) bool{
 func showTemplate(w http.ResponseWriter, r *http.Request, templateFileName string, data interface{}){
 	t, err := template.ParseFiles(getTemplateSrc(templateFileName),getTemplateSrc("page-header.html"),getTemplateSrc("page-menu.html"),getTemplateSrc("page-footer.html"),getTemplateSrc("page-menu-nologin.html"))
 	if err != nil {
-		core.SendLog(err.Error())
+		sendLog(err.Error())
 		return
 	}
 	t.Execute(w, data)
