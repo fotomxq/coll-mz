@@ -3,7 +3,7 @@
   "user-one" : "false",
   "user-username" : "admin",
   "user-password" : "adminadmin",
-  "user-login-timeout-minute" : "30",
+  "user-login-timeout-minute" : "1800",
   "language" : "chinese",
   "server-host" : ":8889",
   "mgo-host" : "127.0.0.1:27017",

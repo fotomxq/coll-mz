@@ -168,38 +168,33 @@ func (this *User) Init(params *UserParams) {
 //param r *http.Request Http读取对象
 //return string 登录的用户ID，未登录则返回空字符串
 func (this *User) GetLoginStatus(w http.ResponseWriter,r *http.Request) string{
-	//获取值
-	var res map[interface{}]interface{}
+	//获取session
+	var res *UserSession
 	var b bool
-	res,b = this.sessionOperate.SessionGet(r,this.appName,this.mark)
+	res,b = this.getSession(w,r)
 	if b == false{
 		return ""
 	}
-	//检查是否存在值
-	if res["login-id"] == nil || res["login-time"] == nil{
-		res["login-id"] = ""
-		res["login-time"] = 0
-		_ = this.sessionOperate.SessionSet(w,r,this.appName,this.mark,res)
+	if res.userID == ""{
 		return ""
 	}
 	//更新登录时间值
-	if res["login-id"].(string) != ""{
+	if res.userID != ""{
 		var t time.Time
 		t = time.Now()
 		var unixTime int64
 		unixTime = t.Unix()
 		//超出时间，强行退出
-		if this.userLoginTimeoutMinute > unixTime - res["login-time"].(int64){
-			var loginID string = ""
-			res["login-id"] = loginID
-			_ = this.sessionOperate.SessionSet(w,r,this.appName,this.mark,res)
-			return ""
+		if this.userLoginTimeoutMinute < unixTime - res.lastTime{
+			res.userID = ""
+			_ = this.setSession(w,r,res)
+			this.sendLog(r.RemoteAddr,"User.GetLoginStatus","user-login-timeout-minute",res.userID+"用户登录超时，自动退出。")
 		}
-		res["login-time"] = unixTime
-		_ = this.sessionOperate.SessionSet(w,r,this.appName,this.mark,res)
+		res.lastTime = unixTime
+		_ = this.setSession(w,r,res)
 	}
 	//返回
-	return res["login-id"].(string)
+	return res.userID
 }
 
 //用户登录
@@ -211,29 +206,23 @@ func (this *User) GetLoginStatus(w http.ResponseWriter,r *http.Request) string{
 //return bool 是否登录成功
 func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,passwdSha1 string) bool{
 	//初始化变量
-	var res map[interface{}]interface{}
+	var res *UserSession
 	var b bool
 	var err error
-	var loginID string
-	var loginErr int = 0
 	//获取当前时间
 	var t time.Time
 	t = time.Now()
 	var unixTime int64
 	unixTime = t.Unix()
 	//获取session数据
-	res,b = this.sessionOperate.SessionGet(r,this.appName,this.mark)
+	res,b = this.getSession(w,r)
 	if b == false{
 		return false
 	}
-	//退出该函数之前确保执行
-	defer this.loginReturn(w,r,&loginID,&unixTime,&loginErr)
 	//检查是否超过错误次数5次
-	if res["login-error"] != nil{
-		loginErr = res["login-error"].(int)
-		if loginErr > 5{
-			return false
-		}
+	if res.loginErrorNum > 5{
+		_ = this.setSession(w,r,res)
+		return false
 	}
 	//是否已经登录，是则返回成功
 	if this.GetLoginStatus(w,r) != ""{
@@ -241,7 +230,8 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 	}
 	//检查用户名和密码是否合法
 	if this.checkUsername(username,passwdSha1) == false{
-		loginErr += 1
+		res.loginErrorNum += 1
+		_ = this.setSession(w,r,res)
 		return false
 	}
 	//计算密码
@@ -254,9 +244,10 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 	if this.oneUserStatus == true{
 		//如果是单用户模式
 		if this.oneUsername == username && passwdSha1Sha1 == this.onePassword{
-			loginID = "true"
+			res.userID = "one-true"
 		}else{
-			loginErr += 1
+			res.loginErrorNum += 1
+			_ = this.setSession(w,r,res)
 			return false
 		}
 	}else{
@@ -265,7 +256,8 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 		err = this.dbColl.Find(bson.M{"username":username,"password":passwdSha1Sha1}).One(&result)
 		if err != nil{
 			this.sendLog(ipAddr,"Login","many-user-find",err.Error())
-			loginErr += 1
+			res.loginErrorNum += 1
+			_ = this.setSession(w,r,res)
 			return false
 		}
 		//用户存在，则修改登录IP和时间
@@ -275,40 +267,32 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 			err = this.dbColl.Update(bson.M{"_id":bson.ObjectIdHex(userID)},bson.M{"$set":bson.M{"lastip":ipAddr,"lasttime":unixTime}})
 			if err != nil{
 				this.sendLog(ipAddr,"Login","many-user-update",err.Error() + " , user id : "+userID+" , lastip : "+ipAddr+" , lasttime : "+strconv.FormatInt(unixTime,10))
-				loginErr += 1
+				res.loginErrorNum += 1
+				this.setSession(w,r,res)
 				return false
 			}
-			loginID = userID
+			res.userID = userID
+		}else{
+			res.loginErrorNum += 1
+			_ = this.setSession(w,r,res)
+			return false
 		}
 	}
-	//检查是否验证通过
-	if loginID == ""{
-		loginErr += 1
-		return false
-	}
 	//输出日志
-	this.sendLog(ipAddr,"Login","login-success","ID为" + loginID + "的用户成功登录了平台。")
+	this.sendLog(ipAddr,"Login","login-success","ID为" + res.userID + "的用户成功登录了平台。")
 	//修改session并返回
-	loginErr = 0
-	return true
+	res.lastTime = unixTime
+	res.loginErrorNum = 0
+	return this.setSession(w,r,res)
 }
 
 //用户退出
 //param w *http.ResponseWriter Http写入对象
 //param r *http.Request Http读取对象
 func (this *User) Logout(w http.ResponseWriter,r *http.Request){
-	var res map[interface{}]interface{}
-	var b bool
-	res,b = this.sessionOperate.SessionGet(r,this.appName,this.mark)
-	if b == false{
-		return
-	}
-	if res["login-id"].(string) == ""{
-		return
-	}
-	var loginID string
-	res["login-id"] = loginID
-	_ = this.sessionOperate.SessionSet(w,r,this.appName,this.mark,res)
+	var res UserSession
+	res.userID = ""
+	_ = this.setSession(w,r,&res)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -505,14 +489,14 @@ func (this *User) sendLog(ipAddr string,funcName string,mark string,message stri
 //param w *http.ResponseWriter Http写入对象
 //param r *http.Request Http读取对象
 //return UserSession,bool Session信息组，是否成功
-func (this *User) getSession(w http.ResponseWriter,r *http.Request) (UserSession,bool){
+func (this *User) getSession(w http.ResponseWriter,r *http.Request) (*UserSession,bool){
 	var result UserSession
 	var res map[interface{}]interface{}
 	var b bool
 	res,b = this.sessionOperate.SessionGet(r,this.appName,this.mark)
 	if b == false{
 		this.sendLog(r.RemoteAddr,"User.getSession","get-session-res","无法获取session数据。")
-		return result,false
+		return &result,false
 	}
 	if res["login-user-id"] == nil || res["login-last-time"] == nil || res["login-error-num"] == nil {
 		res["login-user-id"] = string("")
@@ -526,7 +510,7 @@ func (this *User) getSession(w http.ResponseWriter,r *http.Request) (UserSession
 	result.userID = res["login-user-id"].(string)
 	result.lastTime = res["login-last-time"].(int64)
 	result.loginErrorNum = res["login-error-num"].(int)
-	return result,true
+	return &result,true
 }
 
 //设定session
@@ -534,7 +518,7 @@ func (this *User) getSession(w http.ResponseWriter,r *http.Request) (UserSession
 //param r *http.Request Http读取对象
 //param data UserSession Session信息组
 //return bool 是否成功
-func (this *User) setSession(w http.ResponseWriter,r *http.Request,data UserSession) bool {
+func (this *User) setSession(w http.ResponseWriter,r *http.Request,data *UserSession) bool {
 	var res map[interface{}]interface{}
 	var b bool
 	res,b = this.sessionOperate.SessionGet(r,this.appName,this.mark)
@@ -550,26 +534,4 @@ func (this *User) setSession(w http.ResponseWriter,r *http.Request,data UserSess
 		this.sendLog(r.RemoteAddr,"User.setSession","set-session-res","无法设定session数据。")
 	}
 	return b
-}
-
-//登录完成后调用该模块
-//用户记录Session部分、记录登录失败次数操作
-//param w *http.ResponseWriter Http写入对象
-//param r *http.Request Http读取对象
-//param loginID *string 用户ID
-//param unixTime *int64 登录unix时间戳
-//param loginErr *int 失败次数
-//return bool 记录是否成功
-func (this *User) loginReturn(w http.ResponseWriter,r *http.Request,loginID *string,unixTime *int64,loginErr *int) bool{
-	var res map[interface{}]interface{}
-	var b bool
-	//为了确保其他存储变量不会被清空，需要先读取再写入
-	res,b = this.sessionOperate.SessionGet(r,this.appName,this.mark)
-	if b == false{
-		return false
-	}
-	res["login-id"] = loginID
-	res["login-time"] = unixTime
-	res["login-error"] = loginErr
-	return this.sessionOperate.SessionSet(w,r,this.appName,this.mark,res)
 }

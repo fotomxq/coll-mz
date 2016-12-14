@@ -34,15 +34,17 @@ func Init(params *GlobOperate){
 
 //运行服务器
 func RunSever(host string){
-	//设定错误页面
-	http.HandleFunc("/",Page404)
-	//设定静态assets数据绑定
+	//绑定静态assets数据
 	http.Handle("/assets/",http.StripPrefix("/assets/",http.FileServer(http.Dir(getTemplateSrc("assets")+core.PathSeparator))))
 	http.HandleFunc("/favicon.ico", FileFavicon)
-	//设定登录部分
+	//绑定错误页面
+	http.HandleFunc("/",Page404)
+	//绑定登录和退出页面
 	http.HandleFunc("/login",PageLogin)
 	http.HandleFunc("/action-login",ActionLogin)
 	http.HandleFunc("/action-logout",ActionLogout)
+	//绑定中心页面
+	http.HandleFunc("/center",PageCenter)
 	//输出日志
 	core.SendLog("****** 启动服务器 : " + host + " ******")
 	//启动路由器

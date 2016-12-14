@@ -79,16 +79,16 @@ func showTemplate(w http.ResponseWriter, r *http.Request, templateFileName strin
 	t.Execute(w, data)
 }
 
-//获取IP地址
-//param r *http.Request 读取http句柄
-//return string IP地址
-func getIPAddrs(r *http.Request) string{
-	return r.RemoteAddr
-}
-
 //启动会话
 func startSession(){
 	if glob.SessionOperate.Status == false{
 		glob.SessionOperate.Create(glob.AppName)
 	}
+}
+
+//获取IP地址
+//param r *http.Request 读取http句柄
+//return string IP地址
+func getIPAddrs(r *http.Request) string{
+	return r.RemoteAddr
 }
