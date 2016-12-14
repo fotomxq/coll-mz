@@ -1,4 +1,4 @@
-package transferOldFiles
+package coll
 
 import "../core"
 
@@ -8,7 +8,7 @@ import "../core"
 // * JSON数据将包含更多文件、合集信息，这样可脱离数据库实现读写
 // * 新版本中，数据迁移无需转移数据库，而是直接拷贝走文件数据即可
 
-func Run(){
+func TransferOldFilesRun(){
 	core.SendLog("启动旧版本向新版本数据迁移模块。")
 	//
 	core.SendLog("迁移结束。")

@@ -1,5 +1,6 @@
 {
   "app-name" : "collmz",
+  "user-one" : "false",
   "user-username" : "admin",
   "user-password" : "adminadmin",
   "user-login-timeout-minute" : "30",

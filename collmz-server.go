@@ -5,21 +5,25 @@ import (
 	"strconv"
 	"./core"
 	"./router"
-	"./user"
-	"./handle"
 )
 
 //全局APP名称
 var AppName string
 
-//全局DB数据库操作模块
+//全局数据库操作模块
 var DB *mgo.Database
 
-//全局Session
+//全局Session句柄
 var SessionOperate core.SessionOperate
 
 //全局验证处理句柄
 var MatchString core.MatchString
+
+//全局日志数据库操作
+var LogOperate core.LogOperate
+
+//全局用户操作句柄
+var UserOperate core.User
 
 //控制器主程序
 //该函数用于启动整个项目
@@ -34,8 +38,10 @@ func main(){
 		core.SendLog("无法读取config.json配置数据。")
 		return
 	}
+
 	//读取APP名称
 	AppName = configData["app-name"].(string)
+
 	//连接数据库
 	var session *mgo.Session
 	var err error
@@ -48,27 +54,26 @@ func main(){
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
 	DB = session.DB(configData["mgo-db"].(string))
+
+	//初始化日志操作句柄
+	LogOperate.Init(DB,AppName)
+
 	//创建SESSION
 	SessionOperate.Create(AppName)
-	//构建用户处理器
+
+	//构建用户处理器var userLoginTimeoutMinute int64
 	var userLoginTimeoutMinute int64
 	userLoginTimeoutMinute,err = strconv.ParseInt(configData["user-login-timeout-minute"].(string),10,64)
 	if err != nil{
 		core.SendLog(err.Error())
 		return
 	}
-	user.Mark = AppName
-	user.DB = DB
-	user.SessionOperate = &SessionOperate
-	user.MatchString = &MatchString
-	user.UserLoginTimeoutMinute = userLoginTimeoutMinute
-	user.Init()
-	user.SetManyUser(configData["user-username"].(string),configData["user-password"].(string))
-	//将全局变量赋予路由内部
-	handle.AppName = AppName
-	handle.DB = DB
-	handle.SessionOperate = &SessionOperate
-	handle.PathSep = core.PathSeparator
+	var userOneStatus bool
+	userOneStatus = configData["user-one"].(string) == "true"
+	UserOperate.Init(&core.UserParams{DB,&MatchString,&SessionOperate,&LogOperate,AppName,AppName,userLoginTimeoutMinute,userOneStatus,configData["user-username"].(string),configData["user-password"].(string)})
+
+	//初始化路由
+	router.Init(&router.GlobOperate{DB,&SessionOperate,AppName,&UserOperate})
 	//启动服务器
 	router.RunSever(configData["server-host"].(string))
 }

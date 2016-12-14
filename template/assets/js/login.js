@@ -57,7 +57,7 @@ function submitLogin(){
         }
         if(data['data'] == 'success'){
             sendMessage('登录成功，正在跳转！','alarm outline');
-            window.location.href = '/login';
+            window.location.href = '/center';
             return false;
         }else{
             sendMessage('登录失败，请检查用户名或密码是否正确？','ban');

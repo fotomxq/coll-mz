@@ -1,4 +1,4 @@
-package handle
+package router
 
 import (
 	"net/http"
@@ -11,7 +11,7 @@ import (
 //param r *http.Request 读取http句柄
 func PageLogin(w http.ResponseWriter, r *http.Request) {
 	//检查是否已经登录
-	if checkLogged(w, r) == true {
+	if userCheckLogged(w, r) != "" {
 		goURL(w, r, "/center")
 	}else{
 		showTemplate(w,r,"login.html",nil)
@@ -26,7 +26,7 @@ func ActionLogin(w http.ResponseWriter, r *http.Request) {
 	var data string = "no-login"
 	defer postJSONData(w,r,&data,true)
 	//检查是否已经登录
-	if checkLogged(w, r) == true {
+	if userCheckLogged(w, r) != "" {
 		data = "logged"
 		return
 	}else{
@@ -60,19 +60,8 @@ func ActionLogin(w http.ResponseWriter, r *http.Request) {
 //param w http.ResponseWriter 写入http句柄
 //param r *http.Request 读取http句柄
 func ActionLogout(w http.ResponseWriter, r *http.Request){
-	if checkLogged(w,r) == true{
+	if userCheckLogged(w,r) != ""{
 		userLogout(w,r)
 	}
 	goURL(w,r,"/login")
-}
-
-//检查是否已登录
-//param w http.ResponseWriter 写入http句柄
-//param r *http.Request 读取http句柄
-//return bool 是否登录
-func checkLogged(w http.ResponseWriter, r *http.Request) bool {
-	//确保启动会话
-	startSession()
-	//返回是否已经登录
-	return userCheckLogged(w,r) != ""
 }

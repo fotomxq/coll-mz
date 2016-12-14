@@ -100,8 +100,6 @@ type LogOperate struct {
 	table string
 	//数据库合集
 	dbColl *mgo.Collection
-	//文件名称
-	fileName string
 }
 
 //数据表结构
@@ -118,32 +116,27 @@ type LogOperateFields struct {
 //初始化模块
 //使用之前必须确保进行该步骤
 //param db *mgo.Database 数据库句柄
-//param c string 合集名称
-func (this *LogOperate) Init(db *mgo.Database,c string){
+//param appName 应用名称
+func (this *LogOperate) Init(db *mgo.Database,appName string){
 	//保存数据库连接
 	this.db = db
 	//构建数据集合
-	this.table = c
-	this.dbColl = db.C(c)
-}
-
-//设定go文件名称
-//param fileName string 文件名称
-func (this *LogOperate) SetFileName(fileName string){
-	this.fileName = fileName
+	this.table = "log"
+	this.dbColl = db.C(this.table)
 }
 
 //发送新的日志
+//param fileName string 文件名称
 //param ipAddr string IP地址
 //param funcName string 函数名称
 //param mark string 标记名称
 //param message string 消息
-func (this *LogOperate) SendLog(ipAddr string,funcName string,mark string,message string){
+func (this *LogOperate) SendLog(fileName string,ipAddr string,funcName string,mark string,message string){
 	//获取当前时间
 	var t time.Time
 	t = time.Now()
 	//向数据库添加日志
-	err = this.dbColl.Insert(&LogOperateFields{bson.NewObjectId(),t.Format("2006-01-02 15:04:05.999999999"),ipAddr,this.fileName,funcName,mark,message})
+	err = this.dbColl.Insert(&LogOperateFields{bson.NewObjectId(),t.Format("2006-01-02 15:04:05.999999999"),ipAddr,fileName,funcName,mark,message})
 	if err != nil{
 		fmt.Println("无法向数据库添加日志数据。")
 	}
