@@ -4,6 +4,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"time"
 	"net/http"
+	"strconv"
 )
 
 //该文件定义用户登录、退出、登录状态操作
@@ -115,11 +116,11 @@ func Login(w http.ResponseWriter,r *http.Request,username string,passwdSha1 stri
 		}
 		//用户存在，则修改登录IP和时间
 		var userID string
-		userID = result.Id_.String()
+		userID = result.ID.Hex()
 		if userID != ""{
-			err = dbColl.UpdateId(userID,bson.M{"lastip":ipAddr,"lasttime":unixTime})
+			err = dbColl.Update(bson.M{"_id":bson.ObjectIdHex(userID)},bson.M{"$set":bson.M{"lastip":ipAddr,"lasttime":unixTime}})
 			if err != nil{
-				sendLog("user/login.go",ipAddr,"Login","many-user-update",err.Error())
+				sendLog("user/login.go",ipAddr,"Login","many-user-update",err.Error() + " , user id : "+userID+" , lastip : "+ipAddr+" , lasttime : "+strconv.FormatInt(unixTime,10))
 				loginErr += 1
 				return false
 			}
@@ -135,7 +136,7 @@ func Login(w http.ResponseWriter,r *http.Request,username string,passwdSha1 stri
 	sendLog("user/login.go",ipAddr,"Login","login-success","ID为" + loginID + "的用户成功登录了平台。")
 	//修改session并返回
 	loginErr = 0
-	return loginReturn(w,r,loginID,unixTime,loginErr)
+	return true
 }
 
 //登录完成后调用该模块

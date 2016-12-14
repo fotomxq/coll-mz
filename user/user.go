@@ -8,7 +8,7 @@ import (
 
 //用户处理器包
 //可用于用户管理、登录
-//支持任意数据库类型，或直接制定单一用户密码
+//支持mongo数据库，或直接指定用户名和密码
 //使用方法：声明User类后初始化，之后选择单一用户还是多用户模式设定即可
 //依赖外部包：
 // mgo (gopkg.in/mgo.v2 / gopkg.in/mgo.v2/bson)
@@ -51,7 +51,7 @@ var dbColl *mgo.Collection
 
 //用户字段组
 type UserFields struct {
-	Id_ bson.ObjectId
+	ID bson.ObjectId `bson:"_id"`
 	NiceName string
 	UserName string
 	Password string

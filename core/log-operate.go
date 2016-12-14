@@ -106,7 +106,7 @@ type LogOperate struct {
 
 //数据表结构
 type LogOperateFields struct {
-	Id_ bson.ObjectId
+	ID bson.ObjectId `bson:"_id"`
 	CreateTime string
 	IpAddr string
 	FileName string

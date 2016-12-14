@@ -1,6 +1,7 @@
 package user
 
 import (
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -24,6 +25,16 @@ func SetManyUser(username string,password string){
 	if num > 0{
 		return
 	}
+	//设定索引
+	var index mgo.Index
+	index = mgo.Index{
+		Key: []string{"-_id"},
+		Unique: true,
+		DropDups: true,
+		Background: true,
+		Sparse: true,
+	}
+	dbColl.EnsureIndex(index)
 	//构建数据
 	var passwordSha1Sha1 string
 	passwordSha1Sha1 = getPasswdSha1(getSha1(password))

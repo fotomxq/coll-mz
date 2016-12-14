@@ -40,11 +40,13 @@ function submitLogin(){
     //覆盖旧的用户和密码信息，避免重复提交
     oldUsername = username;
     oldPassword = password;
+    nowAction = 'action-login';
     //提交到服务器，等待确认
     $.post('/action-login',{
         'username' : username,
         'password' : passwordSha1
     },function(data){
+        nowAction = 'login-form';
         if(!data){
             sendMessage('服务器没有响应！','ban');
             return false;
@@ -78,10 +80,6 @@ function checkStr(m,c){
 
 //登陆组件控制
 $(document).ready(function() {
-    //当消息消失
-    $('#message').dimmer('onHide',function(){
-        nowAction = 'login-form';
-    });
     //按钮提交表单
     $('a[href="#login"]').click(function() {
         submitLogin();

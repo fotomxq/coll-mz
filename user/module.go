@@ -49,7 +49,7 @@ func checkUsernameIsExisit(username string) bool{
 	if err != nil{
 		return false
 	}
-	var userID int
-	userID = result.Id_.String()
+	var userID string
+	userID = result.ID.String()
 	return userID != ""
 }

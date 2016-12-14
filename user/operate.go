@@ -39,7 +39,7 @@ func Create(nicename string,username string,passwdSha1 string) string{
 		sendLog("user/operate.go","0.0.0.0","Create","insert-after-find",err.Error())
 		return ""
 	}
-	return newData.Id_.String()
+	return newData.ID.String()
 }
 
 //修改用户名和密码
@@ -62,7 +62,7 @@ func Edit(id string,nicename string,username string,passwdSha1 string) bool{
 	passwdSha1Sha1 = getPasswdSha1(passwdSha1)
 	//执行修改用户
 	var err error
-	err = dbColl.UpdateId(id,bson.M{"nicename":nicename,"username":username,"password":passwdSha1Sha1})
+	err = dbColl.UpdateId(bson.ObjectIdHex(id),bson.M{"$set":bson.M{"nicename":nicename,"username":username,"password":passwdSha1Sha1}})
 	return err != nil
 }
 
@@ -71,6 +71,6 @@ func Edit(id string,nicename string,username string,passwdSha1 string) bool{
 //return bool是否成功
 func Delete(id string) bool{
 	var err error
-	err = dbColl.RemoveId(id)
+	err = dbColl.RemoveId(bson.ObjectIdHex(id))
 	return err != nil
 }

@@ -12,7 +12,7 @@ func GetID(id string) (*UserFields,bool){
 	var result UserFields
 	//获取数据
 	var err error
-	err = dbColl.FindId(id).One(&result)
+	err = dbColl.FindId(bson.M{"_id":bson.ObjectIdHex(id)}).One(&result)
 	if err != nil{
 		return &result,false
 	}
