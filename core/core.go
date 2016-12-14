@@ -8,6 +8,9 @@ var err error
 //通用系统文件路径
 var PathSeparator string
 
+//日志操作句柄
+var LogOperate *LogOperate
+
 //核心类
 type ControlCore struct {
 

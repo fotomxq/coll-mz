@@ -15,6 +15,7 @@ import (
 //依赖外部包：
 // mgo (gopkg.in/mgo.v2 / gopkg.in/mgo.v2/bson)
 //依赖本地包：
+// core.LogOperate
 // core.session-operate.go
 // core.match-string.go
 

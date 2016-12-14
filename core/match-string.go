@@ -10,7 +10,14 @@ import (
 	"strings"
 )
 
-//Authentication and query modules
+//验证模块
+//用于验证字符串等验证、过滤类操作
+//使用方法：声明后直接调用具体方法即可
+//依赖外部模块：无
+//依赖内部模块：
+// core.LogOperate
+
+//验证模块
 type MatchString struct {
 }
 
@@ -42,7 +49,7 @@ func (this *MatchString) GetSha1(content string) string {
 	hasher := sha1.New()
 	_, err = hasher.Write([]byte(content))
 	if err != nil {
-		SendLog(err.Error())
+		LogOperate.SendLog("core/match-string.go","0.0.0.0","MatchString.GetSha1","write",err.Error())
 		return ""
 	}
 	sha := hasher.Sum(nil)
@@ -56,7 +63,7 @@ func (this *MatchString) GetSha1(content string) string {
 func (this *MatchString) matchStr(mStr string,str string) bool {
 	res, err := regexp.MatchString(mStr, str)
 	if err != nil{
-		SendLog(err.Error())
+		LogOperate.SendLog("core/match-string.go","0.0.0.0","MatchString.matchStr","regexp-match-str",err.Error())
 		return false
 	}
 	return res == true

@@ -7,7 +7,7 @@ import (
 
 //操作Session会话
 //依赖内部库：
-// core.SendLog()
+// core.LogOperate
 //依赖外部库：
 // github.com/gorilla/sessions
 
@@ -39,7 +39,7 @@ func (this *SessionOperate) SessionGet(r *http.Request,appName string,mark strin
 	}
 	s, err := this.store.Get(r, mark)
 	if err != nil {
-		SendLog(err.Error())
+		LogOperate.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.SessionGet","store-get",err.Error())
 		return res, false
 	}
 	return s.Values, true
@@ -58,13 +58,13 @@ func (this *SessionOperate) SessionSet(w http.ResponseWriter, r *http.Request,ap
 	}
 	s, err := this.store.Get(r, mark)
 	if err != nil {
-		SendLog(err.Error())
+		LogOperate.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.SessionSet","store-get",err.Error())
 		return false
 	}
 	s.Values = data
 	err = s.Save(r, w)
 	if err != nil {
-		SendLog(err.Error())
+		LogOperate.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.SessionSet","store-save",err.Error())
 		return false
 	}
 	return true

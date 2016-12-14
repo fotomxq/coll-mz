@@ -2,7 +2,6 @@ package core
 
 //该模块用于获取语言配置信息
 //依赖内部模块：
-// core.SendLog()
 // core.LoadConfig()
 //依赖外部库：无
 

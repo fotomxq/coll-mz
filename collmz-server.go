@@ -61,6 +61,9 @@ func main(){
 	//初始化日志操作句柄
 	LogOperate.Init(DB,AppMark)
 
+	//将日志句柄赋予给core
+	core.LogOperate = &LogOperate
+
 	//创建SESSION
 	SessionOperate.Create(AppMark)
 
