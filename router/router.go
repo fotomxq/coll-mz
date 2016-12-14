@@ -20,6 +20,8 @@ type GlobOperate struct{
 	DB *mgo.Database
 	//Session句柄
 	SessionOperate *core.SessionOperate
+	//日志句柄
+	LogOperate *core.LogOperate
 	//APP名称
 	AppName string
 	//用户句柄
@@ -62,9 +64,13 @@ func RunSever(host string){
 
 
 //转接日志输出模块
-//param message string 日志内容
-func sendLog(message string) {
-	core.SendLog(message)
+//param fileName string 文件名称
+//param ipAddr string IP地址
+//param funcName string 函数名称
+//param mark string 标记名称
+//param message string 消息
+func sendLog(fileName string,ipAddr string,funcName string,mark string,message string) {
+	glob.LogOperate.SendLog(fileName,ipAddr,funcName,mark,message)
 }
 
 //转接用户登录检查模块

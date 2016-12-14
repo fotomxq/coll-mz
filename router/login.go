@@ -14,6 +14,7 @@ func PageLogin(w http.ResponseWriter, r *http.Request) {
 	if userCheckLogged(w, r) != "" {
 		goURL(w, r, "/center")
 	}else{
+		sendLog("router/login.go",r.RemoteAddr,"PageLogin","user-no-logged","用户尚未登录，但访问了内部页面，URL："+r.URL.Path)
 		showTemplate(w,r,"login.html",nil)
 	}
 }

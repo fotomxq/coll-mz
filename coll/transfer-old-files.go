@@ -9,7 +9,4 @@ import "../core"
 // * 新版本中，数据迁移无需转移数据库，而是直接拷贝走文件数据即可
 
 func TransferOldFilesRun(){
-	core.SendLog("启动旧版本向新版本数据迁移模块。")
-	//
-	core.SendLog("迁移结束。")
 }

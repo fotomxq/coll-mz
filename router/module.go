@@ -22,7 +22,7 @@ func getTemplateSrc(name string) string{
 func postText(w http.ResponseWriter, r *http.Request, contentByte []byte) {
 	_, err := w.Write(contentByte)
 	if err != nil {
-		sendLog(err.Error())
+		sendLog("router/module.go",r.RemoteAddr,"postText","write-content",err.Error())
 		return
 	}
 }
@@ -47,7 +47,7 @@ func postJSONData(w http.ResponseWriter, r *http.Request,data interface{},b bool
 	res["login"] = false
 	resJson,err := json.Marshal(res)
 	if err != nil{
-		sendLog(err.Error())
+		sendLog("router/module.go",r.RemoteAddr,"postJSONData","get-json",err.Error())
 		return
 	}
 	postText(w, r, resJson)
@@ -60,7 +60,7 @@ func checkPost(r *http.Request) bool{
 	var err error
 	err = r.ParseForm()
 	if err != nil {
-		sendLog(err.Error())
+		sendLog("router/module.go",r.RemoteAddr,"checkPost","check-form",err.Error())
 	}
 	return err == nil
 }
@@ -73,7 +73,7 @@ func checkPost(r *http.Request) bool{
 func showTemplate(w http.ResponseWriter, r *http.Request, templateFileName string, data interface{}){
 	t, err := template.ParseFiles(getTemplateSrc(templateFileName),getTemplateSrc("page-header.html"),getTemplateSrc("page-menu.html"),getTemplateSrc("page-footer.html"),getTemplateSrc("page-menu-nologin.html"))
 	if err != nil {
-		sendLog(err.Error())
+		sendLog("router/module.go",r.RemoteAddr,"showTemplate","show-template",err.Error())
 		return
 	}
 	t.Execute(w, data)

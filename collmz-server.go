@@ -88,6 +88,7 @@ func main(){
 	router.Init(&router.GlobOperate{
 		DB,
 		&SessionOperate,
+		&LogOperate,
 		AppMark,
 		&UserOperate})
 	//启动服务器

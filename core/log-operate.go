@@ -26,6 +26,9 @@ import (
 //默认存储到程序所在目录的log文件夹下
 var LogOperateSrc = "log"
 
+//是否开启向文件存储
+var LogOperateFileBool = false
+
 //向控制台发送一个日志
 //自动向控制台和日志文件输出信息
 //日志同时将存储到"LogOperateSrc/200601/02/2006010215.log"文件内
@@ -37,6 +40,9 @@ func SendLog(message string){
 	message = t.Format("2006-01-02 15:04:05.999999999") + " " + message + "\n"
 	//向控制台输出日志
 	fmt.Print(message)
+	if LogOperateFileBool == false{
+		return
+	}
 	//生成日志文件路径
 	var logDir string
 	logDir = LogOperateSrc + PathSeparator +t.Format("200601") + PathSeparator + t.Format("02")
