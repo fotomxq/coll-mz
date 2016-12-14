@@ -9,6 +9,8 @@ import (
 
 //全局APP名称
 var AppName string
+//全局APP标识
+var AppMark string
 
 //全局数据库操作模块
 var DB *mgo.Database
@@ -41,6 +43,7 @@ func main(){
 
 	//读取APP名称
 	AppName = configData["app-name"].(string)
+	AppMark = configData["app-mark"].(string)
 
 	//连接数据库
 	var session *mgo.Session
@@ -56,10 +59,10 @@ func main(){
 	DB = session.DB(configData["mgo-db"].(string))
 
 	//初始化日志操作句柄
-	LogOperate.Init(DB,AppName)
+	LogOperate.Init(DB,AppMark)
 
 	//创建SESSION
-	SessionOperate.Create(AppName)
+	SessionOperate.Create(AppMark)
 
 	//构建用户处理器var userLoginTimeoutMinute int64
 	var userLoginTimeoutMinute int64
@@ -70,10 +73,23 @@ func main(){
 	}
 	var userOneStatus bool
 	userOneStatus = configData["user-one"].(string) == "true"
-	UserOperate.Init(&core.UserParams{DB,&MatchString,&SessionOperate,&LogOperate,AppName,AppName,userLoginTimeoutMinute,userOneStatus,configData["user-username"].(string),configData["user-password"].(string)})
+	UserOperate.Init(&core.UserParams{
+		DB,&MatchString,
+		&SessionOperate,
+		&LogOperate,
+		AppMark,
+		AppMark,
+		userLoginTimeoutMinute,
+		userOneStatus,
+		configData["user-username"].(string),
+		configData["user-password"].(string)})
 
 	//初始化路由
-	router.Init(&router.GlobOperate{DB,&SessionOperate,AppName,&UserOperate})
+	router.Init(&router.GlobOperate{
+		DB,
+		&SessionOperate,
+		AppMark,
+		&UserOperate})
 	//启动服务器
 	router.RunSever(configData["server-host"].(string))
 }
