@@ -2,7 +2,6 @@ package user
 
 import (
 	"gopkg.in/mgo.v2/bson"
-	"strconv"
 )
 
 //该文件定义内部模块
@@ -12,14 +11,14 @@ import (
 //param passwdSha1 string 密码SHA1值
 //return bool 是否成功
 func checkUsername(username string,passwdSha1 string) bool{
-	return MatchString.CheckUsername(username,6,20) && len(passwdSha1) == 40
+	return MatchString.CheckUsername(username) && len(passwdSha1) == 40
 }
 
 //检查昵称是否合法
 //param nicename string 昵称
 //return bool 是否成功
 func checkNicename(nicename string) bool{
-	if len(nicename) < 1 || len(nicename) > 30{
+	if len(nicename) < 1 || len(nicename) > 30 || MatchString.CheckUsername(nicename){
 		return false
 	}
 	return true
@@ -51,10 +50,6 @@ func checkUsernameIsExisit(username string) bool{
 		return false
 	}
 	var userID int
-	userID,err = strconv.Atoi(result.id.String())
-	if err != nil{
-		sendLog(err.Error())
-		return false
-	}
-	return userID > 0
+	userID = result.Id_.String()
+	return userID != ""
 }

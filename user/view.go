@@ -5,16 +5,15 @@ import "gopkg.in/mgo.v2/bson"
 //该文件定义查询用户数据
 
 //根据ID查询用户信息
-//param id int 用户ID
+//param id string 用户ID
 //return *UserFields,bool 用户信息组，是否成功
-func GetID(id int) (*UserFields,bool){
+func GetID(id string) (*UserFields,bool){
 	//初始化变量
 	var result UserFields
 	//获取数据
 	var err error
 	err = dbColl.FindId(id).One(&result)
 	if err != nil{
-		sendLog(err.Error())
 		return &result,false
 	}
 	//返回数据
@@ -34,7 +33,7 @@ func GetList(search string,page int,max int,sort int,desc bool) (*[]UserFields,b
 	if fields[sort] != ""{
 		sortStr = fields[sort]
 	}else{
-		sortStr = "_id"
+		sortStr = fields[0]
 	}
 	//分析desc
 	if desc == true{
@@ -51,7 +50,6 @@ func GetList(search string,page int,max int,sort int,desc bool) (*[]UserFields,b
 		err = dbColl.Find(bson.M{"$or":bson.M{"nicename":search,"username":search}}).Sort(sortStr).Skip(skip).Limit(max).All(&result)
 	}
 	if err != nil{
-		sendLog(err.Error())
 		return &result,false
 	}
 	//返回结果

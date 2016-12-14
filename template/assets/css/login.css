@@ -7,3 +7,12 @@ body > .grid {
 .column {
     max-width: 450px;
 }
+
+.form , .form > div{
+    width:400px;
+    height: 170px;
+}
+
+#message{
+    display: none;
+}

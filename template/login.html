@@ -14,20 +14,24 @@
     <!--[if lt IE 8]>
     <![endif]-->
     <!-- content -->
+    <div class="ui page dimmer" id="message">
+        <div class="content">
+            <div class="center" id="message-content"></div>
+        </div>
+
+    </div>
     <div class="ui middle aligned center aligned grid">
         <div class="column">
             <h2 class="ui teal image header">
-          <img src="/assets/imgs/logo-100.png" class="image">
-          <div class="content">
-            Coll MZ System
-          </div>
-        </h2>
-            <form class="ui large inverted form" action="/action-login" method="post">
+                <img src="/assets/imgs/logo-100.png" class="image">
+                <div class="content">Coll MZ System</div>
+            </h2>
+            <form class="ui large form">
                 <div class="ui stacked inverted segment">
                     <div class="field">
                         <div class="ui left icon input">
                             <i class="user icon"></i>
-                            <input type="text" name="email" placeholder="用户名(email)">
+                            <input type="text" name="username" placeholder="用户名">
                         </div>
                     </div>
                     <div class="field">
@@ -36,9 +40,8 @@
                             <input type="password" name="password" placeholder="密码">
                         </div>
                     </div>
-                    <div class="ui fluid large teal submit button"><i class="unlock icon"></i> 登录</div>
+                <a class="ui fluid teal button inverted" href="#login"><i class="unlock icon"></i> 登录</a>
                 </div>
-                <div class="ui error message"></div>
             </form>
         </div>
     </div>

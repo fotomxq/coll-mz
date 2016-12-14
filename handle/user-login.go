@@ -22,29 +22,37 @@ func PageLogin(w http.ResponseWriter, r *http.Request) {
 //param w http.ResponseWriter 写入http句柄
 //param r *http.Request 读取http句柄
 func ActionLogin(w http.ResponseWriter, r *http.Request) {
+	//初始化变量
+	var data string = "no-login"
+	defer postJSONData(w,r,data,true)
 	//检查是否已经登录
 	if checkLogged(w, r) == true {
-		goURL(w,r,"/center")
+		data = "logged"
+		return
 	}else{
 		//检查post提交
 		if checkPost(r) == false{
-			goURL(w,r,"/login")
+			data = "error"
+			return
 		}
 		//获取登录用户名和密码
 		var username string
 		var passwdSha1 string
 		username = r.FormValue("username")
-		passwdSha1 = r.FormValue("passwd")
+		passwdSha1 = r.FormValue("password")
 		if len(username) < 4  && len(passwdSha1) < 10 {
-			goURL(w,r,"/login")
+			data = "error-username-or-passwd"
+			return
 		}
 		//提交给登录模块
 		var b bool
 		b = userLogin(w,r,username,passwdSha1)
 		if b == true{
-			goURL(w,r,"/center")
+			data = "success"
+		}else{
+			data = "error-login"
 		}
-		goURL(w,r,"/login")
+		return
 	}
 }
 
@@ -66,5 +74,5 @@ func checkLogged(w http.ResponseWriter, r *http.Request) bool {
 	//确保启动会话
 	startSession()
 	//返回是否已经登录
-	return userCheckLogged(w,r) > 0
+	return userCheckLogged(w,r) != ""
 }

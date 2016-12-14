@@ -31,8 +31,8 @@ func sendLog(message string) {
 //转接用户登录检查模块
 //param w http.ResponseWriter 写入http句柄
 //param r *http.Request 读取http句柄
-//return int 用户ID
-func userCheckLogged(w http.ResponseWriter,r *http.Request) int{
+//return string 用户ID
+func userCheckLogged(w http.ResponseWriter,r *http.Request) string{
 	return user.GetLoginStatus(w,r)
 }
 

@@ -16,27 +16,23 @@ type MatchString struct {
 
 //检查用户名
 //param str string 用户名
-//param min int 最少
-//param max int 最长
 //return bool 是否正确
-func (this *MatchString) CheckUsername(str string,min int,max int) bool {
-	return this.matchStr("^[a-zA-Z][a-zA-Z0-9_]{"+strconv.Itoa(min)+","+strconv.Itoa(max)+"}$", str)
+func (this *MatchString) CheckUsername(str string) bool {
+	return this.matchStr(`^[a-zA-Z0-9_-]{4,16}$`, str)
 }
 
 //验证邮箱
 //param str string 邮箱地址
 //return bool 是否正确
 func (this *MatchString) CheckEmail(str string) bool {
-	return this.matchStr("^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+$", str)
+	return this.matchStr(`^([\w\.\_]{2,10})@(\w{1,}).([a-z]{2,4})$`, str)
 }
 
 //验证密码
 //param str string 密码
-//param min int 最少
-//param max int 最长
 //return bool 是否正确
-func (this *MatchString) CheckPassword(str string,min int,max int) bool {
-	return this.matchStr("^[a-zA-Z0-9]{"+strconv.Itoa(min)+","+strconv.Itoa(max)+",20}$", str)
+func (this *MatchString) CheckPassword(str string) bool {
+	return this.matchStr(`^[a-zA-Z0-9_-]{4,16}$`, str)
 }
 
 //获取字符串的SHA1值
@@ -54,10 +50,10 @@ func (this *MatchString) GetSha1(content string) string {
 }
 
 //匹配验证
-//param str string 要验证的字符串
 //param mStr string 验证
+//param str string 要验证的字符串
 //return bool 是否成功
-func (this *MatchString) matchStr(str string, mStr string) bool {
+func (this *MatchString) matchStr(mStr string,str string) bool {
 	res, err := regexp.MatchString(mStr, str)
 	if err != nil{
 		SendLog(err.Error())

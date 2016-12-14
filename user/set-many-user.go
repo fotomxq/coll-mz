@@ -1,5 +1,9 @@
 package user
 
+import (
+	"gopkg.in/mgo.v2/bson"
+)
+
 //设定数据库
 //设定后单一用户开关将关闭，也就是说系统将默认使用数据库方式查询登录
 //在使用前，务必转移好User全局数据库句柄
@@ -14,24 +18,23 @@ func SetManyUser(username string,password string){
 	var err error
 	num,err = dbColl.Count()
 	if err != nil{
-		sendLog(err.Error())
+		sendLog("user/set-many-user.go","0.0.0.0","SetManyUser","database-count",err.Error())
 		return
 	}
 	if num > 0{
 		return
 	}
 	//构建数据
-	var data UserFields
-	data.nicename = username
-	data.username = username
-	data.password = getPasswdSha1(getSha1(password))
-	data.last_ip = "0.0.0.0"
-	data.last_time = 0
-	data.is_disabled = false
-	err = dbColl.Insert(&data)
-	if err != nil{
-		sendLog(err.Error())
+	var passwordSha1Sha1 string
+	passwordSha1Sha1 = getPasswdSha1(getSha1(password))
+	if passwordSha1Sha1 == ""{
+		sendLog("user/set-many-user.go","0.0.0.0","SetManyUser","password-sha1","无法获取密码的SHA1。")
 		return
 	}
-	sendLog("初始化用户成功，新建立的用户名 : " + username + " , 密码 : " + password + "。")
+	err = dbColl.Insert(&UserFields{bson.NewObjectId(),username,username,passwordSha1Sha1,"0.0.0.0",0,false})
+	if err != nil{
+		sendLog("user/set-many-user.go","0.0.0.0","SetManyUser","insert-new-user",err.Error())
+		return
+	}
+	sendLog("user/set-many-user.go","0.0.0.0","SetManyUser","insert-new-user","成功初始化了平台，用户名："+username+"，密码："+password)
 }

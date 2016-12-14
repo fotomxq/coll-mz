@@ -2,7 +2,6 @@ package user
 
 import (
 	"gopkg.in/mgo.v2/bson"
-	"strconv"
 	"time"
 	"net/http"
 )
@@ -12,40 +11,40 @@ import (
 //获取用户登录ID
 //param w *http.ResponseWriter Http写入对象
 //param r *http.Request Http读取对象
-//return int 登录的用户ID
-func GetLoginStatus(w http.ResponseWriter,r *http.Request) int{
+//return string 登录的用户ID，未登录则返回空字符串
+func GetLoginStatus(w http.ResponseWriter,r *http.Request) string{
 	//获取值
 	var res map[interface{}]interface{}
 	var b bool
 	res,b = SessionOperate.SessionGet(r,Mark,Mark)
 	if b == false{
-		return 0
+		return ""
 	}
 	//检查是否存在值
 	if res["login-id"] == nil || res["login-time"] == nil{
-		res["login-id"] = 0
+		res["login-id"] = ""
 		res["login-time"] = 0
 		_ = SessionOperate.SessionSet(w,r,AppName,Mark,res)
-		return 0
+		return ""
 	}
 	//更新登录时间值
-	if res["login-id"].(int) > 0{
+	if res["login-id"].(string) != ""{
 		var t time.Time
 		t = time.Now()
 		var unixTime int64
 		unixTime = t.Unix()
 		//超出时间，强行退出
 		if UserLoginTimeoutMinute > unixTime - res["login-time"].(int64){
-			var loginID int = 0
+			var loginID string = ""
 			res["login-id"] = loginID
 			_ = SessionOperate.SessionSet(w,r,AppName,Mark,res)
-			return 0
+			return ""
 		}
 		res["login-time"] = unixTime
 		_ = SessionOperate.SessionSet(w,r,AppName,Mark,res)
 	}
 	//返回
-	return res["login-id"].(int)
+	return res["login-id"].(string)
 }
 
 //用户登录
@@ -60,17 +59,34 @@ func Login(w http.ResponseWriter,r *http.Request,username string,passwdSha1 stri
 	var res map[interface{}]interface{}
 	var b bool
 	var err error
+	var loginID string
+	var loginErr int = 0
+	//获取当前时间
+	var t time.Time
+	t = time.Now()
+	var unixTime int64
+	unixTime = t.Unix()
+	//获取session数据
 	res,b = SessionOperate.SessionGet(r,AppName,Mark)
 	if b == false{
 		return false
 	}
-	var loginID int = 0
+	//退出该函数之前确保执行
+	defer loginReturn(w,r,loginID,unixTime,loginErr)
+	//检查是否超过错误次数5次
+	if res["login-error"] != nil{
+		loginErr = res["login-error"].(int)
+		if loginErr > 5{
+			return false
+		}
+	}
 	//是否已经登录，是则返回成功
-	if GetLoginStatus(w,r) > 0{
+	if GetLoginStatus(w,r) != ""{
 		return true
 	}
 	//检查用户名和密码是否合法
 	if checkUsername(username,passwdSha1) == false{
+		loginErr += 1
 		return false
 	}
 	//计算密码
@@ -79,17 +95,13 @@ func Login(w http.ResponseWriter,r *http.Request,username string,passwdSha1 stri
 	//获取IP地址
 	var ipAddr string
 	ipAddr = r.RemoteAddr
-	//获取当前时间
-	var t time.Time
-	t = time.Now()
-	var unixTime int64
-	unixTime = t.Unix()
 	//检查模式
 	if oneUserStatus == true{
 		//如果是单用户模式
 		if oneUsername == username && passwdSha1Sha1 == oneUserpasswd{
-			loginID = 1
+			loginID = "true"
 		}else{
+			loginErr += 1
 			return false
 		}
 	}else{
@@ -97,34 +109,54 @@ func Login(w http.ResponseWriter,r *http.Request,username string,passwdSha1 stri
 		var result UserFields
 		err = dbColl.Find(bson.M{"username":username,"password":passwdSha1Sha1}).One(&result)
 		if err != nil{
-			sendLog(err.Error())
+			sendLog("user/login.go",ipAddr,"Login","many-user-find",err.Error())
+			loginErr += 1
 			return false
 		}
 		//用户存在，则修改登录IP和时间
-		var userID int
-		userID,err = strconv.Atoi(result.id.String())
-		if err != nil{
-			sendLog(err.Error())
-			return false
-		}
-		if userID > 0{
-			err = dbColl.UpdateId(userID,bson.M{"last_ip":ipAddr,"last_time":unixTime})
+		var userID string
+		userID = result.Id_.String()
+		if userID != ""{
+			err = dbColl.UpdateId(userID,bson.M{"lastip":ipAddr,"lasttime":unixTime})
 			if err != nil{
-				sendLog(err.Error())
+				sendLog("user/login.go",ipAddr,"Login","many-user-update",err.Error())
+				loginErr += 1
 				return false
 			}
 			loginID = userID
 		}
 	}
 	//检查是否验证通过
-	if loginID < 1{
+	if loginID == ""{
+		loginErr += 1
 		return false
 	}
 	//输出日志
-	sendLog("用户" + strconv.Itoa(loginID) + "通过IP地址" + ipAddr + "登录了系统。")
-	//修改session
+	sendLog("user/login.go",ipAddr,"Login","login-success","ID为" + loginID + "的用户成功登录了平台。")
+	//修改session并返回
+	loginErr = 0
+	return loginReturn(w,r,loginID,unixTime,loginErr)
+}
+
+//登录完成后调用该模块
+//用户记录Session部分、记录登录失败次数操作
+//param w *http.ResponseWriter Http写入对象
+//param r *http.Request Http读取对象
+//param loginID string 用户ID
+//param unixTime int64 登录unix时间戳
+//param loginErr int 失败次数
+//return bool 记录是否成功
+func loginReturn(w http.ResponseWriter,r *http.Request,loginID string,unixTime int64,loginErr int) bool{
+	var res map[interface{}]interface{}
+	var b bool
+	//为了确保其他存储变量不会被清空，需要先读取再写入
+	res,b = SessionOperate.SessionGet(r,AppName,Mark)
+	if b == false{
+		return false
+	}
 	res["login-id"] = loginID
 	res["login-time"] = unixTime
+	res["login-error"] = loginErr
 	return SessionOperate.SessionSet(w,r,AppName,Mark,res)
 }
 
@@ -138,10 +170,10 @@ func Logout(w http.ResponseWriter,r *http.Request){
 	if b == false{
 		return
 	}
-	if res["login-id"].(int) < 1{
+	if res["login-id"].(string) == ""{
 		return
 	}
-	var loginID int = 0
+	var loginID string
 	res["login-id"] = loginID
 	_ = SessionOperate.SessionSet(w,r,AppName,Mark,res)
 }

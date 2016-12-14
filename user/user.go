@@ -1,9 +1,9 @@
 package user
 
 import (
+	"../core"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"../core"
 )
 
 //用户处理器包
@@ -25,6 +25,9 @@ var MatchString *core.MatchString
 //全局session会话操作
 var SessionOperate *core.SessionOperate
 
+//日志处理器
+var logOperate core.LogOperate
+
 //全局应用名称
 var AppName string
 
@@ -33,12 +36,6 @@ var Mark string
 
 //全局用户自动退出时限
 var UserLoginTimeoutMinute int64
-
-//转接日志输出模块
-//param message string 日志内容
-func sendLog(message string) {
-	core.SendLog(message)
-}
 
 //单一用户模式是否启动
 var oneUserStatus bool
@@ -54,20 +51,32 @@ var dbColl *mgo.Collection
 
 //用户字段组
 type UserFields struct {
-	id bson.ObjectId
-	nicename string
-	username string
-	password string
-	last_ip string
-	last_time int
-	is_disabled bool
+	Id_ bson.ObjectId
+	NiceName string
+	UserName string
+	Password string
+	LastIP string
+	LastTime int64
+	IsDisabled bool
 }
 
 //初始化
-func init() {
+func Init() {
 	oneUserStatus = false
 	table = "user"
 	fields = []string{
-		"_id","nicename","username","password","last_ip","last_time","is_disabled",
+		"_id","nicename","username","password","lastip","lasttime","isdisabled",
 	}
+	logOperate.Init(DB,"user-log")
+}
+
+//日志输出模块
+//param fileName string 文件名称
+//param ipAddr string IP地址
+//param funcName string 函数名称
+//param mark string 标记名称
+//param message string 消息
+func sendLog(fileName string,ipAddr string,funcName string,mark string,message string) {
+	logOperate.SetFileName(fileName)
+	logOperate.SendLog(ipAddr,funcName,mark,message)
 }

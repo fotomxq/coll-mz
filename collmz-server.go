@@ -62,6 +62,7 @@ func main(){
 	user.SessionOperate = &SessionOperate
 	user.MatchString = &MatchString
 	user.UserLoginTimeoutMinute = userLoginTimeoutMinute
+	user.Init()
 	user.SetManyUser(configData["user-username"].(string),configData["user-password"].(string))
 	//将全局变量赋予路由内部
 	handle.AppName = AppName
