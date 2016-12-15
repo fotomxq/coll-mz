@@ -34,7 +34,7 @@ type User struct {
 	//标识码，用于session小集合
 	mark string
 	//用户自动退出时限，单位：秒
-	userLoginTimeoutMinute int64
+	userLoginTimeout int64
 	//单一用户模式是否启动
 	oneUserStatus bool
 	//初始化或单一用户名和密码
@@ -63,7 +63,7 @@ type UserParams struct {
 	//标识码，用于session小集合
 	Mark string
 	//用户自动退出时限，单位：秒
-	UserLoginTimeoutMinute int64
+	userLoginTimeout int64
 	//单一用户模式是否启动
 	OneUserStatus bool
 	//初始化或单一用户名和密码
@@ -114,7 +114,7 @@ func (this *User) Init(params *UserParams) {
 	this.logOperate = params.LogOperate
 	this.appName = params.AppName
 	this.mark = params.Mark
-	this.userLoginTimeoutMinute = params.UserLoginTimeoutMinute
+	this.userLoginTimeout = params.userLoginTimeout
 	this.oneUserStatus = params.OneUserStatus
 	this.oneUsername = params.OneUsername
 	this.onePassword = this.getPasswdSha1(this.getSha1(params.OnePassword))
@@ -186,7 +186,7 @@ func (this *User) GetLoginStatus(w http.ResponseWriter,r *http.Request) string{
 		var unixTime int64
 		unixTime = t.Unix()
 		//超出时间，强行退出
-		if this.userLoginTimeoutMinute < unixTime - res.lastTime{
+		if this.userLoginTimeout < unixTime - res.lastTime{
 			res.userID = ""
 			_ = this.setSession(w,r,res)
 			this.sendLog(r.RemoteAddr,"User.GetLoginStatus","user-login-timeout-minute",res.userID+"用户登录超时，自动退出。")
@@ -254,7 +254,7 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 	}else{
 		//如果是多用户模式
 		var result UserFields
-		err = this.dbColl.Find(bson.M{"username":username,"password":passwdSha1Sha1}).One(&result)
+		err = this.dbColl.Find(bson.M{"username":username,"password":passwdSha1Sha1,"isdisabled":false}).One(&result)
 		if err != nil{
 			this.sendLog(ipAddr,"Login","many-user-find",err.Error())
 			res.loginErrorNum += 1

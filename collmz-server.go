@@ -66,18 +66,14 @@ func main(){
 
 	//创建SESSION
 	var sessionIPBind bool
-	if configData["session-ip-bind"].(string) == "true"{
-		sessionIPBind = true
-	}
-	var sessionDB bool
-	if configData["session-db"].(string) == "true"{
-		sessionDB = true
-	}
-	SessionOperate.Create(AppMark,DB,sessionIPBind,sessionDB)
+	sessionIPBind = configData["session-ip-bind"].(string) == "true"
+	var sessionTimeout int
+	sessionTimeout = strconv.Itoa(configData["session-timeout"].(string))
+	SessionOperate.Create(AppMark,DB,sessionIPBind,sessionTimeout,&MatchString)
 
-	//构建用户处理器var userLoginTimeoutMinute int64
-	var userLoginTimeoutMinute int64
-	userLoginTimeoutMinute,err = strconv.ParseInt(configData["user-login-timeout-minute"].(string),10,64)
+	//构建用户处理器var userLoginTimeout int64
+	var userLoginTimeout int64
+	userLoginTimeout,err = strconv.ParseInt(configData["user-login-timeout"].(string),10,64)
 	if err != nil{
 		core.SendLog(err.Error())
 		return
@@ -90,7 +86,7 @@ func main(){
 		&LogOperate,
 		AppMark,
 		AppMark,
-		userLoginTimeoutMinute,
+		userLoginTimeout,
 		userOneStatus,
 		configData["user-username"].(string),
 		configData["user-password"].(string)})
