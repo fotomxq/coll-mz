@@ -69,7 +69,11 @@ func main(){
 	if configData["session-ip-bind"].(string) == "true"{
 		sessionIPBind = true
 	}
-	SessionOperate.Create(AppMark,DB,sessionIPBind)
+	var sessionDB bool
+	if configData["session-db"].(string) == "true"{
+		sessionDB = true
+	}
+	SessionOperate.Create(AppMark,DB,sessionIPBind,sessionDB)
 
 	//构建用户处理器var userLoginTimeoutMinute int64
 	var userLoginTimeoutMinute int64

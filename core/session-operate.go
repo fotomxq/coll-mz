@@ -23,9 +23,13 @@ type SessionOperate struct {
 	//存储session数据的数据库集合
 	dbCollStore *mgo.Collection
 	//session是否和IP绑定
-	//如果绑定，则cookie必须和IP地址一致
-	//潜在可能造成用户特殊环境下，变化IP地址后自动退出的情况
+	//如果绑定，则cookie值必须和IP地址一致
+	//会造成用户特殊环境下，变化IP地址后自动退出的情况，常见于移动端访问。
 	sessionIPBind bool
+	//是否启动数据库存储session数据
+	//如果是，则cookie主要用于构建标识信息，其他所有数据将交给服务器。这必然会加重服务器负担，但会提高安全性、降低带宽传输成本。
+	//如果不是，则cookie将通过可逆向的加密方式，直接存储到cookie内。这会加重用户和服务器的带宽成本，牺牲安全性（前提是解密字符串泄漏）。
+	sessionDB bool
 }
 
 //创建会话
@@ -33,12 +37,13 @@ type SessionOperate struct {
 //param name string 标记
 //param db *mgo.Database 数据库句柄
 //param sessionIPBind bool 是否和IP绑定
-func (this *SessionOperate) Create(name string,db *mgo.Database,sessionIPBind bool) {
+func (this *SessionOperate) Create(name string,db *mgo.Database,sessionIPBind bool,sessionDB bool) {
 	this.appName = []byte(name)
 	this.store = sessions.NewCookieStore(this.appName)
 	this.status = true
 	this.dbCollStore = db.C("session-store")
 	this.sessionIPBind = sessionIPBind
+	this.sessionDB = sessionDB
 }
 
 //获取会话标记对象
