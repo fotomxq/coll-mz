@@ -1,14 +1,17 @@
 package core
 
 import (
-	"github.com/gorilla/sessions"
 	"net/http"
-	"gopkg.in/mgo.v2"
 	"time"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"encoding/json"
 )
 
 //操作Session会话
+//警告：
+// 使用该模块操作cookie，会降低系统整体运行效率，但会提升整体安全性。
+// 可有效避免跨站请求、伪造cookie漏洞
 //依赖内部库：
 // core.LogOperate
 //依赖外部库：
@@ -17,7 +20,7 @@ import (
 //Session操作类型
 type SessionOperate struct {
 	//应用名称
-	appName []byte
+	appName string
 	//cookie句柄
 	store http.Cookie
 	//验证处理句柄
@@ -37,7 +40,7 @@ type SessionFields struct {
 	ID bson.ObjectId `bson:"_id"`
 	Name string
 	IP string
-	Value map[string]interface{}
+	Value string
 }
 
 //创建会话
@@ -49,7 +52,7 @@ type SessionFields struct {
 //param MatchString *MatchString 验证模块
 func (this *SessionOperate) Create(appName string,db *mgo.Database,sessionIPBind bool,sessionTimeout int,MatchString *MatchString) {
 	//保存变量
-	this.appName = []byte(appName)
+	this.appName = appName
 	this.sessionIPBind = sessionIPBind
 	this.sessionTimeout = sessionTimeout
 	this.MatchString = MatchString
@@ -59,54 +62,75 @@ func (this *SessionOperate) Create(appName string,db *mgo.Database,sessionIPBind
 //获取会话标记对象
 //param w *http.ResponseWriter Http写入对象
 //param r *http.Request Http读取对象
-//param name string 变量信息
-//return map[interface{}]interface{}, bool 会话变量组合，是否失败
-func (this *SessionOperate) SessionGet(w http.ResponseWriter,r *http.Request,name string) (map[interface{}]interface{}, bool) {
-	//初始化变量
-	var res map[interface{}]interface{}
-	//获取标识信息
-	var mark string
-	mark = this.getCookieValue(w,r)
-	if mark == ""{
-		return res,false
+//param name string 标记
+//return map[string]interface{}, bool 会话变量组合，是否失败
+func (this *SessionOperate) SessionGet(w http.ResponseWriter,r *http.Request,name string) (map[string]interface{}, bool) {
+	//获取数据
+	var res map[string]map[string]interface{}
+	var result *SessionFields
+	var b bool
+	result,b = this.getData(w,r)
+	if b == false{
+		return map[string]interface{}{},false
 	}
-	//在数据库查找该值
-	this.dbCollStore.Find(bson.M{"_id"})
-
-	//获取session数据
-	s, err := this.store.Get(r, mark)
-	if err != nil {
-		Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.SessionGet","store-get",err.Error())
-		return res, false
+	//如果不存在数据，则返回
+	if result.Value == ""{
+		return map[string]interface{}{},true
 	}
-	//返回
-	return s.Values, true
+	//解析数据
+	err = json.Unmarshal([]byte(result.Value),&res)
+	if err != nil{
+		Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.SessionGet","un-json",err.Error())
+	}
+	//如果不存在数据，则返回
+	if res[name] == nil{
+		return map[string]interface{}{},true
+	}
+	//返回数据集合
+	return res[name],true
 }
 
 //写入会话数据
 //param w *http.ResponseWriter Http写入对象
 //param r *http.Request Http读取对象
-//param appName string 应用标记
-//param mark string 会话标记
-//param data map[interface{}]interface{} 会话变量组合
+//param name string 标记
+//param data map[string]interface{} 会话变量组合
 //return bool 是否失败
-func (this *SessionOperate) SessionSet(w http.ResponseWriter, r *http.Request,appName string,mark string, data map[interface{}]interface{}) bool {
-	//确保session启动
-	if this.status == false{
-		this.store = sessions.NewCookieStore(this.appName)
-		this.status = true
-	}
-	//获取session值
-	s, err := this.store.Get(r, mark)
-	if err != nil {
-		Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.SessionSet","store-get",err.Error())
+func (this *SessionOperate) SessionSet(w http.ResponseWriter, r *http.Request,name string, data map[string]interface{}) bool {
+	//获取数据
+	var result *SessionFields
+	var b bool
+	result,b = this.getData(w,r)
+	if b == false{
 		return false
 	}
-	//保存到session
-	s.Values = data
-	err = s.Save(r, w)
-	if err != nil {
-		Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.SessionSet","store-save",err.Error())
+	//解析数据，并覆盖数据
+	var res map[string]map[string]interface{}
+	if result.Value != ""{
+		err = json.Unmarshal([]byte(result.Value),&res)
+		if err != nil{
+			Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.SessionSet","un-json",err.Error())
+			return false
+		}
+		res[name] = data
+	}else{
+		res = map[string]map[string]interface{}{
+			name : data,
+		}
+	}
+	//JSON
+	var resJsonByte []byte
+	resJsonByte,err = json.Marshal(res)
+	if err != nil{
+		Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.SessionSet","en-json",err.Error())
+		return false
+	}
+	var resJson string
+	resJson = string(resJsonByte)
+	//写入数据库
+	err = this.dbCollStore.UpdateId(bson.ObjectIdHex(result.ID.Hex()),bson.M{"$set":bson.M{"value":resJson}})
+	if err != nil{
+		Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.SessionSet","update-db",err.Error())
 		return false
 	}
 	//返回
@@ -120,7 +144,6 @@ func (this *SessionOperate) SessionSet(w http.ResponseWriter, r *http.Request,ap
 func (this *SessionOperate) getCookieValue(w http.ResponseWriter, r *http.Request) string{
 	//初始化cookie值
 	var cookieValue *http.Cookie
-	var res string
 	//查找cookie
 	cookieValue,err = r.Cookie(this.appName)
 	if err != nil{
@@ -128,10 +151,10 @@ func (this *SessionOperate) getCookieValue(w http.ResponseWriter, r *http.Reques
 		var mark string
 		mark = this.getCookieMark(r)
 		if mark == ""{
-			return res
+			return ""
 		}
 		//设定cookie
-		cookieValue = *http.Cookie{
+		cookieValue = &http.Cookie{
 			Name:   this.appName,
 			Value:    mark,
 			Path:     "/",
@@ -139,6 +162,12 @@ func (this *SessionOperate) getCookieValue(w http.ResponseWriter, r *http.Reques
 			MaxAge:   this.sessionTimeout,
 		}
 		http.SetCookie(w,cookieValue)
+		//将数据保存到数据库中
+		err = this.dbCollStore.Insert(&SessionFields{bson.NewObjectId(),mark,r.RemoteAddr,""})
+		if err != nil{
+			Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.getCookieValue","insert-db",err.Error())
+			return ""
+		}
 		//解析返回数据，直接将mark作为返回值
 		return mark
 	}
@@ -161,4 +190,33 @@ func (this *SessionOperate) getCookieMark(r *http.Request) string{
 		return ""
 	}
 	return mark
+}
+
+//获取数据集合数据
+//param w *http.ResponseWriter Http写入对象
+//param r *http.Request Http读取对象
+//return *SessionFields,bool 数据集合，是否成功
+func (this *SessionOperate) getData(w http.ResponseWriter, r *http.Request) (*SessionFields,bool){
+	//初始化变量
+	var res SessionFields
+	//获取标识信息
+	var mark string
+	mark = this.getCookieValue(w,r)
+	if mark == ""{
+		return &res,false
+	}
+	//在数据库查找该值
+	err = this.dbCollStore.Find(bson.M{"name":mark}).One(&res)
+	if err != nil{
+		Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.getData","get-database",err.Error())
+		return &res,false
+	}
+	//如果当前IP地址和结果IP不一致，则返回
+	if this.sessionIPBind == true{
+		if res.IP != r.RemoteAddr{
+			Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.getData","ip-no-bind","客户端IP地址和Cookie记录IP地址不符。")
+			return &res,false
+		}
+	}
+	return &res,true
 }

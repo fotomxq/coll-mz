@@ -68,7 +68,11 @@ func main(){
 	var sessionIPBind bool
 	sessionIPBind = configData["session-ip-bind"].(string) == "true"
 	var sessionTimeout int
-	sessionTimeout = strconv.Itoa(configData["session-timeout"].(string))
+	sessionTimeout,err = strconv.Atoi(configData["session-timeout"].(string))
+	if err != nil{
+		core.SendLog(err.Error())
+		return
+	}
 	SessionOperate.Create(AppMark,DB,sessionIPBind,sessionTimeout,&MatchString)
 
 	//构建用户处理器var userLoginTimeout int64

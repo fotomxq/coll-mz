@@ -63,7 +63,7 @@ type UserParams struct {
 	//标识码，用于session小集合
 	Mark string
 	//用户自动退出时限，单位：秒
-	userLoginTimeout int64
+	UserLoginTimeout int64
 	//单一用户模式是否启动
 	OneUserStatus bool
 	//初始化或单一用户名和密码
@@ -114,7 +114,7 @@ func (this *User) Init(params *UserParams) {
 	this.logOperate = params.LogOperate
 	this.appName = params.AppName
 	this.mark = params.Mark
-	this.userLoginTimeout = params.userLoginTimeout
+	this.userLoginTimeout = params.UserLoginTimeout
 	this.oneUserStatus = params.OneUserStatus
 	this.oneUsername = params.OneUsername
 	this.onePassword = this.getPasswdSha1(this.getSha1(params.OnePassword))
@@ -335,6 +335,13 @@ func (this *User) GetList(search string,page int,max int,sort int,desc bool) (*[
 	if desc == true{
 		sortStr = "-" + sortStr
 	}
+	//限制max最大值和最小值
+	if max > 100 {
+		max = 100
+	}
+	if max < 1 {
+		max = 1
+	}
 	//获取数据
 	var result []UserFields
 	var err error
@@ -492,9 +499,9 @@ func (this *User) sendLog(ipAddr string,funcName string,mark string,message stri
 //return UserSession,bool Session信息组，是否成功
 func (this *User) getSession(w http.ResponseWriter,r *http.Request) (*UserSession,bool){
 	var result UserSession
-	var res map[interface{}]interface{}
+	var res map[string]interface{}
 	var b bool
-	res,b = this.sessionOperate.SessionGet(r,this.appName,this.mark)
+	res,b = this.sessionOperate.SessionGet(w,r,this.mark)
 	if b == false{
 		this.sendLog(r.RemoteAddr,"User.getSession","get-session-res","无法获取session数据。")
 		return &result,false
@@ -503,7 +510,7 @@ func (this *User) getSession(w http.ResponseWriter,r *http.Request) (*UserSessio
 		res["login-user-id"] = string("")
 		res["login-last-time"] = int64(0)
 		res["login-error-num"] = int(0)
-		b = this.sessionOperate.SessionSet(w,r,this.appName,this.mark,res)
+		b = this.sessionOperate.SessionSet(w,r,this.mark,res)
 		if b == false{
 			this.sendLog(r.RemoteAddr,"User.getSession","set-session-res","无法设定session数据。")
 		}
@@ -520,9 +527,9 @@ func (this *User) getSession(w http.ResponseWriter,r *http.Request) (*UserSessio
 //param data UserSession Session信息组
 //return bool 是否成功
 func (this *User) setSession(w http.ResponseWriter,r *http.Request,data *UserSession) bool {
-	var res map[interface{}]interface{}
+	var res map[string]interface{}
 	var b bool
-	res,b = this.sessionOperate.SessionGet(r,this.appName,this.mark)
+	res,b = this.sessionOperate.SessionGet(w,r,this.mark)
 	if b == false{
 		this.sendLog(r.RemoteAddr,"User.setSession","get-session-res","无法获取session数据。")
 		return false
@@ -530,7 +537,7 @@ func (this *User) setSession(w http.ResponseWriter,r *http.Request,data *UserSes
 	res["login-user-id"] = data.userID
 	res["login-last-time"] = data.lastTime
 	res["login-error-num"] = data.loginErrorNum
-	b = this.sessionOperate.SessionSet(w,r,this.appName,this.mark,res)
+	b = this.sessionOperate.SessionSet(w,r,this.mark,res)
 	if b == false{
 		this.sendLog(r.RemoteAddr,"User.setSession","set-session-res","无法设定session数据。")
 	}
