@@ -21,14 +21,14 @@ func IPAddrsGetExternal() string {
 	var resp *http.Response
 	resp, err = http.Get(url)
 	if err != nil {
-		LogOperate.SendLog("core/ip-addrs.go","0.0.0.0","IPAddrsGetExternal","http-get",err.Error())
+		Log.SendLog("core/ip-addrs.go","0.0.0.0","IPAddrsGetExternal","http-get",err.Error())
 		return "0.0.0.0"
 	}
 	defer resp.Body.Close()
 	var body []byte
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		LogOperate.SendLog("core/ip-addrs.go","0.0.0.0","IPAddrsGetExternal","ioutil-read-all",err.Error())
+		Log.SendLog("core/ip-addrs.go","0.0.0.0","IPAddrsGetExternal","ioutil-read-all",err.Error())
 		return "0.0.0.0"
 	}
 	var html string
@@ -43,7 +43,7 @@ func IPAddrsGetExternal() string {
 func IPAddrsGetInternal() string {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		LogOperate.SendLog("core/ip-addrs.go","0.0.0.0","IPAddrsGetInternal","get-interface-addrs",err.Error())
+		Log.SendLog("core/ip-addrs.go","0.0.0.0","IPAddrsGetInternal","get-interface-addrs",err.Error())
 		return "0.0.0.0"
 	}
 	for _, v := range addrs {

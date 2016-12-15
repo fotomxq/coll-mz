@@ -29,13 +29,13 @@ func (this *Tcp) ServerListen(host string,handle func(*net.TCPConn)){
 	this.tcpAddr, err = net.ResolveTCPAddr("tcp", host)
 	if err != nil{
 		SendLog(err.Error())
-		LogOperate.SendLog("core/tcp.go","0.0.0.0","Tcp.ServerListen","resolve-tcp-addr",err.Error())
+		Log.SendLog("core/tcp.go","0.0.0.0","Tcp.ServerListen","resolve-tcp-addr",err.Error())
 		return
 	}
 	tcpListener, err := net.ListenTCP("tcp", this.tcpAddr)
 	if err != nil{
 		SendLog(err.Error())
-		LogOperate.SendLog("core/tcp.go","0.0.0.0","Tcp.ServerListen","tcp-listener-error",err.Error())
+		Log.SendLog("core/tcp.go","0.0.0.0","Tcp.ServerListen","tcp-listener-error",err.Error())
 		return
 	}
 	defer tcpListener.Close()
@@ -43,7 +43,7 @@ func (this *Tcp) ServerListen(host string,handle func(*net.TCPConn)){
 		conn, err := tcpListener.AcceptTCP()
 		if err != nil{
 			SendLog(err.Error())
-			LogOperate.SendLog("core/tcp.go","0.0.0.0","Tcp.ServerListen","accept-tCP-error",err.Error())
+			Log.SendLog("core/tcp.go","0.0.0.0","Tcp.ServerListen","accept-tCP-error",err.Error())
 			this.serverStatus = false
 			continue
 		}
@@ -64,13 +64,13 @@ func (this *Tcp) ClientListen(host string,handle func(*net.TCPConn)){
 	this.tcpAddr, err = net.ResolveTCPAddr("tcp", host)
 	if err != nil{
 		SendLog(err.Error())
-		LogOperate.SendLog("core/tcp.go","0.0.0.0","Tcp.ClientListen","resolve-tcp-addr-error",err.Error())
+		Log.SendLog("core/tcp.go","0.0.0.0","Tcp.ClientListen","resolve-tcp-addr-error",err.Error())
 		return
 	}
 	conn, err := net.DialTCP("tcp", nil, this.tcpAddr)
 	if err != nil{
 		SendLog(err.Error())
-		LogOperate.SendLog("core/tcp.go","0.0.0.0","Tcp.ClientListen","dial-tcp-error",err.Error())
+		Log.SendLog("core/tcp.go","0.0.0.0","Tcp.ClientListen","dial-tcp-error",err.Error())
 		return
 	}
 	defer conn.Close()

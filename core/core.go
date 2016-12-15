@@ -9,7 +9,7 @@ var err error
 var PathSeparator string
 
 //日志操作句柄
-var LogOperate *LogOperate
+var Log *LogOperate
 
 //核心类
 type ControlCore struct {

@@ -8,5 +8,6 @@
   "language" : "chinese",
   "server-host" : ":8889",
   "mgo-host" : "127.0.0.1:27017",
-  "mgo-db" : "collmz"
+  "mgo-db" : "collmz",
+  "session-ip-bind" : "true"
 }

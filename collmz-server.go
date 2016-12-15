@@ -62,10 +62,14 @@ func main(){
 	LogOperate.Init(DB,AppMark)
 
 	//将日志句柄赋予给core
-	core.LogOperate = &LogOperate
+	core.Log = &LogOperate
 
 	//创建SESSION
-	SessionOperate.Create(AppMark)
+	var sessionIPBind bool
+	if configData["session-ip-bind"].(string) == "true"{
+		sessionIPBind = true
+	}
+	SessionOperate.Create(AppMark,DB,sessionIPBind)
 
 	//构建用户处理器var userLoginTimeoutMinute int64
 	var userLoginTimeoutMinute int64

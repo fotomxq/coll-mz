@@ -78,8 +78,6 @@ func sendLog(fileName string,ipAddr string,funcName string,mark string,message s
 //param r *http.Request 读取http句柄
 //return string 用户ID
 func userCheckLogged(w http.ResponseWriter,r *http.Request) string{
-	//确保启动会话
-	startSession()
 	//返回登录用户ID，无登录或失败则返回空字符串
 	return glob.UserOperate.GetLoginStatus(w,r)
 }
