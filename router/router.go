@@ -22,10 +22,14 @@ type GlobOperate struct{
 	SessionOperate *core.SessionOperate
 	//日志句柄
 	LogOperate *core.LogOperate
+	//IP名单处理器
+	IPAddrOperate *core.IPAddrBan
 	//APP名称
 	AppName string
 	//用户句柄
 	UserOperate *core.User
+	//验证处理句柄
+	MatchString *core.MatchString
 }
 
 //初始化
@@ -97,4 +101,29 @@ func userLogin(w http.ResponseWriter,r *http.Request,username string,passwdSha1 
 //param r *http.Request 读取http句柄
 func userLogout(w http.ResponseWriter,r *http.Request){
 	glob.UserOperate.Logout(w,r)
+}
+
+//转接获取IP地址模块
+//param r *http.Request Http读取对象
+//return string IP地址
+func getIPAddr(r *http.Request) string{
+	return core.IPAddrsGetRequest(r)
+}
+
+//检查IP是否可访问
+//param r *http.Request 读取http句柄
+//return bool 是否可通行
+func checkIP(r *http.Request) bool{
+	//检查是否为伪造IP，或注入代码的IP头
+	var ipAddr string
+	ipAddr = getIPAddr(r)
+	if ipAddr == ""{
+		return false
+	}
+	//检查是否为IP地址
+	if glob.MatchString.CheckIP(ipAddr) == false{
+		return false
+	}
+	//检查是否可通行
+	return glob.IPAddrOperate.CheckList(ipAddr)
 }

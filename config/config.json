@@ -9,6 +9,8 @@
   "server-host" : ":8889",
   "mgo-host" : "127.0.0.1:27017",
   "mgo-db" : "collmz",
-  "session-ip-bind" : "false",
-  "session-timeout" : "86400"
+  "session-ip-bind" : "true",
+  "session-timeout" : "86400",
+  "ip-ban-on" : "true",
+  "ip-white-on" : "true"
 }

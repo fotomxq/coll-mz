@@ -92,11 +92,11 @@ type UserFields struct {
 //Session结构
 type UserSession struct {
 	//当前登录的用户ID
-	userID string
+	UserID string
 	//最后一次活动时间，unix时间戳
-	lastTime int64
+	LastTime int64
 	//登录时发生错误次数
-	loginErrorNum int
+	LoginErrorNum int
 }
 
 //初始化
@@ -176,26 +176,26 @@ func (this *User) GetLoginStatus(w http.ResponseWriter,r *http.Request) string{
 	if b == false{
 		return ""
 	}
-	if res.userID == ""{
+	if res.UserID == ""{
 		return ""
 	}
 	//更新登录时间值
-	if res.userID != ""{
+	if res.UserID != ""{
 		var t time.Time
 		t = time.Now()
 		var unixTime int64
 		unixTime = t.Unix()
 		//超出时间，强行退出
-		if this.userLoginTimeout < unixTime - res.lastTime{
-			res.userID = ""
+		if this.userLoginTimeout < unixTime - res.LastTime{
+			res.UserID = ""
 			_ = this.setSession(w,r,res)
-			this.sendLog(r.RemoteAddr,"User.GetLoginStatus","user-login-timeout-minute",res.userID+"用户登录超时，自动退出。")
+			this.sendLog(r.RemoteAddr,"User.GetLoginStatus","user-login-timeout-minute",res.UserID+"用户登录超时，自动退出。")
 		}
-		res.lastTime = unixTime
+		res.LastTime = unixTime
 		_ = this.setSession(w,r,res)
 	}
 	//返回
-	return res.userID
+	return res.UserID
 }
 
 //用户登录
@@ -221,7 +221,7 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 		return false
 	}
 	//检查是否超过错误次数5次
-	if res.loginErrorNum > 5{
+	if res.LoginErrorNum > 5{
 		_ = this.setSession(w,r,res)
 		return false
 	}
@@ -231,7 +231,7 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 	}
 	//检查用户名和密码是否合法
 	if this.checkUsername(username,passwdSha1) == false{
-		res.loginErrorNum += 1
+		res.LoginErrorNum += 1
 		_ = this.setSession(w,r,res)
 		return false
 	}
@@ -240,14 +240,14 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 	passwdSha1Sha1 = this.getPasswdSha1(passwdSha1)
 	//获取IP地址
 	var ipAddr string
-	ipAddr = r.RemoteAddr
+	ipAddr = IPAddrsGetRequest(r)
 	//检查模式
 	if this.oneUserStatus == true{
 		//如果是单用户模式
 		if this.oneUsername == username && passwdSha1Sha1 == this.onePassword{
-			res.userID = "one-true"
+			res.UserID = "one-true"
 		}else{
-			res.loginErrorNum += 1
+			res.LoginErrorNum += 1
 			_ = this.setSession(w,r,res)
 			return false
 		}
@@ -257,7 +257,7 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 		err = this.dbColl.Find(bson.M{"username":username,"password":passwdSha1Sha1,"isdisabled":false}).One(&result)
 		if err != nil{
 			this.sendLog(ipAddr,"Login","many-user-find",err.Error())
-			res.loginErrorNum += 1
+			res.LoginErrorNum += 1
 			_ = this.setSession(w,r,res)
 			return false
 		}
@@ -268,22 +268,22 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 			err = this.dbColl.Update(bson.M{"_id":bson.ObjectIdHex(userID)},bson.M{"$set":bson.M{"lastip":ipAddr,"lasttime":unixTime}})
 			if err != nil{
 				this.sendLog(ipAddr,"Login","many-user-update",err.Error() + " , user id : "+userID+" , lastip : "+ipAddr+" , lasttime : "+strconv.FormatInt(unixTime,10))
-				res.loginErrorNum += 1
+				res.LoginErrorNum += 1
 				this.setSession(w,r,res)
 				return false
 			}
-			res.userID = userID
+			res.UserID = userID
 		}else{
-			res.loginErrorNum += 1
+			res.LoginErrorNum += 1
 			_ = this.setSession(w,r,res)
 			return false
 		}
 	}
 	//输出日志
-	this.sendLog(ipAddr,"Login","login-success","ID为" + res.userID + "的用户成功登录了平台。")
+	this.sendLog(ipAddr,"Login","login-success","ID为" + res.UserID + "的用户成功登录了平台。")
 	//修改session并返回
-	res.lastTime = unixTime
-	res.loginErrorNum = 0
+	res.LastTime = unixTime
+	res.LoginErrorNum = 0
 	return this.setSession(w,r,res)
 }
 
@@ -292,7 +292,7 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 //param r *http.Request Http读取对象
 func (this *User) Logout(w http.ResponseWriter,r *http.Request){
 	var res UserSession
-	res.userID = ""
+	res.UserID = ""
 	_ = this.setSession(w,r,&res)
 }
 
@@ -499,25 +499,25 @@ func (this *User) sendLog(ipAddr string,funcName string,mark string,message stri
 //return UserSession,bool Session信息组，是否成功
 func (this *User) getSession(w http.ResponseWriter,r *http.Request) (*UserSession,bool){
 	var result UserSession
-	var res map[string]interface{}
+	var res map[string]string
 	var b bool
 	res,b = this.sessionOperate.SessionGet(w,r,"login")
 	if b == false{
 		this.sendLog(r.RemoteAddr,"User.getSession","get-session-res","无法获取session数据。")
 		return &result,false
 	}
-	if res["login-user-id"] == nil || res["login-last-time"] == nil || res["login-error-num"] == nil {
-		res["login-user-id"] = string("")
-		res["login-last-time"] = int64(0)
-		res["login-error-num"] = int(0)
+	if res["login-user-id"] == "" || res["login-last-time"] == "" || res["login-error-num"] == "" {
+		res["login-user-id"] = ""
+		res["login-last-time"] = ""
+		res["login-error-num"] = ""
 		b = this.sessionOperate.SessionSet(w,r,"login",res)
 		if b == false{
 			this.sendLog(r.RemoteAddr,"User.getSession","set-session-res","无法设定session数据。")
 		}
 	}
-	result.userID = res["login-user-id"].(string)
-	result.lastTime,_ = strconv.ParseInt(res["login-last-time"].(string),10,8)
-	result.loginErrorNum = res["login-error-num"].(int)
+	result.UserID = res["login-user-id"]
+	result.LastTime,_ = strconv.ParseInt(res["login-last-time"],10,64)
+	result.LoginErrorNum,_ = strconv.Atoi(res["login-error-num"])
 	return &result,true
 }
 
@@ -527,16 +527,16 @@ func (this *User) getSession(w http.ResponseWriter,r *http.Request) (*UserSessio
 //param data UserSession Session信息组
 //return bool 是否成功
 func (this *User) setSession(w http.ResponseWriter,r *http.Request,data *UserSession) bool {
-	var res map[string]interface{}
+	var res map[string]string
 	var b bool
 	res,b = this.sessionOperate.SessionGet(w,r,"login")
 	if b == false{
 		this.sendLog(r.RemoteAddr,"User.setSession","get-session-res","无法获取session数据。")
 		return false
 	}
-	res["login-user-id"] = data.userID
-	res["login-last-time"] = data.lastTime
-	res["login-error-num"] = data.loginErrorNum
+	res["login-user-id"] = data.UserID
+	res["login-last-time"] = strconv.FormatInt(data.LastTime,10)
+	res["login-error-num"] = strconv.Itoa(data.LoginErrorNum)
 	b = this.sessionOperate.SessionSet(w,r,"login",res)
 	if b == false{
 		this.sendLog(r.RemoteAddr,"User.setSession","set-session-res","无法设定session数据。")

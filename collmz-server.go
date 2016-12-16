@@ -27,6 +27,9 @@ var LogOperate core.LogOperate
 //全局用户操作句柄
 var UserOperate core.User
 
+//IP黑名单处理器
+var IPAddrOperate core.IPAddrBan
+
 //控制器主程序
 //该函数用于启动整个项目
 func main(){
@@ -95,13 +98,26 @@ func main(){
 		configData["user-username"].(string),
 		configData["user-password"].(string)})
 
+	//创建IP名单处理器
+	var ipBanOn bool
+	ipBanOn = configData["ip-ban-on"].(string) == "true"
+	var ipWriteOn bool
+	ipWriteOn = configData["ip-white-on"].(string) == "true"
+	IPAddrOperate.Init(DB,ipBanOn,ipWriteOn)
+
+	//test 将IP添加到白名单内
+	IPAddrOperate.SaveToList("[::1]",false)
+
 	//初始化路由
 	router.Init(&router.GlobOperate{
 		DB,
 		&SessionOperate,
 		&LogOperate,
+		&IPAddrOperate,
 		AppMark,
-		&UserOperate})
+		&UserOperate,
+		&MatchString,
+	})
 	//启动服务器
 	router.RunSever(configData["server-host"].(string))
 }

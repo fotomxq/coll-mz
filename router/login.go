@@ -10,6 +10,10 @@ import (
 //param w http.ResponseWriter 写入http句柄
 //param r *http.Request 读取http句柄
 func PageLogin(w http.ResponseWriter, r *http.Request) {
+	//检查IP是否可访问
+	if checkIP(r) == false{
+		return
+	}
 	//检查是否已经登录
 	if userCheckLogged(w, r) != "" {
 		goURL(w, r, "/center")
@@ -25,6 +29,10 @@ func PageLogin(w http.ResponseWriter, r *http.Request) {
 //param w http.ResponseWriter 写入http句柄
 //param r *http.Request 读取http句柄
 func ActionLogin(w http.ResponseWriter, r *http.Request) {
+	//检查IP是否可访问
+	if checkIP(r) == false{
+		return
+	}
 	//初始化变量
 	var data string = "no-login"
 	defer postJSONData(w,r,&data,true)
@@ -63,6 +71,10 @@ func ActionLogin(w http.ResponseWriter, r *http.Request) {
 //param w http.ResponseWriter 写入http句柄
 //param r *http.Request 读取http句柄
 func ActionLogout(w http.ResponseWriter, r *http.Request){
+	//检查IP是否可访问
+	if checkIP(r) == false{
+		return
+	}
 	if userCheckLogged(w,r) != ""{
 		userLogout(w,r)
 	}

@@ -9,6 +9,7 @@ import (
 )
 
 //操作Session会话
+// 内部数据必须统一为string
 //警告：
 // 使用该模块操作cookie，会降低系统整体运行效率，但会提升整体安全性。
 // 可有效避免跨站请求、伪造cookie漏洞
@@ -62,19 +63,19 @@ func (this *SessionOperate) Create(appName string,db *mgo.Database,sessionIPBind
 //param w *http.ResponseWriter Http写入对象
 //param r *http.Request Http读取对象
 //param name string 标记
-//return map[string]interface{}, bool 会话变量组合，是否失败
-func (this *SessionOperate) SessionGet(w http.ResponseWriter,r *http.Request,name string) (map[string]interface{}, bool) {
+//return map[string]string, bool 会话变量组合，是否失败
+func (this *SessionOperate) SessionGet(w http.ResponseWriter,r *http.Request,name string) (map[string]string, bool) {
 	//获取数据
-	var res map[string]map[string]interface{}
+	var res map[string]map[string]string
 	var result *SessionFields
 	var b bool
 	result,b = this.getData(w,r)
 	if b == false{
-		return map[string]interface{}{},false
+		return map[string]string{},false
 	}
 	//如果不存在数据，则返回
 	if result.Value == ""{
-		return map[string]interface{}{},true
+		return map[string]string{},true
 	}
 	//解析数据
 	err = json.Unmarshal([]byte(result.Value),&res)
@@ -83,7 +84,7 @@ func (this *SessionOperate) SessionGet(w http.ResponseWriter,r *http.Request,nam
 	}
 	//如果不存在数据，则返回
 	if res[name] == nil{
-		return map[string]interface{}{},true
+		return map[string]string{},true
 	}
 	//返回数据集合
 	return res[name],true
@@ -93,9 +94,9 @@ func (this *SessionOperate) SessionGet(w http.ResponseWriter,r *http.Request,nam
 //param w *http.ResponseWriter Http写入对象
 //param r *http.Request Http读取对象
 //param name string 标记
-//param data map[string]interface{} 会话变量组合
+//param data map[string]string 会话变量组合
 //return bool 是否失败
-func (this *SessionOperate) SessionSet(w http.ResponseWriter, r *http.Request,name string, data map[string]interface{}) bool {
+func (this *SessionOperate) SessionSet(w http.ResponseWriter, r *http.Request,name string, data map[string]string) bool {
 	//获取数据
 	var result *SessionFields
 	var b bool
@@ -103,8 +104,11 @@ func (this *SessionOperate) SessionSet(w http.ResponseWriter, r *http.Request,na
 	if b == false{
 		return false
 	}
+	if result.ID.Hex() == ""{
+		return false
+	}
 	//解析数据，并覆盖数据
-	var res map[string]map[string]interface{}
+	var res map[string]map[string]string
 	if result.Value != ""{
 		err = json.Unmarshal([]byte(result.Value),&res)
 		if err != nil{
@@ -113,7 +117,7 @@ func (this *SessionOperate) SessionSet(w http.ResponseWriter, r *http.Request,na
 		}
 		res[name] = data
 	}else{
-		res = map[string]map[string]interface{}{
+		res = map[string]map[string]string{
 			name : data,
 		}
 	}
@@ -163,7 +167,7 @@ func (this *SessionOperate) getCookieValue(w http.ResponseWriter, r *http.Reques
 		}
 		http.SetCookie(w,cookieValue)
 		//将数据保存到数据库中
-		err = this.dbCollStore.Insert(&SessionFields{bson.NewObjectId(),mark,r.RemoteAddr,""})
+		err = this.dbCollStore.Insert(&SessionFields{bson.NewObjectId(),mark,IPAddrsGetRequest(r),""})
 		if err != nil{
 			Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.getCookieValue","insert-db",err.Error())
 			return ""
@@ -183,7 +187,7 @@ func (this *SessionOperate) getCookieMark(r *http.Request) string{
 	var mark string
 	var t time.Time
 	t = time.Now()
-	mark = r.RemoteAddr + this.appName + "cookie" + t.String() + this.MatchString.GetRandStr(99999)
+	mark = IPAddrsGetRequest(r) + this.appName + "cookie" + t.String() + this.MatchString.GetRandStr(99999)
 	mark = this.MatchString.GetSha1(mark)
 	if mark == ""{
 		Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.getCookieMark","get-sha1","无法获取cookie的sha1值。")
@@ -213,7 +217,7 @@ func (this *SessionOperate) getData(w http.ResponseWriter, r *http.Request) (*Se
 	}
 	//如果当前IP地址和结果IP不一致，则重新构建cookie
 	if this.sessionIPBind == true{
-		if res.IP != r.RemoteAddr{
+		if res.IP != IPAddrsGetRequest(r){
 			Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.getData","ip-no-bind","客户端IP地址和Cookie记录IP地址不符，数据集合内的IP地址是：" + res.IP)
 			return &res,false
 		}

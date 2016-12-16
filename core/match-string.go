@@ -42,6 +42,19 @@ func (this *MatchString) CheckPassword(str string) bool {
 	return this.matchStr(`^[a-zA-Z0-9_-]{4,16}$`, str)
 }
 
+//验证是否为IP地址
+//param str string IP地址
+//return bool 是否正确
+func (this *MatchString) CheckIP(str string) bool{
+	if str == "[::1]" {
+		return true
+	}
+	if this.matchStr(`^$(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$`,str) == true{
+		return true
+	}
+	return false
+}
+
 //获取字符串的SHA1值
 //param content string 要计算的字符串
 //return string 计算出的SHA1值
