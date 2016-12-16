@@ -70,11 +70,18 @@ func checkPost(r *http.Request) bool{
 //param r *http.Request 读取http句柄
 //param templateFileName string 模版文件名称
 //param data interface{} 输出参数
-func showTemplate(w http.ResponseWriter, r *http.Request, templateFileName string, data interface{}){
+func showTemplate(w http.ResponseWriter, r *http.Request, templateFileName string, data map[string]interface{}){
+	//插入表头、尾部等文件
+	//获取HTML文件
 	t, err := template.ParseFiles(getTemplateSrc(templateFileName),getTemplateSrc("page-header.html"),getTemplateSrc("page-menu.html"),getTemplateSrc("page-footer.html"),getTemplateSrc("page-menu-nologin.html"))
 	if err != nil {
 		sendLog("router/module.go",getIPAddr(r),"showTemplate","show-template",err.Error())
 		return
 	}
+	//插入基础变量
+	data["appName"] = glob.AppName
+	data["appDes"] = glob.AppDes
+	data["appCopyright"] = glob.AppCopyright
+	//输出模版
 	t.Execute(w, data)
 }

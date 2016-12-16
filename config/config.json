@@ -1,6 +1,8 @@
 {
-  "app-name" : "collmz",
+  "app-name" : "COLL-MZ",
   "app-mark" : "collmz",
+  "app-des" : "这是一款快乐的采集器。",
+  "app-copyright" : "COLL-MZ采用Apache 2.0协议",
   "user-one" : "false",
   "user-username" : "admin",
   "user-password" : "adminadmin",

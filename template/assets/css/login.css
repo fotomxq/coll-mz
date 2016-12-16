@@ -1,16 +1,13 @@
-body > .grid {
-    height: 100%;
+.header {
+  text-align: center;
 }
-.image {
-    margin-top: -100px;
+.header h1 {
+  font-size: 200%;
+  color: #333;
+  margin-top: 30px;
 }
-.column {
-    max-width: 450px;
-}
-
-.form , .form > div{
-    width:400px;
-    height: 170px;
+.header p {
+  font-size: 14px;
 }
 
 #message{

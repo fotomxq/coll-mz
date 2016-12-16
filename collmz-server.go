@@ -115,6 +115,8 @@ func main(){
 		&LogOperate,
 		&IPAddrOperate,
 		AppMark,
+		configData["app-des"].(string),
+		configData["app-copyright"].(string),
 		&UserOperate,
 		&MatchString,
 	})

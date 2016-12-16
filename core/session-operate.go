@@ -87,7 +87,7 @@ func (this *SessionOperate) SessionGet(w http.ResponseWriter,r *http.Request,nam
 	var mark string
 	mark = this.getCookieValue(w,r)
 	if mark == ""{
-		Log.SendLog("core/session-operate.go",IPAddrsGetRequest(r),"SessionOperate.SessionGet","get-mark",err.Error())
+		Log.SendLog("core/session-operate.go",IPAddrsGetRequest(r),"SessionOperate.SessionGet","get-mark","无法获取cookie标识码。")
 		return map[string]string{},false
 	}
 	//在数据库查找该值，不存在则返回

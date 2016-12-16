@@ -26,6 +26,10 @@ type GlobOperate struct{
 	IPAddrOperate *core.IPAddrBan
 	//APP名称
 	AppName string
+	//APP描述
+	AppDes string
+	//APP版权声明
+	AppCopyright string
 	//用户句柄
 	UserOperate *core.User
 	//验证处理句柄
