@@ -501,7 +501,7 @@ func (this *User) getSession(w http.ResponseWriter,r *http.Request) (*UserSessio
 	var result UserSession
 	var res map[string]interface{}
 	var b bool
-	res,b = this.sessionOperate.SessionGet(w,r,this.mark)
+	res,b = this.sessionOperate.SessionGet(w,r,"login")
 	if b == false{
 		this.sendLog(r.RemoteAddr,"User.getSession","get-session-res","无法获取session数据。")
 		return &result,false
@@ -510,13 +510,13 @@ func (this *User) getSession(w http.ResponseWriter,r *http.Request) (*UserSessio
 		res["login-user-id"] = string("")
 		res["login-last-time"] = int64(0)
 		res["login-error-num"] = int(0)
-		b = this.sessionOperate.SessionSet(w,r,this.mark,res)
+		b = this.sessionOperate.SessionSet(w,r,"login",res)
 		if b == false{
 			this.sendLog(r.RemoteAddr,"User.getSession","set-session-res","无法设定session数据。")
 		}
 	}
 	result.userID = res["login-user-id"].(string)
-	result.lastTime = res["login-last-time"].(int64)
+	result.lastTime,_ = strconv.ParseInt(res["login-last-time"].(string),10,8)
 	result.loginErrorNum = res["login-error-num"].(int)
 	return &result,true
 }
@@ -529,7 +529,7 @@ func (this *User) getSession(w http.ResponseWriter,r *http.Request) (*UserSessio
 func (this *User) setSession(w http.ResponseWriter,r *http.Request,data *UserSession) bool {
 	var res map[string]interface{}
 	var b bool
-	res,b = this.sessionOperate.SessionGet(w,r,this.mark)
+	res,b = this.sessionOperate.SessionGet(w,r,"login")
 	if b == false{
 		this.sendLog(r.RemoteAddr,"User.setSession","get-session-res","无法获取session数据。")
 		return false
@@ -537,7 +537,7 @@ func (this *User) setSession(w http.ResponseWriter,r *http.Request,data *UserSes
 	res["login-user-id"] = data.userID
 	res["login-last-time"] = data.lastTime
 	res["login-error-num"] = data.loginErrorNum
-	b = this.sessionOperate.SessionSet(w,r,this.mark,res)
+	b = this.sessionOperate.SessionSet(w,r,"login",res)
 	if b == false{
 		this.sendLog(r.RemoteAddr,"User.setSession","set-session-res","无法设定session数据。")
 	}

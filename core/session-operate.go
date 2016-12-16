@@ -29,7 +29,6 @@ type SessionOperate struct {
 	dbCollStore *mgo.Collection
 	//session是否和IP绑定
 	//如果绑定，则cookie值必须和IP地址一致
-	//会造成用户特殊环境下，变化IP地址后自动退出的情况，常见于移动端访问。
 	sessionIPBind bool
 	//session超时时间
 	sessionTimeout int
@@ -146,7 +145,8 @@ func (this *SessionOperate) getCookieValue(w http.ResponseWriter, r *http.Reques
 	var cookieValue *http.Cookie
 	//查找cookie
 	cookieValue,err = r.Cookie(this.appName)
-	if err != nil{
+	//如果获取失败、空值、非40位的SHA1，则重新创建cookie
+	if err != nil || cookieValue.Value == "" || len(cookieValue.Value) != 40{
 		//如果不存在，则创建
 		var mark string
 		mark = this.getCookieMark(r)
@@ -205,16 +205,16 @@ func (this *SessionOperate) getData(w http.ResponseWriter, r *http.Request) (*Se
 	if mark == ""{
 		return &res,false
 	}
-	//在数据库查找该值
+	//在数据库查找该值，不存在则返回
 	err = this.dbCollStore.Find(bson.M{"name":mark}).One(&res)
 	if err != nil{
 		Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.getData","get-database",err.Error())
-		return &res,false
+		return &res,true
 	}
-	//如果当前IP地址和结果IP不一致，则返回
+	//如果当前IP地址和结果IP不一致，则重新构建cookie
 	if this.sessionIPBind == true{
 		if res.IP != r.RemoteAddr{
-			Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.getData","ip-no-bind","客户端IP地址和Cookie记录IP地址不符。")
+			Log.SendLog("core/session-operate.go",r.RemoteAddr,"SessionOperate.getData","ip-no-bind","客户端IP地址和Cookie记录IP地址不符，数据集合内的IP地址是：" + res.IP)
 			return &res,false
 		}
 	}
