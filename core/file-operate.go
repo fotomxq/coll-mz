@@ -305,9 +305,8 @@ func GetFileSha1(src string) string {
 //param appendFileType string 是否末尾追加文件类型，如果指定值，则返回
 //return string 新时间周期目录，失败则返回空字符串
 func GetTimeDirSrc(src string, appendFileType string) string {
-	t := time.Now()
 	sep := GetPathSep()
-	newSrc := src + sep + t.Format("200601")
+	newSrc := src + sep + time.Now().Format("200601")
 	var b bool
 	b = CreateFolder(newSrc)
 	if b == false{
@@ -315,7 +314,7 @@ func GetTimeDirSrc(src string, appendFileType string) string {
 	}
 	newSrc = newSrc + sep
 	if appendFileType != "" {
-		newSrc = newSrc + t.Format("20060102-03") + appendFileType
+		newSrc = newSrc + time.Now().Format("20060102-03") + appendFileType
 	}
 	return newSrc
 }

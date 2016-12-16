@@ -105,8 +105,8 @@ func main(){
 	ipWriteOn = configData["ip-white-on"].(string) == "true"
 	IPAddrOperate.Init(DB,ipBanOn,ipWriteOn)
 
-	//test 将IP添加到白名单内
-	IPAddrOperate.SaveToList("[::1]",false)
+	//将本机IP添加到白名单内，用于开发工作
+	//IPAddrOperate.SaveToList("[::1]",false)
 
 	//初始化路由
 	router.Init(&router.GlobOperate{

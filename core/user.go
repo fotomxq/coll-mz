@@ -182,14 +182,13 @@ func (this *User) GetLoginStatus(w http.ResponseWriter,r *http.Request) string{
 	//更新登录时间值
 	if res.UserID != ""{
 		var t time.Time
-		t = time.Now()
 		var unixTime int64
 		unixTime = t.Unix()
 		//超出时间，强行退出
 		if this.userLoginTimeout < unixTime - res.LastTime{
 			res.UserID = ""
 			_ = this.setSession(w,r,res)
-			this.sendLog(r.RemoteAddr,"User.GetLoginStatus","user-login-timeout-minute",res.UserID+"用户登录超时，自动退出。")
+			this.sendLog(IPAddrsGetRequest(r),"User.GetLoginStatus","user-login-timeout-minute",res.UserID+"用户登录超时，自动退出。")
 		}
 		res.LastTime = unixTime
 		_ = this.setSession(w,r,res)
@@ -211,10 +210,8 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 	var b bool
 	var err error
 	//获取当前时间
-	var t time.Time
-	t = time.Now()
 	var unixTime int64
-	unixTime = t.Unix()
+	unixTime = time.Now().Unix()
 	//获取session数据
 	res,b = this.getSession(w,r)
 	if b == false{
@@ -502,17 +499,13 @@ func (this *User) getSession(w http.ResponseWriter,r *http.Request) (*UserSessio
 	var res map[string]string
 	var b bool
 	res,b = this.sessionOperate.SessionGet(w,r,"login")
-	if b == false{
-		this.sendLog(r.RemoteAddr,"User.getSession","get-session-res","无法获取session数据。")
-		return &result,false
-	}
-	if res["login-user-id"] == "" || res["login-last-time"] == "" || res["login-error-num"] == "" {
+	if b == false || res["login-user-id"] == "" || res["login-last-time"] == "" || res["login-error-num"] == "" {
 		res["login-user-id"] = ""
 		res["login-last-time"] = ""
 		res["login-error-num"] = ""
 		b = this.sessionOperate.SessionSet(w,r,"login",res)
 		if b == false{
-			this.sendLog(r.RemoteAddr,"User.getSession","set-session-res","无法设定session数据。")
+			this.sendLog(IPAddrsGetRequest(r),"User.getSession","set-session-res","无法设定session数据。")
 		}
 	}
 	result.UserID = res["login-user-id"]
@@ -531,7 +524,7 @@ func (this *User) setSession(w http.ResponseWriter,r *http.Request,data *UserSes
 	var b bool
 	res,b = this.sessionOperate.SessionGet(w,r,"login")
 	if b == false{
-		this.sendLog(r.RemoteAddr,"User.setSession","get-session-res","无法获取session数据。")
+		this.sendLog(IPAddrsGetRequest(r),"User.setSession","get-session-res","无法获取session数据。")
 		return false
 	}
 	res["login-user-id"] = data.UserID
@@ -539,7 +532,7 @@ func (this *User) setSession(w http.ResponseWriter,r *http.Request,data *UserSes
 	res["login-error-num"] = strconv.Itoa(data.LoginErrorNum)
 	b = this.sessionOperate.SessionSet(w,r,"login",res)
 	if b == false{
-		this.sendLog(r.RemoteAddr,"User.setSession","set-session-res","无法设定session数据。")
+		this.sendLog(IPAddrsGetRequest(r),"User.setSession","set-session-res","无法设定session数据。")
 	}
 	return b
 }

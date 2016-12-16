@@ -12,5 +12,5 @@
   "session-ip-bind" : "true",
   "session-timeout" : "86400",
   "ip-ban-on" : "true",
-  "ip-white-on" : "true"
+  "ip-white-on" : "false"
 }

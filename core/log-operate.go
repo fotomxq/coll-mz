@@ -138,11 +138,8 @@ func (this *LogOperate) Init(db *mgo.Database,appName string){
 //param mark string 标记名称
 //param message string 消息
 func (this *LogOperate) SendLog(fileName string,ipAddr string,funcName string,mark string,message string){
-	//获取当前时间
-	var t time.Time
-	t = time.Now()
 	//向数据库添加日志
-	err = this.dbColl.Insert(&LogOperateFields{bson.NewObjectId(),t.Format("2006-01-02 15:04:05.999999999"),ipAddr,fileName,funcName,mark,message})
+	err = this.dbColl.Insert(&LogOperateFields{bson.NewObjectId(),time.Now().Format("2006-01-02 15:04:05.999999999"),ipAddr,fileName,funcName,mark,message})
 	if err != nil{
 		fmt.Println("无法向数据库添加日志数据。")
 	}
