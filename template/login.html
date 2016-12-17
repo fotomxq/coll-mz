@@ -4,41 +4,48 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>{{.title}}</title>
+    <title>{{.appName}} - 登录</title>
     {{template "header"}}
     <link rel="stylesheet" type="text/css" href="/assets/css/theme.css">
     <link rel="stylesheet" type="text/css" href="/assets/css/login.css">
 </head>
 
 <body>
-<div class="header">
-  <div class="am-g">
-    <h1><img src="/assets/imgs/logo-100.png" class="image logo"> {{.appName}}</h1>
-    <p>{{.appDes}}</p>
-  </div>
-</div>
-<div class="am-g">
-  <div class="am-u-lg-6 am-u-md-8 am-u-sm-centered">
-      <form class="am-form">
-          <fieldset>
-              <div class="am-form-group">
-                  <label for="username">用户名</label>
-                  <input type="text" name="username" id="username" placeholder="用户名">
-              </div>
-          </fieldset>
-          <fieldset>
-              <div class="am-form-group">
-                  <label for="password">密码</label>
-                  <input type="password" name="password" id="password" placeholder="密码">
-              </div>
-          </fieldset>
-          <p>
-              <a type="button" class="am-btn am-btn-primary am-btn-block"><i class="am-icon-cog"></i> 登录</a>
-          </p>
-    </form>
-    <p>{{.appCopyright}}</p>
-  </div>
-</div>
+    <!--[if lt IE 8]>
+    <![endif]-->
+    <!-- content -->
+    <div class="ui page dimmer" id="message">
+        <div class="content">
+            <div class="center" id="message-content"></div>
+        </div>
+
+    </div>
+    <div class="ui middle aligned center aligned grid">
+        <div class="column">
+            <h2 class="ui circular image yellow header">
+                <img src="/assets/imgs/logo-100.png" class="image logo">
+                <div class="content">{{.appName}}</div>
+            </h2>
+            <form class="ui large form">
+                <div class="ui stacked segment">
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="user icon"></i>
+                            <input type="text" name="username" placeholder="用户名">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="lock icon"></i>
+                            <input type="password" name="password" placeholder="密码">
+                        </div>
+                    </div>
+                <a class="ui fluid button purple" href="#login"><i class="unlock icon"></i> 登录</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- script -->
     {{template "footer"}}
     <script src="/assets/js/login.js"></script>
 </body>

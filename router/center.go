@@ -19,7 +19,8 @@ func PageCenter(w http.ResponseWriter, r *http.Request) {
 		goURL(w, r, "/login")
 		return
 	}else{
-		showTemplate(w,r,"center.html",nil)
+		var data map[string]interface{} = map[string]interface{}{}
+		showTemplate(w,r,"center.html",data)
 		return
 	}
 }

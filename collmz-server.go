@@ -114,7 +114,7 @@ func main(){
 		&SessionOperate,
 		&LogOperate,
 		&IPAddrOperate,
-		AppMark,
+		configData["app-name"].(string),
 		configData["app-des"].(string),
 		configData["app-copyright"].(string),
 		&UserOperate,
