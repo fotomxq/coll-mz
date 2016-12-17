@@ -36,7 +36,7 @@ type User struct {
 	//用户自动退出时限，单位：秒
 	userLoginTimeout int64
 	//单一用户模式是否启动
-	oneUserStatus bool
+	OneUserStatus bool
 	//初始化或单一用户名和密码
 	oneUsername string
 	onePassword string
@@ -46,6 +46,10 @@ type User struct {
 	table string
 	//数据库合集
 	dbColl *mgo.Collection
+	//权限列表
+	Permissions []string
+	//权限对应数据
+	PermissionsData map[string]map[string]interface{}
 }
 
 //初始化用户类需要的参数
@@ -69,6 +73,10 @@ type UserParams struct {
 	//初始化或单一用户名和密码
 	OneUsername string
 	OnePassword string
+	//权限列表
+	Permissions []string
+	//权限对应数据
+	PermissionsData map[string]map[string]interface{}
 }
 
 //用户字段组
@@ -87,6 +95,8 @@ type UserFields struct {
 	LastTime int64
 	//是否禁用
 	IsDisabled bool
+	//权限标识
+	Permissions []string
 }
 
 //Session结构
@@ -102,7 +112,7 @@ type UserSession struct {
 //初始化
 func (this *User) Init(params *UserParams) {
 	//设定基本值
-	this.oneUserStatus = false
+	this.OneUserStatus = false
 	this.fields = []string{
 		"_id","nicename","username","password","lastip","lasttime","isdisabled",
 	}
@@ -115,14 +125,16 @@ func (this *User) Init(params *UserParams) {
 	this.appName = params.AppName
 	this.mark = params.Mark
 	this.userLoginTimeout = params.UserLoginTimeout
-	this.oneUserStatus = params.OneUserStatus
+	this.OneUserStatus = params.OneUserStatus
 	this.oneUsername = params.OneUsername
 	this.onePassword = this.getPasswdSha1(this.getSha1(params.OnePassword))
+	this.Permissions = params.Permissions
+	this.PermissionsData = params.PermissionsData
 	//如果设定的结构为数据库存储用户，则执行连接数据库集合等操作
 	if params.OneUserStatus == false{
 		//导入到内部
 		this.dbColl = this.db.C(this.table)
-		this.oneUserStatus = false
+		this.OneUserStatus = false
 		//如果数据集合中，不存在数据，则自动创建用户
 		var num int
 		var err error
@@ -151,7 +163,8 @@ func (this *User) Init(params *UserParams) {
 			this.sendLog("0.0.0.0","SetManyUser","password-sha1","无法获取密码的SHA1。")
 			return
 		}
-		err = this.dbColl.Insert(&UserFields{bson.NewObjectId(),params.OneUsername,params.OneUsername,passwordSha1Sha1,"0.0.0.0",0,false})
+		var permissions []string = []string{"admin"}
+		err = this.dbColl.Insert(&UserFields{bson.NewObjectId(),params.OneUsername,params.OneUsername,passwordSha1Sha1,"0.0.0.0",0,false,permissions})
 		if err != nil{
 			this.sendLog("0.0.0.0","SetManyUser","insert-new-user",err.Error())
 			return
@@ -239,7 +252,7 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 	var ipAddr string
 	ipAddr = IPAddrsGetRequest(r)
 	//检查模式
-	if this.oneUserStatus == true{
+	if this.OneUserStatus == true{
 		//如果是单用户模式
 		if this.oneUsername == username && passwdSha1Sha1 == this.onePassword{
 			res.UserID = "one-true"
@@ -320,7 +333,7 @@ func (this *User) GetID(id string) (*UserFields,bool){
 //param sort int 排序字段键值
 //param desc bool 是否倒序
 //return []UserFields,bool 数据结果，是否成功
-func (this *User) GetList(search string,page int,max int,sort int,desc bool) (*[]UserFields,bool){
+func (this *User) List(search string,page int,max int,sort int,desc bool) (*[]UserFields,bool){
 	//分析sortStr
 	var sortStr string
 	if this.fields[sort] != ""{
@@ -364,8 +377,9 @@ func (this *User) GetList(search string,page int,max int,sort int,desc bool) (*[
 //param nicename string 昵称
 //param username string 用户名
 //param passwdSha1 string 密码SHA1值
+//param permissions []string 权限列表，admin管理员权限，其他可自定义
 //return string 新的用户ID，失败返回空字符串，发现用户名存在返回"user-exist"字符串
-func (this *User) Create(nicename string,username string,passwdSha1 string) string{
+func (this *User) Create(nicename string,username string,passwdSha1 string,permissions []string) string{
 	//检查昵称、用户名、密码是否合法
 	if this.checkNicename(nicename) == false || this.checkUsername(username,passwdSha1) == false{
 		this.sendLog("0.0.0.0","Create","check-user-password","尝试创建新的用户，但用户名和密码不正确。")
@@ -376,12 +390,17 @@ func (this *User) Create(nicename string,username string,passwdSha1 string) stri
 		this.sendLog("0.0.0.0","Create","user-exisit","创建新的用户，但用户已经存在了。")
 		return "user-exist"
 	}
+	//检查权限是否均有效
+	if this.checkPermissions(permissions) == false{
+		this.sendLog("0.0.0.0","User.Create","user-permissions","该用户尝试添加一个不存在的权限。")
+		return "user-permission"
+	}
 	//计算密码
 	var passwordSha1Sha1 string
 	passwordSha1Sha1 = this.getPasswdSha1(passwdSha1)
 	//执行创建用户
 	var err error
-	err = this.dbColl.Insert(&UserFields{bson.NewObjectId(),username,username,passwordSha1Sha1,"0.0.0.0",0,false})
+	err = this.dbColl.Insert(&UserFields{bson.NewObjectId(),username,username,passwordSha1Sha1,"0.0.0.0",0,false,permissions})
 	if err != nil{
 		this.sendLog("0.0.0.0","Create","insert-new-user",err.Error())
 		return ""
@@ -401,8 +420,9 @@ func (this *User) Create(nicename string,username string,passwdSha1 string) stri
 //param nicename string 昵称
 //param username string 用户名
 //param passwdSha1 string 密码SHA1值
+//param permissions []string 权限列表，admin管理员权限，其他可自定义
 //return bool 是否成功
-func (this *User) Edit(id string,nicename string,username string,passwdSha1 string) bool{
+func (this *User) Edit(id string,nicename string,username string,passwdSha1 string,permissions []string) bool{
 	//检查昵称、用户名和密码是否合法
 	if this.checkNicename(nicename) == false || this.checkUsername(username,passwdSha1) == false{
 		return false
@@ -411,12 +431,17 @@ func (this *User) Edit(id string,nicename string,username string,passwdSha1 stri
 	if this.checkUsernameIsExisit(username) == true{
 		return false
 	}
+	//检查权限是否均有效
+	if this.checkPermissions(permissions) == false{
+		this.sendLog("0.0.0.0","User.Edit","user-permissions","该用户尝试添加一个不存在的权限。")
+		return false
+	}
 	//计算密码
 	var passwdSha1Sha1 string
 	passwdSha1Sha1 = this.getPasswdSha1(passwdSha1)
 	//执行修改用户
 	var err error
-	err = this.dbColl.UpdateId(bson.ObjectIdHex(id),bson.M{"$set":bson.M{"nicename":nicename,"username":username,"password":passwdSha1Sha1}})
+	err = this.dbColl.UpdateId(bson.ObjectIdHex(id),bson.M{"$set":bson.M{"nicename":nicename,"username":username,"password":passwdSha1Sha1,"permissions":permissions}})
 	return err != nil
 }
 
@@ -535,4 +560,30 @@ func (this *User) setSession(w http.ResponseWriter,r *http.Request,data *UserSes
 		this.sendLog(IPAddrsGetRequest(r),"User.setSession","set-session-res","无法设定session数据。")
 	}
 	return b
+}
+
+//检查权限是否有效
+//如果发现有一个权限不存在，则失败
+//必须存在至少一个权限
+//param permissions []string 要检查的权限列表
+//return bool 是否有效
+func (this *User) checkPermissions(permissions []string) bool{
+	var onlyOne bool = false
+	for _,v := range permissions{
+		var noExisit bool = true
+		for _,v2 := range this.Permissions{
+			if v == v2 {
+				noExisit = false
+				onlyOne = true
+				break
+			}
+		}
+		if noExisit == true{
+			return false
+		}
+	}
+	if onlyOne == false{
+		return false
+	}
+	return true
 }

@@ -96,7 +96,19 @@ func main(){
 		userLoginTimeout,
 		userOneStatus,
 		configData["user-username"].(string),
-		configData["user-password"].(string)})
+		configData["user-password"].(string),
+		[]string{"admin","normal"},
+		map[string]map[string]interface{}{
+			"admin" : map[string]interface{}{
+				"name" : "管理员",
+				"page" : []string{"*"},
+			},
+			"normal" : map[string]interface{}{
+				"name" : "普通用户",
+				"page" : []string{"center"},
+			},
+		},
+	})
 
 	//创建IP名单处理器
 	var ipBanOn bool

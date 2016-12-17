@@ -55,6 +55,12 @@ func RunSever(host string){
 	http.HandleFunc("/action-logout",ActionLogout)
 	//绑定中心页面
 	http.HandleFunc("/center",PageCenter)
+	//绑定用户页面和用户数据处理页面
+	//如果是独立用户，则只能通过配置文件修改
+	if glob.UserOperate.OneUserStatus == false{
+		http.HandleFunc("/user",PageUser)
+		http.HandleFunc("/action-user",ActionUser)
+	}
 	//输出日志
 	core.SendLog("****** 启动服务器 : " + host + " ******")
 	//启动路由器
