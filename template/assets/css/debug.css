@@ -1,0 +1,9 @@
+body {
+    background-color: #464646;
+}
+.main {
+    padding-top: 100px;
+}
+table{
+    cursor: pointer;
+}
