@@ -110,12 +110,19 @@ type LogOperate struct {
 
 //数据表结构
 type LogOperateFields struct {
+	//ID
 	ID bson.ObjectId `bson:"_id"`
+	//创建时间
 	CreateTime string
+	//IP地址
 	IpAddr string
+	//文件名称
 	FileName string
+	//函数名称
 	FuncName string
+	//标记
 	Mark string
+	//消息
 	Message string
 }
 
@@ -149,14 +156,34 @@ func (this *LogOperate) SendLog(fileName string,ipAddr string,funcName string,ma
 //强制按照ID倒序排序
 //param page int 页数
 //param max int 页长
-//return []LogOperateFields,bool 日志列，是否获取成功
-func (this *LogOperate) View(page int,max int) ([]LogOperateFields,bool){
+//return []map[string]string,bool 日志数据组，是否获取成功
+func (this *LogOperate) View(page int,max int) ([]map[string]string,bool){
 	var result []LogOperateFields
+	var res []map[string]string = []map[string]string{}
 	var skip int
 	skip = (page - 1) * max
 	err = this.dbColl.Find(nil).Sort("-_id").Skip(skip).Limit(max).All(&result)
 	if err != nil{
-		return result,false
+		return res,false
 	}
-	return result,true
+	for key := range result{
+		res = append(res,map[string]string{
+			"ID" : result[key].ID.Hex(),
+			"CreateTime" : result[key].CreateTime,
+			"IpAddr" : result[key].IpAddr,
+			"FileName" : result[key].FileName,
+			"FuncName" : result[key].FuncName,
+			"Mark" : result[key].Mark,
+			"Message" : result[key].Message,
+		})
+	}
+	return res,true
+}
+
+//清理日志
+//仅用于debug模式，其他模式下请勿使用该模块
+//return bool 是否成功
+func (this *LogOperate) Clear() bool{
+	_,err = this.dbColl.RemoveAll(nil)
+	return err == nil
 }

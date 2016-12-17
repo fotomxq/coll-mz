@@ -1,4 +1,5 @@
 {
+  "debug" : "true",
   "app-name" : "COLL-MZ",
   "app-mark" : "collmz",
   "app-des" : "这是一款快乐的采集器。",

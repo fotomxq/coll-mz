@@ -16,6 +16,8 @@ var glob *GlobOperate
 
 //全局对接类型
 type GlobOperate struct{
+	//debug模式
+	Debug bool
 	//数据库操作模块
 	DB *mgo.Database
 	//Session句柄
@@ -60,6 +62,10 @@ func RunSever(host string){
 	if glob.UserOperate.OneUserStatus == false{
 		http.HandleFunc("/user",PageUser)
 		http.HandleFunc("/action-user",ActionUser)
+	}
+	//绑定debug模式
+	if glob.Debug == true{
+		http.HandleFunc("/debug",PageDebug)
 	}
 	//输出日志
 	core.SendLog("****** 启动服务器 : " + host + " ******")

@@ -10,7 +10,7 @@ import (
 func PageCenter(w http.ResponseWriter, r *http.Request) {
 	//检查是否已经登录
 	var userID string
-	userID = checkIPAndLogged(w,r)
+	userID = checkIPAndLogged(w,r,"center")
 	if userID == ""{
 		return
 	}

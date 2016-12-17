@@ -65,26 +65,6 @@ func checkPost(r *http.Request) bool{
 	return err == nil
 }
 
-//检查是否已经登录
-//param w http.ResponseWriter 写入http句柄
-//param r *http.Request 读取http句柄
-//return string 用户ID
-func checkIPAndLogged(w http.ResponseWriter, r *http.Request) string{
-	//检查IP是否可访问
-	if checkIP(r) == false{
-		return ""
-	}
-	//检查是否已经登录了
-	var userID string
-	userID = userCheckLogged(w, r)
-	if userID == "" {
-		goURL(w, r, "/login")
-		return ""
-	}else{
-		return userID
-	}
-}
-
 //输出模版内容
 //param w http.ResponseWriter 写入http句柄
 //param r *http.Request 读取http句柄
@@ -102,6 +82,7 @@ func showTemplate(w http.ResponseWriter, r *http.Request, templateFileName strin
 	data["appName"] = glob.AppName
 	data["appDes"] = glob.AppDes
 	data["appCopyright"] = glob.AppCopyright
+	data["debug"] = glob.Debug
 	//输出模版
 	t.Execute(w, data)
 }

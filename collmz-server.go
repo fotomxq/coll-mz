@@ -121,7 +121,10 @@ func main(){
 	//IPAddrOperate.SaveToList("[::1]",false)
 
 	//初始化路由
+	var debug bool
+	debug = configData["debug"].(string) == "true"
 	router.Init(&router.GlobOperate{
+		debug,
 		DB,
 		&SessionOperate,
 		&LogOperate,

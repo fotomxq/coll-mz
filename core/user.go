@@ -306,6 +306,33 @@ func (this *User) Logout(w http.ResponseWriter,r *http.Request){
 	_ = this.setSession(w,r,&res)
 }
 
+//检查用户是否可访问该页面
+//param userID string 用户ID
+//param page string 页面名称
+//return bool 是否成功
+func (this *User) CheckUserVisitPage(userID string,page string) bool {
+	var userInfo *UserFields
+	var b bool
+	userInfo,b = this.GetID(userID)
+	if b == false{
+		this.sendLog("0.0.0.0","User.CheckUserVisitPage","no-user","检查用户访问权限的时候，无法获取用户信息。")
+		return false
+	}
+	for _,v := range userInfo.Permissions{
+		var permissionData map[string]interface{} = map[string]interface{}{}
+		permissionData = this.PermissionsData[v]
+		var pages []string
+		pages = permissionData["page"].([]string)
+		for _,v2 := range pages {
+			if v2 == "*" || page == v2{
+				return true
+			}
+		}
+	}
+	this.sendLog("0.0.0.0","User.CheckUserVisitPage","no-permission","用户"+userID+"尝试访问其无权访问的页面。")
+	return false
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // 查看用户、用户列表
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

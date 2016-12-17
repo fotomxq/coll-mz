@@ -8,6 +8,9 @@
         <a href="/coll" class="item"><i class="cloud download icon"></i> 采集</a>
         <a href="/user" class="item"><i class="users icon"></i> 用户</a>
         <a href="/set" class="item"><i class="settings icon"></i> 设定</a>
+        {{if .debug}}
+        <a href="/debug" class="item"><i class="bug icon"></i> Debug</a>
+        {{end}}
         <a href="/action-logout" class="item"><i class="sign out icon"></i> 退出</a>
     </div>
 </div>
