@@ -1,19 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>COLL MZ</title>
-    {{template "header"}}
-    <link rel="stylesheet" type="text/css" href="/assets/css/theme.css">
-</head>
-
-<body>
-    <!--[if lt IE 8]>
-    <![endif]-->
-    <!-- menu -->
-    {{template "menu" .}}
+{{template "header" .}}
+{{template "menu" .}}
     <!-- content -->
   <div class="ui dimmer" id="show-file" data-id="0">
     <div class="content">
@@ -35,9 +21,4 @@
             <div class="column" id="next-page">获取下一页</div>
         </div>
     </div>
-    <!-- script -->
-    {{template "footer"}}
-    <script src="/assets/js/center.js"></script>
-</body>
-
-</html>
+{{template "footer" .}}

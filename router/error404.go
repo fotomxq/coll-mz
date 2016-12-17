@@ -12,10 +12,13 @@ func Page404(w http.ResponseWriter, r *http.Request){
 	}
 	//判断URL
 	if r.URL.Path != "/" {
-		showTemplate(w, r, "404.html", nil)
-	}else{
-		if userCheckLogged(w,r) == ""{
-			goURL(w,r,"/login")
+		var data map[string]interface{} = map[string]interface{}{
+			"refLocalCss" : []string{
+				"404",
+			},
 		}
+		showTemplate(w, r, "404.html", data)
+	}else{
+		goURL(w,r,"/login")
 	}
 }

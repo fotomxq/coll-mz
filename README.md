@@ -22,27 +22,27 @@ COLL-MZ项目主要用于采集煎蛋、飞G、妹子图、Xiuren网站，以及
 ## 使用方法
 1、下载项目到本地任意文件；
 
+2、配置好mongodb数据库，如果不是默认地址127.0.0.1:27017，则需要在配置文件内设置好；
+
 2、运行collmz-server-..exe文件；
 
-3、通过浏览器访问http://localhost:8888
+3、通过浏览器访问http://localhost:8889
 
-4、可以看到项目，可在./config/config.json文件内自行修改端口。
+4、可以看到项目，可在./config/config.json文件内自行修改配置信息。
 
-5、初始用户名：admin@admin.com，密码：adminadmin
+5、初始用户名：admin，密码：adminadmin
 
 ## 代码编译环境搭建步骤
 1、安装golang语言运行环境，配置好环境变量；
 
-2、安装gcc编译环境，并配置好环境变量，推荐使用mingw，下载地址：https://sourceforge.net/projects/mingw-w64/
+2、安装mongodb数据库，并配置好运行环境；
 
 3、安装golang第三方库：
 
     * goquery
     github.com/PuerkitoBio/goquery
     * sqlite3
-    github.com/mattn/go-sqlite3
-    * session
-    github.com/gorilla/sessions
+    gopkg.in/mgo.v2
 
 4、下载该项目代码，到golang工作目录中任意目录，建议使用git克隆。
 
@@ -54,6 +54,8 @@ GIthub：https://github.com/fotomxq/coll-mz
 OSchina：https://git.oschina.net/fotomxq/collmz
 
 ## 开发日志
+
+2016.12.17 完成2.0版本基础部分代码，准备着手开发coll采集器和页面。本地改进有：剔除了session外部库，改用自己开发的session管理器；对界面进行了较大幅度更新；对core基础部件进行了较大幅度翻新，修正了大量错误、效率低下问题；支持ip过滤；考虑到开发效率，取消了多语言支持，但保留该模块；加入tcp模块，可用于分布式部署应用。
 
 2016.12.9 根据代码缺陷，着手开发2.0版本。
 
@@ -69,5 +71,13 @@ Version 2.0, January 2004
 http://www.apache.org/licenses/
 
 ## FAQ 使用问题
+
+1、为什么采用mongodb作为数据库？
+
+之前尝试使用sqlite3和mysql作为数据库，但发现这些数据库对Golang支持较差，运行效率不足。所以经过一番考虑，采用了mongodb数据库作为唯一数据库。
+
+2、是否可以修改数据库，使用sqlite3或其他类型的数据库？
+
+理论上是可以的，但core基础部件并未支持。所以如果想对其他数据库支持，需要将所有core代码中数据库操作部分的语句，换成sql命令。
 
 ## FAQ 二次开发问题

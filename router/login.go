@@ -21,7 +21,14 @@ func PageLogin(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/login" {
 			sendLog("router/login.go",getIPAddr(r),"PageLogin","user-no-logged","用户尚未登录，但访问了内部页面，URL："+r.URL.Path)
 		}
-		var data map[string]interface{} = map[string]interface{}{}
+		var data map[string]interface{} = map[string]interface{}{
+			"refLocalCss" : []string{
+				"login",
+			},
+			"refLocalJs" : []string{
+				"login",
+			},
+		}
 		showTemplate(w,r,"login.html",data)
 	}
 }

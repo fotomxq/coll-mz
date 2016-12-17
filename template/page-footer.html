@@ -2,4 +2,9 @@
 <script src="/assets/js/jquery.min.js"></script>
 <script src="/assets/js/semantic.min.js"></script>
 <script src="/assets/js/sha1.js"></script>
+{{range .refLocalJs}}
+<script src="/assets/js/{{.}}.js"></script>
+{{end}}
+</body>
+</html>
 {{end}}
