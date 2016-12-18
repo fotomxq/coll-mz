@@ -1,0 +1,6 @@
+tbody > .buttons,tbody > tr > td:last-child{
+    width : 170px;
+}
+tbody > tr{
+    height:50px;
+}

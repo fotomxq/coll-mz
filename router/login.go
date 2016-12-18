@@ -23,11 +23,11 @@ func PageLogin(w http.ResponseWriter, r *http.Request) {
 		}
 		var data map[string]interface{} = map[string]interface{}{
 			"addTitle" : "登录",
-			"refLocalCss" : []string{
+			"refCSS" : []string{
 				"login",
 			},
-			"refLocalJs" : []string{
-				"login",
+			"refJS" : []string{
+				"login","sha1",
 			},
 		}
 		showTemplate(w,r,"login.html",data)

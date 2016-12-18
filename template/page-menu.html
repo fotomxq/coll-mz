@@ -6,7 +6,9 @@
         </a>
         <a href="/center" class="item"><i class="home icon"></i> 首页</a>
         <a href="/coll" class="item"><i class="cloud download icon"></i> 采集</a>
+        {{if not .oneUserStatus}}
         <a href="/user" class="item"><i class="users icon"></i> 用户</a>
+        {{end}}
         <a href="/set" class="item"><i class="settings icon"></i> 设定</a>
         {{if .debug}}
         <a href="/debug" class="item"><i class="bug icon"></i> Debug</a>

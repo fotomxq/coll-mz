@@ -83,6 +83,27 @@ func showTemplate(w http.ResponseWriter, r *http.Request, templateFileName strin
 	data["appDes"] = glob.AppDes
 	data["appCopyright"] = glob.AppCopyright
 	data["debug"] = glob.Debug
+	data["oneUserStatus"] = glob.UserOperate.OneUserStatus
 	//输出模版
 	t.Execute(w, data)
+}
+
+//PMSD结构
+type PageMaxSortDesc struct {
+	page int
+	max int
+	sort int
+	desc bool
+}
+
+//处理page\max\sort\desc
+//param r *http.Request 读取http句柄
+//return PageMaxSortDesc 页码信息综合体
+func getPageMaxSortDesc(r *http.Request) (PageMaxSortDesc){
+	var res PageMaxSortDesc
+	res.page = glob.MatchString.FilterPage(r.FormValue("page"))
+	res.max = glob.MatchString.FilterMax(r.FormValue("max"))
+	res.sort = glob.MatchString.FilterPage(r.FormValue("sort")) - 1
+	res.desc = r.FormValue("desc") == "true"
+	return res
 }

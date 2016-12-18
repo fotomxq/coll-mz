@@ -23,8 +23,8 @@ func PageDebug(w http.ResponseWriter, r *http.Request){
 	}
 	//初始化变量
 	var data map[string]interface{} = map[string]interface{}{
-		"refLocalCss" : []string{"debug"},
-		"refLocalJs" : []string{"debug"},
+		"refCSS" : []string{"debug","theme"},
+		"refJS" : []string{"debug"},
 	}
 	//判断动作类型
 	switch action {

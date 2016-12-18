@@ -28,6 +28,13 @@ func (this *MatchString) CheckUsername(str string) bool {
 	return this.matchStr(`^[a-zA-Z0-9_-]{4,16}$`, str)
 }
 
+//检查昵称
+//param str string 昵称
+//return bool 是否正确
+func (this *MatchString) CheckNicename(str string) bool {
+	return this.matchStr(`^[\u4e00-\u9fa5_a-zA-Z0-9]{2,30}$`,str)
+}
+
 //验证邮箱
 //param str string 邮箱地址
 //return bool 是否正确
@@ -40,6 +47,20 @@ func (this *MatchString) CheckEmail(str string) bool {
 //return bool 是否正确
 func (this *MatchString) CheckPassword(str string) bool {
 	return this.matchStr(`^[a-zA-Z0-9_-]{4,16}$`, str)
+}
+
+//验证搜索类型的字符串
+//param str string 字符串
+//return bool 是否正确
+func (this *MatchString) CheckSearch(str string) bool{
+	return this.matchStr(`^[\u4e00-\u9fa5_a-zA-Z0-9]+$`,str)
+}
+
+//验证是否为SHA1
+//param str string 字符串
+//return bool 是否正确
+func (this *MatchString) CheckHexSha1(str string) bool{
+	return this.matchStr(`^[a-z0-9]{40}$`,str)
 }
 
 //验证是否为IP地址
@@ -154,6 +175,40 @@ func (this *MatchString) GetURLNameType(sendURL string) map[string]string {
 		}else{
 			res["only-name"] += "." + names[i]
 		}
+	}
+	return res
+}
+
+//处理page
+//param postPage string 用户提交的page
+//return int 过滤后的页数
+func (this *MatchString) FilterPage(postPage string) int{
+	var res int
+	res,err = strconv.Atoi(postPage)
+	if err != nil{
+		res = 1
+	}
+	if res < 1 {
+		res = 1
+	}
+	return res
+}
+
+//处理max
+//限制最小值为1，最大值为999
+//param postMax string 用户提交的max
+//return int 过滤后的页数
+func (this *MatchString) FilterMax(postMax string) int{
+	var res int
+	res,err = strconv.Atoi(postMax)
+	if err != nil{
+		res = 1
+	}
+	if res < 1 {
+		res = 1
+	}
+	if res > 999{
+		res = 999
 	}
 	return res
 }

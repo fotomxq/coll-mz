@@ -17,7 +17,7 @@ func PageCenter(w http.ResponseWriter, r *http.Request) {
 	//输出页面
 	var data map[string]interface{} = map[string]interface{}{
 		"refLocalCss" : []string{
-			"center",
+			"center","theme",
 		},
 		"refLocalJs" : []string{
 			"center",

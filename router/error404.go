@@ -14,7 +14,7 @@ func Page404(w http.ResponseWriter, r *http.Request){
 	if r.URL.Path != "/" {
 		var data map[string]interface{} = map[string]interface{}{
 			"addTitle" : "找不到页面",
-			"refLocalCss" : []string{
+			"refCSS" : []string{
 				"404",
 			},
 		}

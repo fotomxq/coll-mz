@@ -1,24 +1,115 @@
 {{template "header" .}}
 {{template "menu" .}}
-<!-- content -->
-<div class="ui dimmer" id="show-file" data-id="0">
+<div class="ui modal small" id="add-modal">
+    <i class="close icon"></i>
+    <div class="header">添加新的用户</div>
     <div class="content">
-      <div class="center">
-        <h2 class="ui inverted header" id="show-file-title"></h2>
-        <div id="show-file-content"></div>
-        <a class="ui button" href="#" target="_blank" id="show-file-open">查看文件</a>
-        <a class="ui button" href="#" id="show-file-close">关闭</a>
+      <div class="ui form">
+          <div class="required field">
+              <label>昵称</label>
+              <input type="text" id="add-user-input-nicename">
+          </div>
+          <div class="required field">
+              <label>用户名</label>
+              <input type="text" id="add-user-input-username">
+          </div>
+          <div class="required field">
+              <label>密码</label>
+              <input type="password" id="add-user-input-password">
+          </div>
+          <div class="required field">
+              <label>权限</label>
+              <div class="inline fields" id="add-user-input-permissions" name="permissions" data-selected=""></div>
+          </div>
       </div>
     </div>
+    <div class="actions">
+        <a class="ui button blue" href="#add-ok"><i class="add circle icon"></i> 添加</a>
+        <a class="ui button red" href="#modal-cancel"><i class="remove circle outline icon"></i> 取消</a>
+    </div>
 </div>
+
+<div class="ui modal small" id="edit-modal" data-id="">
+    <i class="close icon"></i>
+    <div class="header">修改用户</div>
+    <div class="content">
+        <div class="ui form">
+            <div class="required field">
+                <label>昵称</label>
+                <input type="text" id="edit-user-input-nicename">
+            </div>
+            <div class="required field">
+                <label>用户名</label>
+                <input type="text" id="edit-user-input-username">
+            </div>
+            <div class="required field">
+                <label>密码</label>
+                <input type="password" id="edit-user-input-password">
+            </div>
+            <div class="required field">
+                <label>权限</label>
+                <div class="inline fields" id="edit-user-input-permissions" name="permissions" data-selected=""></div>
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <a class="ui button blue" href="#edit-ok"><i class="edit circle icon"></i> 修改</a>
+        <a class="ui button red" href="#modal-cancel"><i class="remove circle outline icon"></i> 取消</a>
+    </div>
+</div>
+
+<div class="ui modal small" id="delete-modal" data-id="">
+    <i class="close icon"></i>
+    <div class="header">删除用户</div>
+    <div class="content">您确定要删除该用户么？</div>
+    <div class="actions">
+        <a class="ui button blue" href="#delete-ok"><i class="remove circle icon"></i> 确定</a>
+        <a class="ui button red" href="#modal-cancel"><i class="remove circle outline icon"></i> 取消</a>
+    </div>
+</div>
+
 <div class="ui main container">
     <div class="ui one column grid">
-        <div class="dividing column" id="coll-status"></div>
-        <div class="column" id="coll-msg"></div>
-        <div class="column" id="back-parent" data-source="">返回上一级</div>
-        <hr>
-        <div id="coll-content" class="ui six column grid"></div>
-        <div class="column" id="next-page">获取下一页</div>
+        <div class="column">
+            <h2 class="ui orange header">用户列表</h2>
+        </div>
+        <div class="column">
+            <div class="ui warning message">
+                <i class="close icon"></i>
+                <div class="header">
+                    使用前必注册
+                </div>
+                再试一次，访问注册页面
+            </div>
+        </div>
+        <div class="column right aligned">
+            <div class="ui left icon input">
+                <input type="text" id="user-search" placeholder="搜索用户...">
+                <i class="users icon"></i>
+            </div>
+            <a class="ui button" href="#add-user"><i class="add circle icon"></i> 添加用户</a>
+        </div>
+        <div class="column">
+            <table class="ui table" id="user-list">
+                <thead>
+                <tr>
+                    <th data-key="1">昵称</th>
+                    <th data-key="2">用户名</th>
+                    <th data-key="4">最后登录IP</th>
+                    <th data-key="5">最后登录时间</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="column">
+            <div class="ui buttons fluid">
+                <a class="ui button" href="#page-prev"><i class="left chevron icon"></i> 上一页</a>
+                <div class="or" data-text="1" id="page-info"></div>
+                <a class="ui button" href="#page-next">下一页 <i class="right chevron icon"></i></a>
+            </div>
+        </div>
     </div>
 </div>
 {{template "footer" .}}

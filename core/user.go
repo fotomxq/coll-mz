@@ -114,7 +114,7 @@ func (this *User) Init(params *UserParams) {
 	//设定基本值
 	this.OneUserStatus = false
 	this.fields = []string{
-		"_id","nicename","username","password","lastip","lasttime","isdisabled",
+		"_id","nicename","username","password","lastip","lasttime","isdisabled","permissions",
 	}
 	this.table = "user"
 	//设定相关参数
@@ -192,20 +192,31 @@ func (this *User) GetLoginStatus(w http.ResponseWriter,r *http.Request) string{
 	if res.UserID == ""{
 		return ""
 	}
-	//更新登录时间值
-	if res.UserID != ""{
-		var t time.Time
-		var unixTime int64
-		unixTime = t.Unix()
-		//超出时间，强行退出
-		if this.userLoginTimeout < unixTime - res.LastTime{
-			res.UserID = ""
-			_ = this.setSession(w,r,res)
-			this.sendLog(IPAddrsGetRequest(r),"User.GetLoginStatus","user-login-timeout-minute",res.UserID+"用户登录超时，自动退出。")
+	if res.UserID == "one-true" {
+		if this.OneUserStatus == false{
+			//如果是单用户记录，但系统未启动单用户模式，则强制清空cookie并记录到log中
+			this.sendLog(IPAddrsGetRequest(r),"User.GetLoginStatus","one-user-status-is-false","安全问题，系统未开启单用户模式，但该用户"+res.UserID+"尝试单用户模式登录。")
+			_ = this.removeCookie(w,r)
 		}
-		res.LastTime = unixTime
-		_ = this.setSession(w,r,res)
+		return "one-true"
+	}else{
+		if this.OneUserStatus == true{
+			//如果是多用户记录，但系统启动单用户模式，则强制清空cookie并记录到log中
+			this.sendLog(IPAddrsGetRequest(r),"User.GetLoginStatus","one-user-status-is-false","安全问题，系统开启单用户模式，但该用户"+res.UserID+"尝试多用户模式登录。")
+			_ = this.removeCookie(w,r)
+		}
 	}
+	//更新登录时间值
+	var unixTime int64
+	unixTime = time.Now().Unix()
+	//超出时间，强行退出
+	if this.userLoginTimeout < unixTime - res.LastTime{
+		res.UserID = ""
+		_ = this.setSession(w,r,res)
+		this.sendLog(IPAddrsGetRequest(r),"User.GetLoginStatus","user-login-timeout-minute",res.UserID+"用户登录超时，自动退出。")
+	}
+	res.LastTime = unixTime
+	_ = this.setSession(w,r,res)
 	//返回
 	return res.UserID
 }
@@ -232,7 +243,8 @@ func (this *User) Login(w http.ResponseWriter,r *http.Request,username string,pa
 	}
 	//检查是否超过错误次数5次
 	if res.LoginErrorNum > 5{
-		_ = this.setSession(w,r,res)
+		//永久性无法登录，除非cookie失效
+		//_ = this.setSession(w,r,res)
 		return false
 	}
 	//是否已经登录，是则返回成功
@@ -311,10 +323,16 @@ func (this *User) Logout(w http.ResponseWriter,r *http.Request){
 //param page string 页面名称
 //return bool 是否成功
 func (this *User) CheckUserVisitPage(userID string,page string) bool {
+	//如果是单用户，则直接返回
+	if this.OneUserStatus == true || userID == "one-true"{
+		return true
+	}
+	//初始化
 	var userInfo *UserFields
-	var b bool
-	userInfo,b = this.GetID(userID)
-	if b == false{
+	//获取数据
+	var err error
+	err = this.dbColl.Find(bson.M{"_id":bson.ObjectIdHex(userID),"isdisabled":false}).One(&userInfo)
+	if err != nil{
 		this.sendLog("0.0.0.0","User.CheckUserVisitPage","no-user","检查用户访问权限的时候，无法获取用户信息。")
 		return false
 	}
@@ -339,18 +357,20 @@ func (this *User) CheckUserVisitPage(userID string,page string) bool {
 
 //根据ID查询用户信息
 //param id string 用户ID
-//return *UserFields,bool 用户信息组，是否成功
-func (this *User) GetID(id string) (*UserFields,bool){
+//return *map[string]interface{},bool 用户信息组，是否成功
+func (this *User) GetID(id string) (*map[string]interface{},bool){
 	//初始化变量
+	var res map[string]interface{} = map[string]interface{}{}
 	var result UserFields
 	//获取数据
 	var err error
-	err = this.dbColl.FindId(bson.M{"_id":bson.ObjectIdHex(id)}).One(&result)
+	err = this.dbColl.FindId(bson.ObjectIdHex(id)).One(&result)
 	if err != nil{
-		return &result,false
+		return &res,false
 	}
 	//返回数据
-	return &result,true
+	res = this.fieldsToMap(&result)
+	return &res,true
 }
 
 //查询用户列表
@@ -359,8 +379,8 @@ func (this *User) GetID(id string) (*UserFields,bool){
 //param max int 页码
 //param sort int 排序字段键值
 //param desc bool 是否倒序
-//return []UserFields,bool 数据结果，是否成功
-func (this *User) List(search string,page int,max int,sort int,desc bool) (*[]UserFields,bool){
+//return *[]map[string]interface{},bool 数据结果，是否成功
+func (this *User) List(search string,page int,max int,sort int,desc bool) (*[]map[string]interface{},bool){
 	//分析sortStr
 	var sortStr string
 	if this.fields[sort] != ""{
@@ -387,13 +407,21 @@ func (this *User) List(search string,page int,max int,sort int,desc bool) (*[]Us
 	if search == ""{
 		err = this.dbColl.Find(nil).Sort(sortStr).Skip(skip).Limit(max).All(&result)
 	}else{
-		err = this.dbColl.Find(bson.M{"$or":bson.M{"nicename":search,"username":search}}).Sort(sortStr).Skip(skip).Limit(max).All(&result)
+		var conditions []bson.M = []bson.M{
+			bson.M{"nicename": bson.M{"$regex": bson.RegEx{search, "i"}}},
+			bson.M{"username": bson.M{"$regex": bson.RegEx{search, "i"}}},
+		}
+		err = this.dbColl.Find(bson.M{"$or":conditions}).Sort(sortStr).Skip(skip).Limit(max).All(&result)
 	}
+	var res []map[string]interface{} = []map[string]interface{}{}
 	if err != nil{
-		return &result,false
+		return &res,true
+	}
+	for _,value := range result{
+		res = append(res,this.fieldsToMap(&value))
 	}
 	//返回结果
-	return &result,true
+	return &res,true
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -473,11 +501,11 @@ func (this *User) Edit(id string,nicename string,username string,passwdSha1 stri
 }
 
 //删除用户
-//param id string 用户ID
+//param userID string 用户ID
 //return bool是否成功
-func (this *User) Delete(id string) bool{
+func (this *User) Delete(userID string) bool{
 	var err error
-	err = this.dbColl.RemoveId(bson.ObjectIdHex(id))
+	err = this.dbColl.RemoveId(bson.ObjectIdHex(userID))
 	return err != nil
 }
 
@@ -553,16 +581,23 @@ func (this *User) getSession(w http.ResponseWriter,r *http.Request) (*UserSessio
 	res,b = this.sessionOperate.SessionGet(w,r,"login")
 	if b == false || res["login-user-id"] == "" || res["login-last-time"] == "" || res["login-error-num"] == "" {
 		res["login-user-id"] = ""
-		res["login-last-time"] = ""
-		res["login-error-num"] = ""
+		res["login-last-time"] = "0"
+		res["login-error-num"] = "0"
 		b = this.sessionOperate.SessionSet(w,r,"login",res)
 		if b == false{
 			this.sendLog(IPAddrsGetRequest(r),"User.getSession","set-session-res","无法设定session数据。")
 		}
 	}
 	result.UserID = res["login-user-id"]
-	result.LastTime,_ = strconv.ParseInt(res["login-last-time"],10,64)
-	result.LoginErrorNum,_ = strconv.Atoi(res["login-error-num"])
+	result.LastTime,err = strconv.ParseInt(res["login-last-time"],10,64)
+	if err != nil{
+		this.sendLog(IPAddrsGetRequest(r),"User.getSession","get-lasttime-int64",err.Error())
+	}
+	result.LoginErrorNum,err = strconv.Atoi(res["login-error-num"])
+	if err != nil{
+		result.LoginErrorNum = 0
+		this.sendLog(IPAddrsGetRequest(r),"User.getSession","get-login-error-num-int",err.Error())
+	}
 	return &result,true
 }
 
@@ -613,4 +648,30 @@ func (this *User) checkPermissions(permissions []string) bool{
 		return false
 	}
 	return true
+}
+
+//将结构体转为map
+//强行删除用户密码部分
+//param info *UserFields 用户字段
+//return map[string]interface{} 转换后的数据数组
+func (this *User) fieldsToMap(info *UserFields) (map[string]interface{}) {
+	var res map[string]interface{} = map[string]interface{}{}
+	res = map[string]interface{}{
+		"ID" : info.ID.Hex(),
+		"NiceName" : info.NiceName,
+		"UserName" : info.UserName,
+		"LastIP" : info.LastIP,
+		"LastTime" : info.LastTime,
+		"IsDisabled" : info.IsDisabled,
+		"Permissions" : info.Permissions,
+	}
+	return res
+}
+
+//删除该用户客户端的cookie数据
+//param w *http.ResponseWriter Http写入对象
+//param r *http.Request Http读取对象
+//return bool 是否成功
+func (this *User) removeCookie(w http.ResponseWriter,r *http.Request) bool {
+	return this.sessionOperate.RemoveCookie(w,r)
 }

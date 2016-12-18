@@ -219,6 +219,35 @@ func (this *SessionOperate) SessionSet(w http.ResponseWriter, r *http.Request,na
 	return true
 }
 
+//删除该用户客户端cookie
+//param w *http.ResponseWriter Http写入对象
+//param r *http.Request Http读取对象
+//return bool 是否成功
+func (this *SessionOperate) RemoveCookie(w http.ResponseWriter, r *http.Request) bool {
+	var cookieValue *http.Cookie
+	//查找cookie
+	cookieValue,err = r.Cookie(this.appName)
+	//如果获取失败、空值、非40位的SHA1，则重新创建cookie
+	if err != nil || cookieValue.Value == "" || len(cookieValue.Value) != 40{
+		return true
+	}
+	var mark string = cookieValue.Value
+	err = this.dbCollStore.Remove(bson.M{"name":mark})
+	if err != nil {
+		Log.SendLog("core/session-operate.go", IPAddrsGetRequest(r), "SessionOperate.removeCookie", "remove-db", "无法删除cookie的值。")
+		return false
+	}
+	cookieValue = &http.Cookie{
+		Name:   this.appName,
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		MaxAge: 1,
+	}
+	http.SetCookie(w,cookieValue)
+	return true
+}
+
 //获取cookie标识码
 //param w *http.ResponseWriter Http写入对象
 //param r *http.Request Http读取对象
