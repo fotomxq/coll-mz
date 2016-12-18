@@ -40,11 +40,12 @@ func goURL(w http.ResponseWriter, r *http.Request, gotoURL string) {
 //param r *http.Request 读取http句柄
 //param data interface{} 输出数据
 //param b bool 获取数据是否成功
-func postJSONData(w http.ResponseWriter, r *http.Request,data interface{},b bool) {
+//param isLogin bool 是否登录
+func postJSONData(w http.ResponseWriter, r *http.Request,data interface{},b bool,isLogin bool) {
 	res := make(map[string]interface{})
 	res["status"] = b
 	res["data"] = data
-	res["login"] = false
+	res["login"] = isLogin
 	resJson,err := json.Marshal(res)
 	if err != nil{
 		sendLog("router/module.go",getIPAddr(r),"postJSONData","get-json",err.Error())

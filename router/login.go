@@ -44,7 +44,7 @@ func ActionLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	//初始化变量
 	var data string = "no-login"
-	defer postJSONData(w,r,&data,true)
+	defer postJSONData(w,r,&data,true,false)
 	//检查是否已经登录
 	if userCheckLogged(w, r) != "" {
 		data = "logged"

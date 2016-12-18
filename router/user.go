@@ -23,7 +23,7 @@ func PageUser(w http.ResponseWriter, r *http.Request){
 			"theme","user",
 		},
 		"refJS" : []string{
-			"user","sha1",
+			"user","sha1","message",
 		},
 	}
 	//输出页面
@@ -129,7 +129,7 @@ func ActionUser(w http.ResponseWriter, r *http.Request){
 		}
 		b = glob.UserOperate.Delete(postUserID)
 	}
-	postJSONData(w,r,data,b)
+	postJSONData(w,r,data,b,userID != "")
 }
 
 //////////////////////////////////////////////////////////////////////////////////////

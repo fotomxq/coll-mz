@@ -154,6 +154,13 @@ function getList(){
         $('a[href="#list-edit"]').click(function(){
             var thisC = userListData[$(this).parent().parent().parent().attr('data-key')];
             $('#edit-modal').attr('data-id',thisC['ID']);
+            $('#edit-user-input-nicename').val(thisC['NiceName']);
+            $('#edit-user-input-username').val(thisC['UserName']);
+            $('#edit-user-input-password').val('');
+            $('#edit-user-input-permissions a').removeClass('blue');
+            for(key in thisC['Permissions']){
+                $('#edit-user-input-permissions a[data-key="'+thisC['Permissions'][key]+'"]').addClass('blue');
+            }
             $('#edit-modal').modal('show');
         });
         $('a[href="#list-delete"]').click(function(){
@@ -169,28 +176,107 @@ function getList(){
 
 //添加新用户
 function addUser(){
-
+    //检查内容合法性
+    var postNicename = $('#add-user-input-nicename').val();
+    if(postNicename == ""){
+        return false;
+    }
+    var postUsername = $('#add-user-input-username').val();
+    if(postUsername == ""){
+        return false;
+    }
+    var postPassword = $('#add-user-input-password').val();
+    if(postPassword == ""){
+        return false;
+    }
+    var postPasswordSha1 = hex_sha1(postPassword);
+    var postPermissionArr = new Array();
+    $('#add-user-input-permissions .blue').each(function(){
+        postPermissionArr.push($(this).attr('data-key'));
+    });
+    if(postPermissionArr.length < 1){
+        return false;
+    }
+    var postPermissions = postPermissionArr.join('|');
+    $('#add-modal').addClass('loading');
+    $('#add-modal').addClass('segment');
+    //提交数据
+    $.post('/action-user?action=add',{
+        'nicename' : postNicename,
+        'username' : postUsername,
+        'password' : postPasswordSha1,
+        'permissions' : postPermissions
+    },function(data){
+        $('#add-modal').removeClass('loading');
+        $('#add-modal').removeClass('segment');
+        $('#add-modal').modal('hide');
+        //反馈
+        sendMessageBool(data,"创建成功","成功创建了用户。","创建失败","无法创建用户。")
+    },'json');
 }
 
 //编辑用户
 function editUser(){
-
+    //检查内容合法性
+    var userID = $('#edit-modal').attr('data-id');
+    if(userID == ""){
+        return false;
+    }
+    var postNicename = $('#edit-user-input-nicename').val();
+    if(postNicename == ""){
+        return false;
+    }
+    var postUsername = $('#edit-user-input-username').val();
+    if(postUsername == ""){
+        return false;
+    }
+    var postPassword = $('#edit-user-input-password').val();
+    if(postPassword == ""){
+        return false;
+    }
+    var postPasswordSha1 = hex_sha1(postPassword);
+    var postPermissionArr = new Array();
+    $('#edit-user-input-permissions .blue').each(function(){
+        postPermissionArr.push($(this).attr('data-key'));
+    });
+    if(postPermissionArr.length < 1){
+        return false;
+    }
+    var postPermissions = postPermissionArr.join('|');
+    $('#edit-modal').addClass('loading');
+    $('#edit-modal').addClass('segment');
+    //提交数据
+    $.post('/action-user?action=edit',{
+        'id' : userID,
+        'nicename' : postNicename,
+        'username' : postUsername,
+        'password' : postPasswordSha1,
+        'permissions' : postPermissions
+    },function(data){
+        $('#edit-modal').removeClass('loading');
+        $('#edit-modal').removeClass('segment');
+        $('#edit-modal').modal('hide');
+        //反馈
+        sendMessageBool(data,"修改用户","用户信息修改成功。","修改失败","无法修改该用户信息。")
+    },'json');
 }
 
 //删除用户
 function deleteUser(){
+    //检查内容合法性
+    var userID = $('#delete-modal').attr('data-id');
+    if(userID == ""){
+        return false;
+    }
     $('#delete-modal').addClass('loading');
     $('#delete-modal').addClass('segment');
-    var userID = $('delete-modal').attr('data-id');
+    //提交数据
     $.get('/action-user?action=delete&id='+userID,function(data){
         $('#delete-modal').removeClass('loading');
         $('#delete-modal').removeClass('segment');
-        if(!data){
-            return false;
-        }
-        if(data['status']){
-
-        }
+        $('#delete-modal').modal('hide');
+        //反馈
+        sendMessageBool(data,"删除成功","用户已经被删除了。","删除失败","无法删除该用户。")
     },'json');
 }
 
@@ -205,6 +291,14 @@ $(document).ready(function() {
         $('#add-user-input-password').val('');
         $('#add-user-input-permissions a').removeClass('blue');
         $('#add-modal').modal('show');
+    });
+    //确认修改按钮
+    $('a[href="#edit-ok"]').click(function(){
+        editUser();
+    });
+    //确认删除按钮
+    $('a[href="#delete-ok"]').click(function(){
+        deleteUser();
     });
     //model关闭按钮
     $('a[href="#modal-cancel"]').click(function(){
