@@ -36,7 +36,7 @@ func LoadFile(src string) ([]byte, error) {
 //Write file
 //If the file does not exist, it is created.
 func WriteFile(src string, content []byte) error {
-	return ioutil.WriteFile(src, content, os.ModeAppend)
+	return ioutil.WriteFile(src, content, 0644)
 }
 
 //Append data to a file
