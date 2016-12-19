@@ -212,7 +212,8 @@ function addUser() {
         $('#add-modal').removeClass('segment');
         $('#add-modal').modal('hide');
         //反馈
-        sendMessageBool(data, "创建成功", "成功创建了用户。", "创建失败", "无法创建用户。")
+        getList();
+        sendMessageBool(data, "创建成功", "成功创建了用户。", "创建失败", "无法创建用户。");
     }, 'json');
 }
 
@@ -258,7 +259,8 @@ function editUser() {
         $('#edit-modal').removeClass('segment');
         $('#edit-modal').modal('hide');
         //反馈
-        sendMessageBool(data, "修改用户", "用户信息修改成功。", "修改失败", "无法修改该用户信息。")
+        getList();
+        sendMessageBool(data, "修改用户", "用户信息修改成功。", "修改失败", "无法修改该用户信息。");
     }, 'json');
 }
 
@@ -277,7 +279,8 @@ function deleteUser() {
         $('#delete-modal').removeClass('segment');
         $('#delete-modal').modal('hide');
         //反馈
-        sendMessageBool(data, "删除成功", "用户已经被删除了。", "删除失败", "无法删除该用户。")
+        getList();
+        sendMessageBool(data, "删除成功", "用户已经被删除了。", "删除失败", "无法删除该用户。");
     }, 'json');
 }
 

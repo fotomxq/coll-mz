@@ -221,7 +221,7 @@ func (this *MatchString) FilterStr(str string) string{
 	//newStr = strings.Replace(str,"\r","",-1)
 	//newStr = strings.Replace(newStr,"\n","",-1)
 	//newStr = strings.Replace(newStr,"\t","",-1)
-	newStr = strings.Replace(newStr,"~","～",-1)
+	newStr = strings.Replace(str,"~","～",-1)
 	newStr = strings.Replace(newStr,"<","〈",-1)
 	newStr = strings.Replace(newStr,">","〉",-1)
 	newStr = strings.Replace(newStr,"$","￥",-1)

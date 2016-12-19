@@ -435,11 +435,6 @@ func (this *User) List(search string, page int, max int, sort int, desc bool) (*
 //param permissions []string 权限列表，admin管理员权限，其他可自定义
 //return string 新的用户ID，失败返回空字符串，发现用户名存在返回"user-exist"字符串
 func (this *User) Create(nicename string, username string, passwdSha1 string, permissions []string) string {
-	//检查昵称、用户名、密码是否合法
-	if this.checkNicename(nicename) == false || this.checkUsername(username, passwdSha1) == false {
-		this.sendLog("0.0.0.0", "Create", "check-user-password", "尝试创建新的用户，但用户名和密码不正确。")
-		return ""
-	}
 	//检查用户是否存在
 	if this.checkUsernameIsExisit(username) == true {
 		this.sendLog("0.0.0.0", "Create", "user-exisit", "创建新的用户，但用户已经存在了。")
@@ -478,13 +473,20 @@ func (this *User) Create(nicename string, username string, passwdSha1 string, pe
 //param permissions []string 权限列表，admin管理员权限，其他可自定义
 //return bool 是否成功
 func (this *User) Edit(id string, nicename string, username string, passwdSha1 string, permissions []string) bool {
-	//检查昵称、用户名和密码是否合法
-	if this.checkNicename(nicename) == false || this.checkUsername(username, passwdSha1) == false {
+	//获取该ID数据
+	//初始化变量
+	var result UserFields
+	//获取数据
+	var err error
+	err = this.dbColl.FindId(bson.ObjectIdHex(id)).One(&result)
+	if err != nil {
 		return false
 	}
-	//检查用户是否存在
-	if this.checkUsernameIsExisit(username) == true {
-		return false
+	//如果修改了用户名，则检查用户是否存在
+	if result.UserName != username{
+		if this.checkUsernameIsExisit(username) == true {
+			return false
+		}
 	}
 	//检查权限是否均有效
 	if this.checkPermissions(permissions) == false {
@@ -495,9 +497,8 @@ func (this *User) Edit(id string, nicename string, username string, passwdSha1 s
 	var passwdSha1Sha1 string
 	passwdSha1Sha1 = this.getPasswdSha1(passwdSha1)
 	//执行修改用户
-	var err error
 	err = this.dbColl.UpdateId(bson.ObjectIdHex(id), bson.M{"$set": bson.M{"nicename": nicename, "username": username, "password": passwdSha1Sha1, "permissions": permissions}})
-	return err != nil
+	return err == nil
 }
 
 //删除用户
@@ -506,7 +507,7 @@ func (this *User) Edit(id string, nicename string, username string, passwdSha1 s
 func (this *User) Delete(userID string) bool {
 	var err error
 	err = this.dbColl.RemoveId(bson.ObjectIdHex(userID))
-	return err != nil
+	return err == nil
 }
 
 //删除所有用户
@@ -515,7 +516,7 @@ func (this *User) Delete(userID string) bool {
 func (this *User) DeleteAll() bool{
 	var err error
 	_,err = this.dbColl.RemoveAll(nil)
-	return err != nil
+	return err == nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
