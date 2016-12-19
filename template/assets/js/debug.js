@@ -1,9 +1,9 @@
 //初始化
 $(document).ready(function() {
     //表格提示
-    $('tbody tr').hover(function(){
+    $('tbody tr').hover(function() {
         $(this).toggleClass('warning');
-    },function(){
+    }, function() {
         $(this).toggleClass('warning');
     });
 });

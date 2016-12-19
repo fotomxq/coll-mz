@@ -1,14 +1,15 @@
 package main
 
 import (
-	"gopkg.in/mgo.v2"
-	"strconv"
 	"./core"
 	"./router"
+	"gopkg.in/mgo.v2"
+	"strconv"
 )
 
 //全局APP名称
 var AppName string
+
 //全局APP标识
 var AppMark string
 
@@ -32,14 +33,14 @@ var IPAddrOperate core.IPAddrBan
 
 //控制器主程序
 //该函数用于启动整个项目
-func main(){
+func main() {
 	//读取配置文件信息
 	var configSrc string
 	configSrc = "config" + core.PathSeparator + "config.json"
 	var configData map[string]interface{}
 	var b bool
-	configData,b = core.LoadConfig(configSrc)
-	if b == false{
+	configData, b = core.LoadConfig(configSrc)
+	if b == false {
 		core.SendLog("无法读取config.json配置数据。")
 		return
 	}
@@ -51,9 +52,9 @@ func main(){
 	//连接数据库
 	var session *mgo.Session
 	var err error
-	session,err = mgo.Dial(configData["mgo-host"].(string))
-	if err != nil{
-		core.SendLog("无法连接到数据库，错误 : "+err.Error())
+	session, err = mgo.Dial(configData["mgo-host"].(string))
+	if err != nil {
+		core.SendLog("无法连接到数据库，错误 : " + err.Error())
 		return
 	}
 	core.SendLog("数据库连接成功 : " + configData["mgo-host"].(string))
@@ -62,7 +63,7 @@ func main(){
 	DB = session.DB(configData["mgo-db"].(string))
 
 	//初始化日志操作句柄
-	LogOperate.Init(DB,AppMark)
+	LogOperate.Init(DB, AppMark)
 
 	//将日志句柄赋予给core
 	core.Log = &LogOperate
@@ -71,24 +72,24 @@ func main(){
 	var sessionIPBind bool
 	sessionIPBind = configData["session-ip-bind"].(string) == "true"
 	var sessionTimeout int
-	sessionTimeout,err = strconv.Atoi(configData["session-timeout"].(string))
-	if err != nil{
+	sessionTimeout, err = strconv.Atoi(configData["session-timeout"].(string))
+	if err != nil {
 		core.SendLog(err.Error())
 		return
 	}
-	SessionOperate.Create(AppMark,DB,sessionIPBind,sessionTimeout,&MatchString)
+	SessionOperate.Create(AppMark, DB, sessionIPBind, sessionTimeout, &MatchString)
 
 	//构建用户处理器var userLoginTimeout int64
 	var userLoginTimeout int64
-	userLoginTimeout,err = strconv.ParseInt(configData["user-login-timeout"].(string),10,64)
-	if err != nil{
+	userLoginTimeout, err = strconv.ParseInt(configData["user-login-timeout"].(string), 10, 64)
+	if err != nil {
 		core.SendLog(err.Error())
 		return
 	}
 	var userOneStatus bool
 	userOneStatus = configData["user-one"].(string) == "true"
 	UserOperate.Init(&core.UserParams{
-		DB,&MatchString,
+		DB, &MatchString,
 		&SessionOperate,
 		&LogOperate,
 		AppMark,
@@ -97,15 +98,15 @@ func main(){
 		userOneStatus,
 		configData["user-username"].(string),
 		configData["user-password"].(string),
-		[]string{"admin","normal"},
+		[]string{"admin", "normal"},
 		map[string]map[string]interface{}{
-			"admin" : map[string]interface{}{
-				"name" : "管理员",
-				"page" : []string{"*"},
+			"admin": {
+				"name": "管理员",
+				"page": []string{"*"},
 			},
-			"normal" : map[string]interface{}{
-				"name" : "普通用户",
-				"page" : []string{"center"},
+			"normal": {
+				"name": "普通用户",
+				"page": []string{"center"},
 			},
 		},
 	})
@@ -115,7 +116,7 @@ func main(){
 	ipBanOn = configData["ip-ban-on"].(string) == "true"
 	var ipWriteOn bool
 	ipWriteOn = configData["ip-white-on"].(string) == "true"
-	IPAddrOperate.Init(DB,ipBanOn,ipWriteOn)
+	IPAddrOperate.Init(DB, ipBanOn, ipWriteOn)
 
 	//将本机IP添加到白名单内，用于开发工作
 	//IPAddrOperate.SaveToList("[::1]",false)

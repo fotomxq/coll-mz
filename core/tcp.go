@@ -22,28 +22,28 @@ type Tcp struct {
 //为避免影响主程序，请尽量使用并发运行该函数
 //param host string 地址及端口
 //param handle func(*net.TCPConn) 调用的函数对象
-func (this *Tcp) ServerListen(host string,handle func(*net.TCPConn)){
-	if this.serverStatus == true{
+func (this *Tcp) ServerListen(host string, handle func(*net.TCPConn)) {
+	if this.serverStatus == true {
 		return
 	}
 	this.tcpAddr, err = net.ResolveTCPAddr("tcp", host)
-	if err != nil{
+	if err != nil {
 		SendLog(err.Error())
-		Log.SendLog("core/tcp.go","0.0.0.0","Tcp.ServerListen","resolve-tcp-addr",err.Error())
+		Log.SendLog("core/tcp.go", "0.0.0.0", "Tcp.ServerListen", "resolve-tcp-addr", err.Error())
 		return
 	}
 	tcpListener, err := net.ListenTCP("tcp", this.tcpAddr)
-	if err != nil{
+	if err != nil {
 		SendLog(err.Error())
-		Log.SendLog("core/tcp.go","0.0.0.0","Tcp.ServerListen","tcp-listener-error",err.Error())
+		Log.SendLog("core/tcp.go", "0.0.0.0", "Tcp.ServerListen", "tcp-listener-error", err.Error())
 		return
 	}
 	defer tcpListener.Close()
 	for {
 		conn, err := tcpListener.AcceptTCP()
-		if err != nil{
+		if err != nil {
 			SendLog(err.Error())
-			Log.SendLog("core/tcp.go","0.0.0.0","Tcp.ServerListen","accept-tCP-error",err.Error())
+			Log.SendLog("core/tcp.go", "0.0.0.0", "Tcp.ServerListen", "accept-tCP-error", err.Error())
 			this.serverStatus = false
 			continue
 		}
@@ -57,20 +57,20 @@ func (this *Tcp) ServerListen(host string,handle func(*net.TCPConn)){
 //为避免影响主程序，请尽量使用并发运行该函数
 //param host string 地址及端口
 //param handle func(*net.TCPConn) 调用的函数对象
-func (this *Tcp) ClientListen(host string,handle func(*net.TCPConn)){
-	if this.clientStatus == true{
+func (this *Tcp) ClientListen(host string, handle func(*net.TCPConn)) {
+	if this.clientStatus == true {
 		return
 	}
 	this.tcpAddr, err = net.ResolveTCPAddr("tcp", host)
-	if err != nil{
+	if err != nil {
 		SendLog(err.Error())
-		Log.SendLog("core/tcp.go","0.0.0.0","Tcp.ClientListen","resolve-tcp-addr-error",err.Error())
+		Log.SendLog("core/tcp.go", "0.0.0.0", "Tcp.ClientListen", "resolve-tcp-addr-error", err.Error())
 		return
 	}
 	conn, err := net.DialTCP("tcp", nil, this.tcpAddr)
-	if err != nil{
+	if err != nil {
 		SendLog(err.Error())
-		Log.SendLog("core/tcp.go","0.0.0.0","Tcp.ClientListen","dial-tcp-error",err.Error())
+		Log.SendLog("core/tcp.go", "0.0.0.0", "Tcp.ClientListen", "dial-tcp-error", err.Error())
 		return
 	}
 	defer conn.Close()

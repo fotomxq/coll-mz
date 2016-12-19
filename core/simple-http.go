@@ -1,8 +1,8 @@
 package core
 
 import (
-	"net/http"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 )
 
@@ -14,7 +14,7 @@ func SimpleHttpGet(sendURL string, params map[string][]string) ([]byte, bool) {
 	var urlU *url.URL
 	urlU, err = url.Parse(sendURL)
 	if err != nil {
-		Log.SendLog("core/simple-http.go","0.0.0.0","SimpleHttpGet","url-parse",err.Error())
+		Log.SendLog("core/simple-http.go", "0.0.0.0", "SimpleHttpGet", "url-parse", err.Error())
 		return nil, false
 	}
 	var urlParams url.Values = params
@@ -22,16 +22,16 @@ func SimpleHttpGet(sendURL string, params map[string][]string) ([]byte, bool) {
 	urlU.RawQuery = urlParams.Encode()
 	resp, err := http.Get(urlU.String())
 	if err != nil {
-		Log.SendLog("core/simple-http.go","0.0.0.0","SimpleHttpGet","http-getr",err.Error())
+		Log.SendLog("core/simple-http.go", "0.0.0.0", "SimpleHttpGet", "http-getr", err.Error())
 		return nil, false
 	}
 	defer resp.Body.Close()
-	res,err := ioutil.ReadAll(resp.Body)
-	if err != nil{
-		Log.SendLog("core/simple-http.go","0.0.0.0","SimpleHttpGet","ioutil-read-all",err.Error())
-		return res,false
+	res, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		Log.SendLog("core/simple-http.go", "0.0.0.0", "SimpleHttpGet", "ioutil-read-all", err.Error())
+		return res, false
 	}
-	return res,true
+	return res, true
 }
 
 //通过POST获取URL数据
@@ -42,14 +42,14 @@ func SimpleHttpPost(sendURL string, params map[string][]string) ([]byte, bool) {
 	var urlParams url.Values = params
 	resp, err := http.PostForm(sendURL, urlParams)
 	if err != nil {
-		Log.SendLog("core/simple-http.go","0.0.0.0","SimpleHttpPost","http-form",err.Error())
+		Log.SendLog("core/simple-http.go", "0.0.0.0", "SimpleHttpPost", "http-form", err.Error())
 		return nil, false
 	}
 	defer resp.Body.Close()
-	res,err := ioutil.ReadAll(resp.Body)
-	if err != nil{
-		Log.SendLog("core/simple-http.go","0.0.0.0","SimpleHttpPost","ioutil-read-all",err.Error())
-		return res,false
+	res, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		Log.SendLog("core/simple-http.go", "0.0.0.0", "SimpleHttpPost", "ioutil-read-all", err.Error())
+		return res, false
 	}
-	return res,true
+	return res, true
 }

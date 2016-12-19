@@ -1,13 +1,13 @@
 package core
 
 import (
-	"os"
-	"io/ioutil"
 	"bytes"
-	"io"
-	"strings"
 	"crypto/sha1"
 	"encoding/hex"
+	"io"
+	"io/ioutil"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -21,7 +21,7 @@ import (
 //return bool 是否成功
 func CreateFolder(src string) bool {
 	err = os.MkdirAll(src, os.ModePerm)
-	if err != nil{
+	if err != nil {
 		SendLog(err.Error())
 	}
 	return err != nil
@@ -30,19 +30,19 @@ func CreateFolder(src string) bool {
 //读取文件
 //param src string 文件路径
 //return []byte, bool 文件数据，是否成功
-func LoadFile (src string) ([]byte, bool) {
+func LoadFile(src string) ([]byte, bool) {
 	fd, err := os.Open(src)
 	if err != nil {
 		SendLog(err.Error())
 		return nil, false
 	}
 	defer fd.Close()
-	c,err := ioutil.ReadAll(fd)
-	if err != nil{
+	c, err := ioutil.ReadAll(fd)
+	if err != nil {
 		SendLog(err.Error())
-		return nil,false
+		return nil, false
 	}
-	return c,true
+	return c, true
 }
 
 //写入文件
@@ -51,7 +51,7 @@ func LoadFile (src string) ([]byte, bool) {
 //return bool 是否成功
 func WriteFile(src string, content []byte) bool {
 	err = ioutil.WriteFile(src, content, os.ModeAppend)
-	if err != nil{
+	if err != nil {
 		SendLog(err.Error())
 	}
 	return err != nil
@@ -93,7 +93,7 @@ func WriteFileAppend(src string, content []byte, isForward bool) bool {
 //return bool 是否成功
 func MoveF(src string, dest string) bool {
 	err = os.Rename(src, dest)
-	if err != nil{
+	if err != nil {
 		SendLog(err.Error())
 	}
 	return err != nil
@@ -129,7 +129,7 @@ func CopyFile(src string, dest string) bool {
 //return bool 是否成功
 func DeleteF(src string) bool {
 	err = os.RemoveAll(src)
-	if err != nil{
+	if err != nil {
 		SendLog(err.Error())
 	}
 	return err != nil
@@ -164,7 +164,7 @@ func IsFolder(src string) bool {
 //param filtre string 仅保留的文件，文件夹除外，eg : jpg|jpeg|gif
 //param isSrc bool 返回是否为文件路径
 //return []string,bool 文件列表，是否成功
-func GetFileList(src string,filter string,isSrc bool) ([]string, bool) {
+func GetFileList(src string, filter string, isSrc bool) ([]string, bool) {
 	var fs []string
 	dir, err := ioutil.ReadDir(src)
 	if err != nil {
@@ -172,28 +172,28 @@ func GetFileList(src string,filter string,isSrc bool) ([]string, bool) {
 		return nil, false
 	}
 	var filters []string
-	if filter != ""{
-		filters = strings.Split(filter,"|")
+	if filter != "" {
+		filters = strings.Split(filter, "|")
 	}
 	for _, v := range dir {
 		var appendSrc string
-		if isSrc == true{
+		if isSrc == true {
 			appendSrc = src + PathSeparator + v.Name()
-		}else{
+		} else {
 			appendSrc = v.Name()
 		}
-		if v.IsDir() == true || filter == ""{
+		if v.IsDir() == true || filter == "" {
 			fs = append(fs, appendSrc)
 			continue
 		}
-		names := strings.Split(v.Name(),".")
-		if len(names) == 1{
+		names := strings.Split(v.Name(), ".")
+		if len(names) == 1 {
 			fs = append(fs, appendSrc)
 			continue
 		}
 		t := names[len(names)-1]
-		for _,filterValue := range filters{
-			if t != filterValue{
+		for _, filterValue := range filters {
+			if t != filterValue {
 				continue
 			}
 			fs = append(fs, appendSrc)
@@ -227,13 +227,13 @@ func GetPathSep() string {
 //获取文件大小
 //param src string 文件路径
 //return int64,bool 文件大小，是否成功
-func GetFileSize(src string) (int64,bool) {
+func GetFileSize(src string) (int64, bool) {
 	info, err := os.Stat(src)
 	if err != nil {
 		SendLog(err.Error())
-		return 0,false
+		return 0, false
 	}
-	return info.Size(),false
+	return info.Size(), false
 }
 
 //获取文件名称分割序列
@@ -246,8 +246,8 @@ func GetFileNames(src string) (map[string]string, bool) {
 		return nil, false
 	}
 	res := map[string]string{
-		"name":     info.Name(),
-		"type":     "",
+		"name":      info.Name(),
+		"type":      "",
 		"only-name": info.Name(),
 	}
 	names := strings.Split(res["name"], ".")
@@ -269,11 +269,11 @@ func GetFileNames(src string) (map[string]string, bool) {
 //return os.FileInfo,bool 文件信息，是否成功
 func GetFileInfo(src string) (os.FileInfo, bool) {
 	var c os.FileInfo
-	c,err = os.Stat(src)
-	if err != nil{
+	c, err = os.Stat(src)
+	if err != nil {
 		SendLog(err.Error())
 	}
-	return c,err != nil
+	return c, err != nil
 }
 
 //获取文件SHA1值
@@ -286,8 +286,8 @@ func GetFileSha1(src string) string {
 	}
 	if content != nil {
 		sha := sha1.New()
-		_,err = sha.Write(content)
-		if err != nil{
+		_, err = sha.Write(content)
+		if err != nil {
 			SendLog(err.Error())
 			return ""
 		}
@@ -309,7 +309,7 @@ func GetTimeDirSrc(src string, appendFileType string) string {
 	newSrc := src + sep + time.Now().Format("200601")
 	var b bool
 	b = CreateFolder(newSrc)
-	if b == false{
+	if b == false {
 		return ""
 	}
 	newSrc = newSrc + sep

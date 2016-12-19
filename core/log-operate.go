@@ -1,13 +1,13 @@
 package core
 
 import (
+	"bytes"
+	"fmt"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"fmt"
-	"time"
-	"os"
 	"io/ioutil"
-	"bytes"
+	"os"
+	"time"
 )
 
 //日志处理模块
@@ -33,21 +33,21 @@ var LogOperateFileBool = false
 //自动向控制台和日志文件输出信息
 //日志同时将存储到"LogOperateSrc/200601/02/2006010215.log"文件内
 //param message string 日志信息
-func SendLog(message string){
+func SendLog(message string) {
 	//加入时间
 	var t time.Time
 	t = time.Now()
 	message = t.Format("2006-01-02 15:04:05.999999999") + " " + message + "\n"
 	//向控制台输出日志
 	fmt.Print(message)
-	if LogOperateFileBool == false{
+	if LogOperateFileBool == false {
 		return
 	}
 	//生成日志文件路径
 	var logDir string
-	logDir = LogOperateSrc + PathSeparator +t.Format("200601") + PathSeparator + t.Format("02")
+	logDir = LogOperateSrc + PathSeparator + t.Format("200601") + PathSeparator + t.Format("02")
 	err = os.MkdirAll(logDir, os.ModePerm)
-	if err != nil{
+	if err != nil {
 		fmt.Println(t.Format("2006-01-02 15:04:05.999999999") + " Failed to create the folder : " + logDir)
 		return
 	}
@@ -57,10 +57,10 @@ func SendLog(message string){
 	var messageByte []byte
 	messageByte = []byte(message)
 	//如果文件不存在，则直接创建写入日志
-	_,err = os.Stat(logSrc)
-	if err != nil || os.IsNotExist(err) == true{
+	_, err = os.Stat(logSrc)
+	if err != nil || os.IsNotExist(err) == true {
 		err = ioutil.WriteFile(logSrc, messageByte, os.ModeAppend)
-		if err != nil{
+		if err != nil {
 			fmt.Println(t.Format("2006-01-02 15:04:05.999999999") + " " + err.Error())
 		}
 		return
@@ -68,13 +68,13 @@ func SendLog(message string){
 	//如果文件存在，则读出文件内容，添加新日志
 	var fd *os.File
 	fd, err = os.Open(logSrc)
-	if err != nil{
+	if err != nil {
 		fmt.Println(t.Format("2006-01-02 15:04:05.999999999") + " " + err.Error())
 		return
 	}
 	defer fd.Close()
 	var c []byte
-	c,err = ioutil.ReadAll(fd)
+	c, err = ioutil.ReadAll(fd)
 	if err != nil {
 		fmt.Println(t.Format("2006-01-02 15:04:05.999999999") + " " + err.Error())
 		return
@@ -87,7 +87,7 @@ func SendLog(message string){
 	var sep []byte
 	messageByte = bytes.Join(s, sep)
 	err = ioutil.WriteFile(logSrc, messageByte, os.ModeAppend)
-	if err != nil{
+	if err != nil {
 		fmt.Println(t.Format("2006-01-02 15:04:05.999999999") + " " + err.Error())
 		return
 	}
@@ -130,7 +130,7 @@ type LogOperateFields struct {
 //使用之前必须确保进行该步骤
 //param db *mgo.Database 数据库句柄
 //param appName 应用名称
-func (this *LogOperate) Init(db *mgo.Database,appName string){
+func (this *LogOperate) Init(db *mgo.Database, appName string) {
 	//保存数据库连接
 	this.db = db
 	//构建数据集合
@@ -144,10 +144,10 @@ func (this *LogOperate) Init(db *mgo.Database,appName string){
 //param funcName string 函数名称
 //param mark string 标记名称
 //param message string 消息
-func (this *LogOperate) SendLog(fileName string,ipAddr string,funcName string,mark string,message string){
+func (this *LogOperate) SendLog(fileName string, ipAddr string, funcName string, mark string, message string) {
 	//向数据库添加日志
-	err = this.dbColl.Insert(&LogOperateFields{bson.NewObjectId(),time.Now().Format("2006-01-02 15:04:05.999999999"),ipAddr,fileName,funcName,mark,message})
-	if err != nil{
+	err = this.dbColl.Insert(&LogOperateFields{bson.NewObjectId(), time.Now().Format("2006-01-02 15:04:05.999999999"), ipAddr, fileName, funcName, mark, message})
+	if err != nil {
 		fmt.Println("无法向数据库添加日志数据。")
 	}
 }
@@ -157,33 +157,33 @@ func (this *LogOperate) SendLog(fileName string,ipAddr string,funcName string,ma
 //param page int 页数
 //param max int 页长
 //return []map[string]string,bool 日志数据组，是否获取成功
-func (this *LogOperate) View(page int,max int) ([]map[string]string,bool){
+func (this *LogOperate) View(page int, max int) ([]map[string]string, bool) {
 	var result []LogOperateFields
 	var res []map[string]string = []map[string]string{}
 	var skip int
 	skip = (page - 1) * max
 	err = this.dbColl.Find(nil).Sort("-_id").Skip(skip).Limit(max).All(&result)
-	if err != nil{
-		return res,false
+	if err != nil {
+		return res, false
 	}
-	for key := range result{
-		res = append(res,map[string]string{
-			"ID" : result[key].ID.Hex(),
-			"CreateTime" : result[key].CreateTime,
-			"IpAddr" : result[key].IpAddr,
-			"FileName" : result[key].FileName,
-			"FuncName" : result[key].FuncName,
-			"Mark" : result[key].Mark,
-			"Message" : result[key].Message,
+	for key := range result {
+		res = append(res, map[string]string{
+			"ID":         result[key].ID.Hex(),
+			"CreateTime": result[key].CreateTime,
+			"IpAddr":     result[key].IpAddr,
+			"FileName":   result[key].FileName,
+			"FuncName":   result[key].FuncName,
+			"Mark":       result[key].Mark,
+			"Message":    result[key].Message,
 		})
 	}
-	return res,true
+	return res, true
 }
 
 //清理日志
 //仅用于debug模式，其他模式下请勿使用该模块
 //return bool 是否成功
-func (this *LogOperate) Clear() bool{
-	_,err = this.dbColl.RemoveAll(nil)
+func (this *LogOperate) Clear() bool {
+	_, err = this.dbColl.RemoveAll(nil)
 	return err == nil
 }

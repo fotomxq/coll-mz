@@ -1,12 +1,12 @@
 package core
 
 import (
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"strings"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 )
 
 //该模块用于通过外网、内部获取IP地址
@@ -23,14 +23,14 @@ func IPAddrsGetExternal() string {
 	var resp *http.Response
 	resp, err = http.Get(url)
 	if err != nil {
-		Log.SendLog("core/ip-addrs.go","0.0.0.0","IPAddrsGetExternal","http-get",err.Error())
+		Log.SendLog("core/ip-addrs.go", "0.0.0.0", "IPAddrsGetExternal", "http-get", err.Error())
 		return "0.0.0.0"
 	}
 	defer resp.Body.Close()
 	var body []byte
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		Log.SendLog("core/ip-addrs.go","0.0.0.0","IPAddrsGetExternal","ioutil-read-all",err.Error())
+		Log.SendLog("core/ip-addrs.go", "0.0.0.0", "IPAddrsGetExternal", "ioutil-read-all", err.Error())
 		return "0.0.0.0"
 	}
 	var html string
@@ -45,7 +45,7 @@ func IPAddrsGetExternal() string {
 func IPAddrsGetInternal() string {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		Log.SendLog("core/ip-addrs.go","0.0.0.0","IPAddrsGetInternal","get-interface-addrs",err.Error())
+		Log.SendLog("core/ip-addrs.go", "0.0.0.0", "IPAddrsGetInternal", "get-interface-addrs", err.Error())
 		return "0.0.0.0"
 	}
 	for _, v := range addrs {
@@ -62,17 +62,17 @@ func IPAddrsGetInternal() string {
 //自动剔除端口部分，只获取IP地址
 //param r *http.Request Http读取对象
 //return string IP地址
-func IPAddrsGetRequest(r *http.Request) string{
+func IPAddrsGetRequest(r *http.Request) string {
 	var ipAddr string
 	ipAddr = r.RemoteAddr
-	if ipAddr == ""{
+	if ipAddr == "" {
 		return "0.0.0.0"
 	}
 	var ipAddrs []string
-	ipAddrs = strings.Split(ipAddr,":")
-	if len(ipAddrs) > 1{
+	ipAddrs = strings.Split(ipAddr, ":")
+	if len(ipAddrs) > 1 {
 		var res string
-		res = strings.Join(ipAddrs[0:len(ipAddrs)-1],":")
+		res = strings.Join(ipAddrs[0:len(ipAddrs)-1], ":")
 		return res
 	}
 	return ipAddrs[0]
@@ -107,7 +107,7 @@ type IPAddrBanFields struct {
 //param db *mgo.Database 数据库句柄
 //param banBool bool 是否启动黑名单
 //param whiteBool bool 是否启动白名单
-func (this *IPAddrBan) Init(db *mgo.Database,banBool bool, whiteBool bool){
+func (this *IPAddrBan) Init(db *mgo.Database, banBool bool, whiteBool bool) {
 	this.db = db
 	this.banBool = banBool
 	this.whiteBool = whiteBool
@@ -116,27 +116,27 @@ func (this *IPAddrBan) Init(db *mgo.Database,banBool bool, whiteBool bool){
 //检查IP地址是否可通行
 //param ipAddr string IP地址
 //return bool 是否可以通行
-func (this *IPAddrBan) CheckList(ipAddr string) bool{
+func (this *IPAddrBan) CheckList(ipAddr string) bool {
 	//如果 白名单和黑名单模式关闭，则返回可通行
-	if this.whiteBool == false && this.banBool == false{
+	if this.whiteBool == false && this.banBool == false {
 		return true
 	}
 	//获取集合
 	var result IPAddrBanFields
 	var dbColl *mgo.Collection
 	dbColl = this.db.C("ip")
-	err = dbColl.Find(bson.M{"ipaddr":ipAddr}).One(&result)
+	err = dbColl.Find(bson.M{"ipaddr": ipAddr}).One(&result)
 	//如果 没有数据 && 白名单未启动，返回可通行，否则不允许
-	if err != nil && this.whiteBool == true{
-		Log.SendLog("core/ip-addrs.go",ipAddr,"IPAddrBan.IPAddrsCheck","ip-ban","未在白名单内的IP，尝试访问。")
+	if err != nil && this.whiteBool == true {
+		Log.SendLog("core/ip-addrs.go", ipAddr, "IPAddrBan.IPAddrsCheck", "ip-ban", "未在白名单内的IP，尝试访问。")
 		return false
 	}
 	//如果 ban=false，无论是否启动黑白名单，均返回可通行
-	if result.IsBan == false{
+	if result.IsBan == false {
 		return true
 	}
 	//其他情况返回失败
-	Log.SendLog("core/ip-addrs.go",ipAddr,"IPAddrBan.IPAddrsCheck","ip-ban","未在白名单或在黑名单内的IP，尝试访问。")
+	Log.SendLog("core/ip-addrs.go", ipAddr, "IPAddrBan.IPAddrsCheck", "ip-ban", "未在白名单或在黑名单内的IP，尝试访问。")
 	return false
 }
 
@@ -144,25 +144,25 @@ func (this *IPAddrBan) CheckList(ipAddr string) bool{
 //param ipaddr string IP地址
 //param isBan bool 是否禁用
 //return bool 是否保存成功
-func (this *IPAddrBan) SaveToList(ipAddr string,isBan bool) bool{
+func (this *IPAddrBan) SaveToList(ipAddr string, isBan bool) bool {
 	//获取集合
 	var result IPAddrBanFields
 	var dbColl *mgo.Collection
 	dbColl = this.db.C("ip")
-	err = dbColl.Find(bson.M{"ipaddr":ipAddr}).One(&result)
-	if err != nil{
+	err = dbColl.Find(bson.M{"ipaddr": ipAddr}).One(&result)
+	if err != nil {
 		//不存在则创建
-		err = dbColl.Insert(&IPAddrBanFields{ipAddr,isBan})
-		if err != nil{
-			Log.SendLog("core/ip-addrs.go",ipAddr,"IPAddrBan.IPAddrsSaveBan","create-db",err.Error())
+		err = dbColl.Insert(&IPAddrBanFields{ipAddr, isBan})
+		if err != nil {
+			Log.SendLog("core/ip-addrs.go", ipAddr, "IPAddrBan.IPAddrsSaveBan", "create-db", err.Error())
 			return false
 		}
 		return true
 	}
 	//如果存在，则更新数据
-	err = dbColl.Update(bson.M{"ipaddr":ipAddr},bson.M{"$set":bson.M{"isban":isBan}})
-	if err != nil{
-		Log.SendLog("core/ip-addrs.go",ipAddr,"IPAddrBan.IPAddrsSaveBan","update-db",err.Error())
+	err = dbColl.Update(bson.M{"ipaddr": ipAddr}, bson.M{"$set": bson.M{"isban": isBan}})
+	if err != nil {
+		Log.SendLog("core/ip-addrs.go", ipAddr, "IPAddrBan.IPAddrsSaveBan", "update-db", err.Error())
 		return false
 	}
 	return true

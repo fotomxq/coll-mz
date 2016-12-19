@@ -1,5 +1,4 @@
-{{template "header" .}}
-{{template "menu" .}}
+{{template "header" .}} {{template "menu" .}}
 <div class="ui main container">
     <div class="ui one column grid">
         <div class="column">
@@ -13,26 +12,26 @@
         <div class="column">
             <table class="ui table">
                 <thead>
-                <tr>
-                    <th>时间</th>
-                    <th>IP</th>
-                    <th>文件</th>
-                    <th>函数</th>
-                    <th>标记</th>
-                    <th>消息</th>
-                </tr>
+                    <tr>
+                        <th>时间</th>
+                        <th>IP</th>
+                        <th>文件</th>
+                        <th>函数</th>
+                        <th>标记</th>
+                        <th>消息</th>
+                    </tr>
                 </thead>
                 <tbody>
-                {{range .logData}}
-                <tr>
-                    <td>{{.CreateTime}}</td>
-                    <td>{{.IpAddr}}</td>
-                    <td>{{.FileName}}</td>
-                    <td>{{.FuncName}}</td>
-                    <td>{{.Mark}}</td>
-                    <td>{{.Message}}</td>
-                </tr>
-                {{end}}
+                    {{range .logData}}
+                    <tr>
+                        <td>{{.CreateTime}}</td>
+                        <td>{{.IpAddr}}</td>
+                        <td>{{.FileName}}</td>
+                        <td>{{.FuncName}}</td>
+                        <td>{{.Mark}}</td>
+                        <td>{{.Message}}</td>
+                    </tr>
+                    {{end}}
                 </tbody>
             </table>
         </div>

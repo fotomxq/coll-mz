@@ -16,10 +16,9 @@ var Log *LogOperate
 
 //核心类
 type ControlCore struct {
-
 }
 
 //初始化该模块
-func init(){
+func init() {
 	PathSeparator = GetPathSep()
 }

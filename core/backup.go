@@ -8,13 +8,11 @@ package core
 // core.LogOperate
 
 //备份数据库
-func BackupMongodb() bool{
+func BackupMongodb() bool {
 	return false
 }
 
 //还原数据库
-func ReturnMongodb() bool{
+func ReturnMongodb() bool {
 	return false
 }
-
-

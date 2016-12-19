@@ -4,10 +4,8 @@
         <a href="#" class="header item">
             <img class="logo" src="/assets/imgs/logo-100.png"> {{.appName}}
         </a>
-        <a href="/login" class="item"><i class="sign out icon"></i> 登录</a>
-        {{if .debug}}
-        <a href="/debug" class="item"><i class="bug icon"></i> Debug</a>
-        {{end}}
+        <a href="/login" class="item"><i class="sign out icon"></i> 登录</a> {{if .debug}}
+        <a href="/debug" class="item"><i class="bug icon"></i> Debug</a> {{end}}
     </div>
 </div>
 {{end}}

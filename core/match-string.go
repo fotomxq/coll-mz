@@ -3,11 +3,11 @@ package core
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"regexp"
-	"time"
 	"math/rand"
+	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 //验证模块
@@ -32,7 +32,7 @@ func (this *MatchString) CheckUsername(str string) bool {
 //param str string 昵称
 //return bool 是否正确
 func (this *MatchString) CheckNicename(str string) bool {
-	return this.matchStr(`^[\u4e00-\u9fa5_a-zA-Z0-9]{2,30}$`,str)
+	return this.matchStr(`^[\u4e00-\u9fa5_a-zA-Z0-9]{2,30}$`, str)
 }
 
 //验证邮箱
@@ -52,25 +52,25 @@ func (this *MatchString) CheckPassword(str string) bool {
 //验证搜索类型的字符串
 //param str string 字符串
 //return bool 是否正确
-func (this *MatchString) CheckSearch(str string) bool{
-	return this.matchStr(`^[\u4e00-\u9fa5_a-zA-Z0-9]+$`,str)
+func (this *MatchString) CheckSearch(str string) bool {
+	return this.matchStr(`^[\u4e00-\u9fa5_a-zA-Z0-9]+$`, str)
 }
 
 //验证是否为SHA1
 //param str string 字符串
 //return bool 是否正确
-func (this *MatchString) CheckHexSha1(str string) bool{
-	return this.matchStr(`^[a-z0-9]{40}$`,str)
+func (this *MatchString) CheckHexSha1(str string) bool {
+	return this.matchStr(`^[a-z0-9]{40}$`, str)
 }
 
 //验证是否为IP地址
 //param str string IP地址
 //return bool 是否正确
-func (this *MatchString) CheckIP(str string) bool{
+func (this *MatchString) CheckIP(str string) bool {
 	if str == "[::1]" {
 		return true
 	}
-	if this.matchStr(`^$(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$`,str) == true{
+	if this.matchStr(`^$(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$`, str) == true {
 		return true
 	}
 	return false
@@ -83,7 +83,7 @@ func (this *MatchString) GetSha1(content string) string {
 	hasher := sha1.New()
 	_, err = hasher.Write([]byte(content))
 	if err != nil {
-		Log.SendLog("core/match-string.go","0.0.0.0","MatchString.GetSha1","write",err.Error())
+		Log.SendLog("core/match-string.go", "0.0.0.0", "MatchString.GetSha1", "write", err.Error())
 		return ""
 	}
 	sha := hasher.Sum(nil)
@@ -94,10 +94,10 @@ func (this *MatchString) GetSha1(content string) string {
 //param mStr string 验证
 //param str string 要验证的字符串
 //return bool 是否成功
-func (this *MatchString) matchStr(mStr string,str string) bool {
+func (this *MatchString) matchStr(mStr string, str string) bool {
 	res, err := regexp.MatchString(mStr, str)
-	if err != nil{
-		Log.SendLog("core/match-string.go","0.0.0.0","MatchString.matchStr","regexp-match-str",err.Error())
+	if err != nil {
+		Log.SendLog("core/match-string.go", "0.0.0.0", "MatchString.matchStr", "regexp-match-str", err.Error())
 		return false
 	}
 	return res == true
@@ -106,7 +106,7 @@ func (this *MatchString) matchStr(mStr string,str string) bool {
 //获取随机字符串
 //param n int 随机码
 //return string 新随机字符串
-func (this *MatchString) GetRandStr(n int) string{
+func (this *MatchString) GetRandStr(n int) string {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	re := r.Intn(n)
 	return strconv.Itoa(re)
@@ -150,7 +150,7 @@ func (this *MatchString) GetURLNameType(sendURL string) map[string]string {
 	res := map[string]string{
 		"full-name": "",
 		"only-name": "",
-		"type": "",
+		"type":      "",
 	}
 	urls := strings.Split(sendURL, "/")
 	if len(urls) < 1 {
@@ -166,13 +166,13 @@ func (this *MatchString) GetURLNameType(sendURL string) map[string]string {
 		return res
 	}
 	res["type"] = names[len(names)-1]
-	for i := 0 ; i <= len(names) ; i ++{
-		if i == len(names) - 1{
+	for i := 0; i <= len(names); i++ {
+		if i == len(names)-1 {
 			break
 		}
-		if res["only-name"] == ""{
+		if res["only-name"] == "" {
 			res["only-name"] = names[i]
-		}else{
+		} else {
 			res["only-name"] += "." + names[i]
 		}
 	}
@@ -182,10 +182,10 @@ func (this *MatchString) GetURLNameType(sendURL string) map[string]string {
 //处理page
 //param postPage string 用户提交的page
 //return int 过滤后的页数
-func (this *MatchString) FilterPage(postPage string) int{
+func (this *MatchString) FilterPage(postPage string) int {
 	var res int
-	res,err = strconv.Atoi(postPage)
-	if err != nil{
+	res, err = strconv.Atoi(postPage)
+	if err != nil {
 		res = 1
 	}
 	if res < 1 {
@@ -198,16 +198,16 @@ func (this *MatchString) FilterPage(postPage string) int{
 //限制最小值为1，最大值为999
 //param postMax string 用户提交的max
 //return int 过滤后的页数
-func (this *MatchString) FilterMax(postMax string) int{
+func (this *MatchString) FilterMax(postMax string) int {
 	var res int
-	res,err = strconv.Atoi(postMax)
-	if err != nil{
+	res, err = strconv.Atoi(postMax)
+	if err != nil {
 		res = 1
 	}
 	if res < 1 {
 		res = 1
 	}
-	if res > 999{
+	if res > 999 {
 		res = 999
 	}
 	return res
