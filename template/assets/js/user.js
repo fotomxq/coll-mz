@@ -21,7 +21,7 @@ function initTools() {
     });
     //下一页按钮
     $('a[href="#page-next"]').click(function() {
-        if (permissions.length >= max) {
+        if (userListData.length >= max) {
             page += 1;
             getList();
         }

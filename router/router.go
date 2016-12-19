@@ -64,6 +64,9 @@ func RunSever(host string) {
 		http.HandleFunc("/action-user", ActionUser)
 		http.HandleFunc("/user-self", PageUserSelf)
 	}
+	//绑定设定页面
+	http.HandleFunc("/set", PageSet)
+	http.HandleFunc("/action-set", ActionSet)
 	//绑定debug模式
 	if glob.Debug == true {
 		http.HandleFunc("/debug", PageDebug)
