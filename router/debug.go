@@ -41,6 +41,8 @@ func PageDebug(w http.ResponseWriter, r *http.Request) {
 		if b == true {
 			data["logData"] = logData
 		}
+	case "clear-user":
+		_ = glob.UserOperate.DeleteAll()
 	}
 	//输出变量及类型
 	showTemplate(w, r, "debug.html", data)

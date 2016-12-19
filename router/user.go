@@ -72,52 +72,77 @@ func ActionUser(w http.ResponseWriter, r *http.Request) {
 	case "create":
 		var niceName string
 		niceName = r.FormValue("nicename")
-		if glob.MatchString.CheckNicename(niceName) == false {
+		niceName = glob.MatchString.FilterStr(niceName)
+		if niceName == "" {
+			sendLog("router/user.go",getIPAddr(r),"ActionUser","add-check-nicename","昵称存在错误。")
 			break
 		}
 		var userName string
 		userName = r.FormValue("username")
 		if glob.MatchString.CheckUsername(userName) == false {
+			sendLog("router/user.go",getIPAddr(r),"ActionUser","add-check-username","用户名存在错误。")
 			break
 		}
 		var password string
 		password = r.FormValue("password")
 		if glob.MatchString.CheckHexSha1(password) == false {
+			sendLog("router/user.go",getIPAddr(r),"ActionUser","add-check-password","密码存在错误。")
 			break
 		}
 		var permissionsStr string
 		permissionsStr = r.FormValue("permissions")
+		if permissionsStr == ""{
+			sendLog("router/user.go",getIPAddr(r),"ActionUser","add-check-permissions","权限存在错误。")
+			break
+		}
 		var permissions []string
 		permissions = strings.Split(permissionsStr, "|")
 		var newUserID string
 		newUserID = glob.UserOperate.Create(niceName, userName, password, permissions)
 		b = newUserID != ""
+		if b == false{
+			sendLog("router/user.go",getIPAddr(r),"ActionUser","add-result","添加失败。")
+			break
+		}
 	case "edit":
 		var postUserID string
 		postUserID = r.FormValue("id")
 		if glob.MatchString.CheckHexSha1(postUserID) == false {
+			sendLog("router/user.go",getIPAddr(r),"ActionUser","edit-check-id","用户ID存在错误。")
 			break
 		}
 		var niceName string
 		niceName = r.FormValue("nicename")
-		if glob.MatchString.CheckNicename(niceName) == false {
+		niceName = glob.MatchString.FilterStr(niceName)
+		if niceName == "" {
+			sendLog("router/user.go",getIPAddr(r),"ActionUser","edit-check-nicename","昵称存在错误。")
 			break
 		}
 		var userName string
 		userName = r.FormValue("username")
 		if glob.MatchString.CheckUsername(userName) == false {
+			sendLog("router/user.go",getIPAddr(r),"ActionUser","edit-check-username","用户名存在错误。")
 			break
 		}
 		var password string
 		password = r.FormValue("password")
 		if glob.MatchString.CheckHexSha1(password) == false {
+			sendLog("router/user.go",getIPAddr(r),"ActionUser","edit-check-password","密码存在错误。")
 			break
 		}
 		var permissionsStr string
 		permissionsStr = r.FormValue("permissions")
+		if permissionsStr == ""{
+			sendLog("router/user.go",getIPAddr(r),"ActionUser","edit-check-permissions","权限存在错误。")
+			break
+		}
 		var permissions []string
 		permissions = strings.Split(permissionsStr, "|")
 		b = glob.UserOperate.Edit(postUserID, niceName, userName, password, permissions)
+		if b == false{
+			sendLog("router/user.go",getIPAddr(r),"ActionUser","edit-result","修改失败。")
+			break
+		}
 	case "delete":
 		var postUserID string
 		postUserID = r.FormValue("id")

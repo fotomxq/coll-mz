@@ -60,7 +60,7 @@ func ActionLogin(w http.ResponseWriter, r *http.Request) {
 		var passwdSha1 string
 		username = r.FormValue("username")
 		passwdSha1 = r.FormValue("password")
-		if len(username) < 4 && len(passwdSha1) < 10 {
+		if glob.MatchString.CheckUsername(username) == false || glob.MatchString.CheckHexSha1(passwdSha1) == false {
 			data = "error-username-or-passwd"
 			return
 		}

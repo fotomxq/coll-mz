@@ -32,7 +32,7 @@ func (this *MatchString) CheckUsername(str string) bool {
 //param str string 昵称
 //return bool 是否正确
 func (this *MatchString) CheckNicename(str string) bool {
-	return this.matchStr(`^[\u4e00-\u9fa5_a-zA-Z0-9]{2,30}$`, str)
+	return this.matchStr(`^[\u4e00-\u9fa5_a-zA-Z0-9]+$`, str)
 }
 
 //验证邮箱
@@ -60,7 +60,7 @@ func (this *MatchString) CheckSearch(str string) bool {
 //param str string 字符串
 //return bool 是否正确
 func (this *MatchString) CheckHexSha1(str string) bool {
-	return this.matchStr(`^[a-z0-9]{40}$`, str)
+	return this.matchStr(`^[a-z0-9]{10,45}$`, str)
 }
 
 //验证是否为IP地址
@@ -211,4 +211,24 @@ func (this *MatchString) FilterMax(postMax string) int {
 		res = 999
 	}
 	return res
+}
+
+//过滤非法字符
+//param str string 要过滤的字符串
+//return string 过滤后的字符串
+func (this *MatchString) FilterStr(str string) string{
+	var newStr string
+	//newStr = strings.Replace(str,"\r","",-1)
+	//newStr = strings.Replace(newStr,"\n","",-1)
+	//newStr = strings.Replace(newStr,"\t","",-1)
+	newStr = strings.Replace(newStr,"~","～",-1)
+	newStr = strings.Replace(newStr,"<","〈",-1)
+	newStr = strings.Replace(newStr,">","〉",-1)
+	newStr = strings.Replace(newStr,"$","￥",-1)
+	newStr = strings.Replace(newStr,"!","！",-1)
+	newStr = strings.Replace(newStr,"[","【",-1)
+	newStr = strings.Replace(newStr,"]","】",-1)
+	newStr = strings.Replace(newStr,"{","｛",-1)
+	newStr = strings.Replace(newStr,"}","｝",-1)
+	return newStr
 }

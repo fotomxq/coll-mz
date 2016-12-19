@@ -202,7 +202,7 @@ function addUser() {
     $('#add-modal').addClass('loading');
     $('#add-modal').addClass('segment');
     //提交数据
-    $.post('/action-user?action=add', {
+    $.post('/action-user?action=create', {
         'nicename': postNicename,
         'username': postUsername,
         'password': postPasswordSha1,
@@ -292,6 +292,10 @@ $(document).ready(function() {
         $('#add-user-input-password').val('');
         $('#add-user-input-permissions a').removeClass('blue');
         $('#add-modal').modal('show');
+    });
+    //确认修改按钮
+    $('a[href="#add-ok"]').click(function() {
+        addUser();
     });
     //确认修改按钮
     $('a[href="#edit-ok"]').click(function() {

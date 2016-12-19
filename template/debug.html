@@ -7,7 +7,10 @@
         {{if .actionLog}}
         <!-- 日志输出 -->
         <div class="column">
-            <a class="ui button fluid" href="/debug?action=clear-log">清理日志</a>
+            <div class="ui buttons fluid">
+                <a class="ui button" href="/debug?action=clear-log">清理日志</a>
+                <a class="ui button" href="/debug?action=clear-user">清空用户</a>
+            </div>
         </div>
         <div class="column">
             <table class="ui table">
