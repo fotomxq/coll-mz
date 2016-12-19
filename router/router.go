@@ -62,6 +62,7 @@ func RunSever(host string) {
 	if glob.UserOperate.OneUserStatus == false {
 		http.HandleFunc("/user", PageUser)
 		http.HandleFunc("/action-user", ActionUser)
+		http.HandleFunc("/user-self", PageUserSelf)
 	}
 	//绑定debug模式
 	if glob.Debug == true {

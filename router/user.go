@@ -15,6 +15,10 @@ func PageUser(w http.ResponseWriter, r *http.Request) {
 	var userID string
 	userID = checkIPAndLogged(w, r, "user")
 	if userID == "" {
+		userID = checkIPAndLogged(w, r, "user-self")
+		if userID != ""{
+			goURL(w,r,"/user-self")
+		}
 		return
 	}
 	//初始化
@@ -126,7 +130,7 @@ func ActionUser(w http.ResponseWriter, r *http.Request) {
 		}
 		var password string
 		password = r.FormValue("password")
-		if glob.MatchString.CheckHexSha1(password) == false {
+		if password != "" && glob.MatchString.CheckHexSha1(password) == false {
 			sendLog("router/user.go",getIPAddr(r),"ActionUser","edit-check-password","密码存在错误。")
 			break
 		}
@@ -138,7 +142,17 @@ func ActionUser(w http.ResponseWriter, r *http.Request) {
 		}
 		var permissions []string
 		permissions = strings.Split(permissionsStr, "|")
-		b = glob.UserOperate.Edit(postUserID, niceName, userName, password, permissions)
+		var isDisabledStr string
+		var isDisabled bool = false
+		isDisabledStr = r.FormValue("isdisabled")
+		if isDisabledStr == "true"{
+			isDisabled = true
+		}
+		if glob.MatchString.CheckUsername(userName) == false {
+			sendLog("router/user.go",getIPAddr(r),"ActionUser","edit-check-username","用户名存在错误。")
+			break
+		}
+		b = glob.UserOperate.Edit(postUserID, niceName, userName, password, permissions,isDisabled)
 		if b == false{
 			sendLog("router/user.go",getIPAddr(r),"ActionUser","edit-result","修改失败。")
 			break

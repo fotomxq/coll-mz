@@ -342,7 +342,7 @@ func (this *User) CheckUserVisitPage(userID string, page string) bool {
 		var pages []string
 		pages = permissionData["page"].([]string)
 		for _, v2 := range pages {
-			if v2 == "*" || page == v2 {
+			if v2 == "*" || page == v2{
 				return true
 			}
 		}
@@ -371,6 +371,23 @@ func (this *User) GetID(id string) (*map[string]interface{}, bool) {
 	//返回数据
 	res = this.fieldsToMap(&result)
 	return &res, true
+}
+
+//根据ID查询用户信息
+//返回UserFields数据集合
+//param id string 用户ID
+//return *map[string]interface{},bool 用户信息组，是否成功
+func (this *User) GetIDFields(id string) (*UserFields, bool) {
+	//初始化变量
+	var result UserFields
+	//获取数据
+	var err error
+	err = this.dbColl.FindId(bson.ObjectIdHex(id)).One(&result)
+	if err != nil {
+		return &result, false
+	}
+	//返回数据
+	return &result, true
 }
 
 //查询用户列表
@@ -471,8 +488,9 @@ func (this *User) Create(nicename string, username string, passwdSha1 string, pe
 //param username string 用户名
 //param passwdSha1 string 密码SHA1值
 //param permissions []string 权限列表，admin管理员权限，其他可自定义
+//param IsDisabled bool 是否禁用该账户
 //return bool 是否成功
-func (this *User) Edit(id string, nicename string, username string, passwdSha1 string, permissions []string) bool {
+func (this *User) Edit(id string, nicename string, username string, passwdSha1 string, permissions []string,isDisabled bool) bool {
 	//获取该ID数据
 	//初始化变量
 	var result UserFields
@@ -493,11 +511,16 @@ func (this *User) Edit(id string, nicename string, username string, passwdSha1 s
 		this.sendLog("0.0.0.0", "User.Edit", "user-permissions", "该用户尝试添加一个不存在的权限。")
 		return false
 	}
-	//计算密码
-	var passwdSha1Sha1 string
-	passwdSha1Sha1 = this.getPasswdSha1(passwdSha1)
-	//执行修改用户
-	err = this.dbColl.UpdateId(bson.ObjectIdHex(id), bson.M{"$set": bson.M{"nicename": nicename, "username": username, "password": passwdSha1Sha1, "permissions": permissions}})
+	//如果不修改密码
+	if passwdSha1 == ""{
+		err = this.dbColl.UpdateId(bson.ObjectIdHex(id), bson.M{"$set": bson.M{"nicename": nicename, "username": username, "permissions": permissions,"isdisabled":isDisabled}})
+	}else{
+		//计算密码
+		var passwdSha1Sha1 string
+		passwdSha1Sha1 = this.getPasswdSha1(passwdSha1)
+		//执行修改用户
+		err = this.dbColl.UpdateId(bson.ObjectIdHex(id), bson.M{"$set": bson.M{"nicename": nicename, "username": username, "password": passwdSha1Sha1, "permissions": permissions,"isdisabled":isDisabled}})
+	}
 	return err == nil
 }
 

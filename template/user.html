@@ -40,13 +40,20 @@
                 <label>用户名</label>
                 <input type="text" id="edit-user-input-username">
             </div>
-            <div class="required field">
+            <div class="field">
                 <label>密码</label>
-                <input type="password" id="edit-user-input-password">
+                <input type="password" id="edit-user-input-password" placeholder="不修改则留空">
             </div>
             <div class="required field">
                 <label>权限</label>
                 <div class="inline fields" id="edit-user-input-permissions" name="permissions" data-selected=""></div>
+            </div>
+            <div class="field">
+                <label>是否禁用</label>
+                <div class="ui checkbox" id="edit-user-input-disabled">
+                    <input type="checkbox">
+                    <label>禁用该用户</label>
+                </div>
             </div>
         </div>
     </div>

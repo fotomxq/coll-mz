@@ -133,10 +133,12 @@ function getList() {
             var date = new Date(parseInt(thisC['LastTime']) * 1000);
             var dateStr = date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate() + '- ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
             var trClass = '';
+            var thisStatus = '';
             if (thisC['IsDisabled'] == true) {
                 trClass = 'negative';
+                thisStatus = '<a class="ui label red">禁用</a> ';
             }
-            userListHtml += '<tr class="' + trClass + '" data-key="' + key + '"><td>' + thisC['NiceName'] + '</td><td>' + thisC['UserName'] + '</td><td>' + thisC['LastIP'] + '</td><td>' + dateStr + '</td><td><div class="ui buttons mini"><a class="ui blue button" href="#list-edit"><i class="edit icon"></i>编辑</a><a class="ui yellow button" href="#list-delete"><i class="remove icon"></i>删除</a></div></td></tr>>';
+            userListHtml += '<tr class="' + trClass + '" data-key="' + key + '"><td>' + thisStatus + thisC['NiceName'] + '</td><td>' + thisC['UserName'] + '</td><td>' + thisC['LastIP'] + '</td><td>' + dateStr + '</td><td><div class="ui buttons mini"><a class="ui blue button" href="#list-edit"><i class="edit icon"></i>编辑</a><a class="ui yellow button" href="#list-delete"><i class="remove icon"></i>删除</a></div></td></tr>>';
         }
         //写入表格数据
         $('#user-list tbody').html(userListHtml);
@@ -161,6 +163,11 @@ function getList() {
             $('#edit-user-input-permissions a').removeClass('blue');
             for (key in thisC['Permissions']) {
                 $('#edit-user-input-permissions a[data-key="' + thisC['Permissions'][key] + '"]').addClass('blue');
+            }
+            if(thisC['IsDisabled']){
+                $('#edit-user-input-disabled').checkbox('check');
+            }else{
+                $('#edit-user-input-disabled').checkbox('uncheck');
             }
             $('#edit-modal').modal('show');
         });
@@ -233,10 +240,10 @@ function editUser() {
         return false;
     }
     var postPassword = $('#edit-user-input-password').val();
-    if (postPassword == "") {
-        return false;
+    var postPasswordSha1 = '';
+    if(postPassword != ''){
+        postPasswordSha1 = hex_sha1(postPassword);
     }
-    var postPasswordSha1 = hex_sha1(postPassword);
     var postPermissionArr = new Array();
     $('#edit-user-input-permissions .blue').each(function() {
         postPermissionArr.push($(this).attr('data-key'));
@@ -253,7 +260,8 @@ function editUser() {
         'nicename': postNicename,
         'username': postUsername,
         'password': postPasswordSha1,
-        'permissions': postPermissions
+        'permissions': postPermissions,
+        'isdisabled' : $('#edit-user-input-disabled').checkbox('is checked')
     }, function(data) {
         $('#edit-modal').removeClass('loading');
         $('#edit-modal').removeClass('segment');
@@ -312,4 +320,6 @@ $(document).ready(function() {
     $('a[href="#modal-cancel"]').click(function() {
         $(this).parent().parent().modal('hide');
     });
+    //启动所有checkbox框架
+    $('.ui.checkbox').checkbox();
 });

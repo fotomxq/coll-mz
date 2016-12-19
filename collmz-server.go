@@ -106,7 +106,7 @@ func main() {
 			},
 			"normal": {
 				"name": "普通用户",
-				"page": []string{"center"},
+				"page": []string{"center","user-self"},
 			},
 		},
 	})

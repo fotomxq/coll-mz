@@ -50,7 +50,7 @@ func LoadFile(src string) ([]byte, bool) {
 //param content []byte 写入内容
 //return bool 是否成功
 func WriteFile(src string, content []byte) bool {
-	err = ioutil.WriteFile(src, content, os.ModeAppend)
+	err = ioutil.WriteFile(src, content, 0644)
 	if err != nil {
 		SendLog(err.Error())
 	}

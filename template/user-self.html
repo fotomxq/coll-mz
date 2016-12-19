@@ -1,0 +1,30 @@
+{{template "header" .}} {{template "menu" .}}
+<div class="ui main container" data-status="{{.postStatus}}">
+    <div class="ui one column grid">
+        <div class="column">
+            <h2 class="ui orange header">账户信息</h2>
+        </div>
+        <div class="column">
+            <div class="ui message hidden" id="message">
+                <div class="header"></div>
+                <div class="content"></div>
+            </div>
+        </div>
+        <div class="column">
+            <form class="ui inverted form" action="/user-self" method="post">
+                <div class="required field">
+                    <label>新的昵称</label>
+                    <input type="text" name="nicename" value="{{.userNicename}}">
+                </div>
+                <div class="required field">
+                    <label>新的密码</label>
+                    <input type="password" name="password" value="">
+                </div>
+                <div class="field">
+                    <a class="ui button blue" href="#edit-ok"><i class="edit icon"></i> 修改</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{{template "footer" .}}
