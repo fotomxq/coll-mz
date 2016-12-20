@@ -71,14 +71,13 @@ func (this *SessionOperate) Create(appName string, db *mgo.Database, sessionIPBi
 //param w *http.ResponseWriter Http写入对象
 //param r *http.Request Http读取对象
 //param name string 标记
-//return map[string]string, bool 会话变量组合，是否失败
-func (this *SessionOperate) SessionGet(w http.ResponseWriter, r *http.Request, name string) (map[string]string, bool) {
+//return map[string]string, string 会话变量组合，mark标记名称，如果失败则mark返回空值
+func (this *SessionOperate) SessionGet(w http.ResponseWriter, r *http.Request, name string) (map[string]string, string) {
 	//检查所有超过时间期限的数据，自动删除cookie记录
 	var timeOut int64
 	timeOut = time.Now().Unix() - this.sessionTimeout64
 	err = this.dbCollStore.Remove(bson.M{"createtime": bson.M{"$lt": timeOut}})
 	if err == nil {
-		//Log.SendLog("core/session-operate.go",IPAddrsGetRequest(r),"SessionOperate.SessionGet","clear-timeout-cookie","清理了过期的Cookie记录。")
 	}
 	//初始化变量
 	var result map[string]map[string]string
@@ -88,24 +87,24 @@ func (this *SessionOperate) SessionGet(w http.ResponseWriter, r *http.Request, n
 	mark = this.getCookieValue(w, r)
 	if mark == "" {
 		Log.SendLog("core/session-operate.go", IPAddrsGetRequest(r), "SessionOperate.SessionGet", "get-mark", "无法获取cookie标识码。")
-		return map[string]string{}, false
+		return map[string]string{}, ""
 	}
 	//在数据库查找该值，不存在则返回
 	err = this.dbCollStore.Find(bson.M{"name": mark}).One(&res)
 	if err != nil {
 		//Log.SendLog("core/session-operate.go",IPAddrsGetRequest(r),"SessionOperate.SessionGet","get-database",err.Error())
-		return map[string]string{}, false
+		return map[string]string{}, ""
 	}
 	//如果当前IP地址和结果IP不一致，则重新构建cookie
 	if this.sessionIPBind == true {
 		if res.IP != IPAddrsGetRequest(r) {
 			Log.SendLog("core/session-operate.go", IPAddrsGetRequest(r), "SessionOperate.SessionGet", "ip-no-bind", "客户端IP地址和Cookie记录IP地址不符，数据集合内的IP地址是："+res.IP)
-			return map[string]string{}, false
+			return map[string]string{}, ""
 		}
 	}
 	//如果不存在数据，则返回
 	if res.Value == "" {
-		return map[string]string{}, true
+		return map[string]string{}, mark
 	}
 	//解析数据
 	err = json.Unmarshal([]byte(res.Value), &result)
@@ -114,10 +113,10 @@ func (this *SessionOperate) SessionGet(w http.ResponseWriter, r *http.Request, n
 	}
 	//如果不存在数据，则返回
 	if result[name] == nil {
-		return map[string]string{}, true
+		return map[string]string{}, mark
 	}
 	//返回数据集合
-	return result[name], true
+	return result[name], mark
 }
 
 //写入会话数据

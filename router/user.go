@@ -61,7 +61,7 @@ func ActionUser(w http.ResponseWriter, r *http.Request) {
 	case "list":
 		//搜索提交
 		var search string
-		search = r.FormValue("search")
+		search = glob.MatchString.CheckFilterStr(r.FormValue("search"),1,50)
 		var pages PageMaxSortDesc
 		pages = getPageMaxSortDesc(r)
 		//获取用户列表
@@ -75,8 +75,7 @@ func ActionUser(w http.ResponseWriter, r *http.Request) {
 		data["search"] = search
 	case "create":
 		var niceName string
-		niceName = r.FormValue("nicename")
-		niceName = glob.MatchString.FilterStr(niceName)
+		niceName = glob.MatchString.CheckFilterStr(r.FormValue("nicename"),2,30)
 		if niceName == "" {
 			sendLog("router/user.go",getIPAddr(r),"ActionUser","add-check-nicename","昵称存在错误。")
 			break
@@ -116,8 +115,7 @@ func ActionUser(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		var niceName string
-		niceName = r.FormValue("nicename")
-		niceName = glob.MatchString.FilterStr(niceName)
+		niceName = glob.MatchString.CheckFilterStr(r.FormValue("nicename"),2,30)
 		if niceName == "" {
 			sendLog("router/user.go",getIPAddr(r),"ActionUser","edit-check-nicename","昵称存在错误。")
 			break

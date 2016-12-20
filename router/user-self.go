@@ -32,7 +32,7 @@ func PageUserSelf(w http.ResponseWriter, r *http.Request) {
 	//如果存在数据
 	if postNicename != "" && postPassword != ""{
 		postStatus = "has"
-		postNicename = glob.MatchString.FilterStr(postNicename)
+		postNicename = glob.MatchString.CheckFilterStr(postNicename,2,30)
 		if postNicename == "" {
 			sendLog("router/user-self.go",getIPAddr(r),"PageUserSelf","check-nicename","昵称存在错误。")
 			postStatus = "error"
