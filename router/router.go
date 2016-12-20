@@ -1,7 +1,7 @@
 package router
 
 import (
-	"../core"
+	"github.com/fotomxq/coll-mz/core"
 	"gopkg.in/mgo.v2"
 	"net/http"
 )
@@ -102,7 +102,11 @@ func sendLog(fileName string, ipAddr string, funcName string, mark string, messa
 //return string 用户ID
 func userCheckLogged(w http.ResponseWriter, r *http.Request) string {
 	//返回登录用户ID，无登录或失败则返回空字符串
-	return glob.UserOperate.GetLoginStatus(w, r)
+	res, b := glob.UserOperate.GetLoginStatus(w, r)
+	if b == false {
+		return ""
+	}
+	return res
 }
 
 //转接用户登录模块

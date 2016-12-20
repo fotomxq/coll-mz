@@ -97,6 +97,8 @@ type UserFields struct {
 	IsDisabled bool
 	//权限标识
 	Permissions []string
+	//当前登录的cookie
+	CookieMark string
 }
 
 //Session结构
@@ -164,7 +166,7 @@ func (this *User) Init(params *UserParams) {
 			return
 		}
 		var permissions []string = []string{"admin"}
-		err = this.dbColl.Insert(&UserFields{bson.NewObjectId(), params.OneUsername, params.OneUsername, passwordSha1Sha1, "0.0.0.0", 0, false, permissions})
+		err = this.dbColl.Insert(&UserFields{bson.NewObjectId(), params.OneUsername, params.OneUsername, passwordSha1Sha1, "0.0.0.0", 0, false, permissions,""})
 		if err != nil {
 			this.sendLog("0.0.0.0", "SetManyUser", "insert-new-user", err.Error())
 			return
@@ -180,31 +182,44 @@ func (this *User) Init(params *UserParams) {
 //获取用户登录ID
 //param w *http.ResponseWriter Http写入对象
 //param r *http.Request Http读取对象
-//return string 登录的用户ID，未登录则返回空字符串
-func (this *User) GetLoginStatus(w http.ResponseWriter, r *http.Request) string {
+//return string,bool 登录的用户ID，是否登录
+func (this *User) GetLoginStatus(w http.ResponseWriter, r *http.Request) (string,bool) {
 	//获取session
 	var res *UserSession
-	var b bool
-	res, b = this.getSession(w, r)
-	if b == false {
-		return ""
+	var cookieMark string
+	res, cookieMark = this.getSession(w, r)
+	if cookieMark == "" {
+		return "no-cookie-mark",false
 	}
 	if res.UserID == "" {
-		return ""
+		return "no-user-id",false
 	}
 	if res.UserID == "one-true" {
 		if this.OneUserStatus == false {
 			//如果是单用户记录，但系统未启动单用户模式，则强制清空cookie并记录到log中
 			this.sendLog(IPAddrsGetRequest(r), "User.GetLoginStatus", "one-user-status-is-false", "安全问题，系统未开启单用户模式，但该用户"+res.UserID+"尝试单用户模式登录。")
 			_ = this.removeCookie(w, r)
+			return "one-true",false
 		}
-		return "one-true"
+		return "one-true",true
 	} else {
 		if this.OneUserStatus == true {
 			//如果是多用户记录，但系统启动单用户模式，则强制清空cookie并记录到log中
 			this.sendLog(IPAddrsGetRequest(r), "User.GetLoginStatus", "one-user-status-is-false", "安全问题，系统开启单用户模式，但该用户"+res.UserID+"尝试多用户模式登录。")
 			_ = this.removeCookie(w, r)
+			return "many-user",false
 		}
+	}
+	//获取该用户信息
+	var userInfo *UserFields
+	var b bool
+	userInfo,b = this.GetIDFields(res.UserID)
+	if b == false{
+		return "no-user-info",false
+	}
+	//检查用户记录的cookie值和当前cookie mark是否匹配
+	if userInfo.CookieMark != cookieMark {
+		return "cookie-mark",false
 	}
 	//更新登录时间值
 	var unixTime int64
@@ -214,11 +229,14 @@ func (this *User) GetLoginStatus(w http.ResponseWriter, r *http.Request) string 
 		res.UserID = ""
 		_ = this.setSession(w, r, res)
 		this.sendLog(IPAddrsGetRequest(r), "User.GetLoginStatus", "user-login-timeout-minute", res.UserID+"用户登录超时，自动退出。")
+		res.LastTime = unixTime
+		_ = this.setSession(w, r, res)
+		return "timeout",false
 	}
 	res.LastTime = unixTime
 	_ = this.setSession(w, r, res)
 	//返回
-	return res.UserID
+	return res.UserID,true
 }
 
 //用户登录
@@ -231,14 +249,14 @@ func (this *User) GetLoginStatus(w http.ResponseWriter, r *http.Request) string 
 func (this *User) Login(w http.ResponseWriter, r *http.Request, username string, passwdSha1 string) bool {
 	//初始化变量
 	var res *UserSession
-	var b bool
+	var cookieMark string
 	var err error
 	//获取当前时间
 	var unixTime int64
 	unixTime = time.Now().Unix()
 	//获取session数据
-	res, b = this.getSession(w, r)
-	if b == false {
+	res, cookieMark = this.getSession(w, r)
+	if cookieMark == "" {
 		return false
 	}
 	//检查是否超过错误次数5次
@@ -248,7 +266,9 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request, username string,
 		return false
 	}
 	//是否已经登录，是则返回成功
-	if this.GetLoginStatus(w, r) != "" {
+	var b bool
+	_,b = this.GetLoginStatus(w, r)
+	if b == true {
 		return true
 	}
 	//检查用户名和密码是否合法
@@ -283,11 +303,11 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request, username string,
 			_ = this.setSession(w, r, res)
 			return false
 		}
-		//用户存在，则修改登录IP和时间
+		//用户存在，则修改登录IP和时间、cookieMark
 		var userID string
 		userID = result.ID.Hex()
 		if userID != "" {
-			err = this.dbColl.Update(bson.M{"_id": bson.ObjectIdHex(userID)}, bson.M{"$set": bson.M{"lastip": ipAddr, "lasttime": unixTime}})
+			err = this.dbColl.Update(bson.M{"_id": bson.ObjectIdHex(userID)}, bson.M{"$set": bson.M{"lastip": ipAddr, "lasttime": unixTime,"cookiemark":cookieMark}})
 			if err != nil {
 				this.sendLog(ipAddr, "Login", "many-user-update", err.Error()+" , user id : "+userID+" , lastip : "+ipAddr+" , lasttime : "+strconv.FormatInt(unixTime, 10))
 				res.LoginErrorNum += 1
@@ -467,7 +487,7 @@ func (this *User) Create(nicename string, username string, passwdSha1 string, pe
 	passwordSha1Sha1 = this.getPasswdSha1(passwdSha1)
 	//执行创建用户
 	var err error
-	err = this.dbColl.Insert(&UserFields{bson.NewObjectId(), username, username, passwordSha1Sha1, "0.0.0.0", 0, false, permissions})
+	err = this.dbColl.Insert(&UserFields{bson.NewObjectId(), username, username, passwordSha1Sha1, "0.0.0.0", 0, false, permissions,""})
 	if err != nil {
 		this.sendLog("0.0.0.0", "Create", "insert-new-user", err.Error())
 		return ""
@@ -606,32 +626,35 @@ func (this *User) sendLog(ipAddr string, funcName string, mark string, message s
 //获取session值
 //param w *http.ResponseWriter Http写入对象
 //param r *http.Request Http读取对象
-//return UserSession,bool Session信息组，是否成功
-func (this *User) getSession(w http.ResponseWriter, r *http.Request) (*UserSession, bool) {
+//return UserSession,string Session信息组，cookie标记名称，失败则返回空字符串
+func (this *User) getSession(w http.ResponseWriter, r *http.Request) (*UserSession, string) {
 	var result UserSession
 	var res map[string]string
-	var b bool
-	res, b = this.sessionOperate.SessionGet(w, r, "login")
-	if b == false || res["login-user-id"] == "" || res["login-last-time"] == "" || res["login-error-num"] == "" {
+	var mark string
+	res, mark = this.sessionOperate.SessionGet(w, r, "login")
+	if mark == "" || res["login-user-id"] == "" || res["login-last-time"] == "" || res["login-error-num"] == "" {
 		res["login-user-id"] = ""
 		res["login-last-time"] = "0"
 		res["login-error-num"] = "0"
+		var b bool
 		b = this.sessionOperate.SessionSet(w, r, "login", res)
 		if b == false {
 			this.sendLog(IPAddrsGetRequest(r), "User.getSession", "set-session-res", "无法设定session数据。")
+			return &result,""
 		}
 	}
 	result.UserID = res["login-user-id"]
 	result.LastTime, err = strconv.ParseInt(res["login-last-time"], 10, 64)
 	if err != nil {
 		this.sendLog(IPAddrsGetRequest(r), "User.getSession", "get-lasttime-int64", err.Error())
+		return &result,""
 	}
 	result.LoginErrorNum, err = strconv.Atoi(res["login-error-num"])
 	if err != nil {
 		result.LoginErrorNum = 0
 		this.sendLog(IPAddrsGetRequest(r), "User.getSession", "get-login-error-num-int", err.Error())
 	}
-	return &result, true
+	return &result, mark
 }
 
 //设定session
@@ -641,15 +664,16 @@ func (this *User) getSession(w http.ResponseWriter, r *http.Request) (*UserSessi
 //return bool 是否成功
 func (this *User) setSession(w http.ResponseWriter, r *http.Request, data *UserSession) bool {
 	var res map[string]string
-	var b bool
-	res, b = this.sessionOperate.SessionGet(w, r, "login")
-	if b == false {
+	var mark string
+	res, mark = this.sessionOperate.SessionGet(w, r, "login")
+	if mark == "" {
 		this.sendLog(IPAddrsGetRequest(r), "User.setSession", "get-session-res", "无法获取session数据。")
 		return false
 	}
 	res["login-user-id"] = data.UserID
 	res["login-last-time"] = strconv.FormatInt(data.LastTime, 10)
 	res["login-error-num"] = strconv.Itoa(data.LoginErrorNum)
+	var b bool
 	b = this.sessionOperate.SessionSet(w, r, "login", res)
 	if b == false {
 		this.sendLog(IPAddrsGetRequest(r), "User.setSession", "set-session-res", "无法设定session数据。")

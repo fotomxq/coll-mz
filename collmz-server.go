@@ -1,8 +1,8 @@
 package main
 
 import (
-	"./core"
-	"./router"
+	"github.com/fotomxq/coll-mz/core"
+	"github.com/fotomxq/coll-mz/router"
 	"gopkg.in/mgo.v2"
 	"strconv"
 )
@@ -106,7 +106,7 @@ func main() {
 			},
 			"normal": {
 				"name": "普通用户",
-				"page": []string{"center","user-self"},
+				"page": []string{"center", "user-self"},
 			},
 		},
 	})
