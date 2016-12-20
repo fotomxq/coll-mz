@@ -70,6 +70,9 @@ func (this *MatchString) CheckIP(str string) bool {
 	if str == "[::1]" {
 		return true
 	}
+	if this.matchStr(`((2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(2[0-4]\d|25[0-5]|[01]?\d\d?)`, str) == true {
+		return true
+	}
 	if this.matchStr(`^$(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$`, str) == true {
 		return true
 	}
